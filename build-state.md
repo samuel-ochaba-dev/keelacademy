@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-21
 **Stage:** 0 — Schema & walking skeleton
-**Milestone in progress:** S0.3
+**Milestone in progress:** S0.4
 
 > ## Resume protocol — read this first
 > 1. Read this file, then skim build-plan.md §4 for the current stage's exit criteria.
@@ -11,7 +11,7 @@
 
 ## Next action
 
-Build the Layer-1 grading CLI (S0.3) — task prompt issued to the worker AI. Done when: a fixture repo with one failing test prints which test failed; plus real-content proof against the 3.2.1 completion problem (base fails naming the gap tests; filled copy passes). The same task also closes the gap found in S0.2 review: the missing faq/3.2.1.md stub (three unstuck anchors).
+Build the Layer-2 rubric-judge CLI (S0.4) — task prompt issued to the worker AI. Done when: verdict JSON validates against a new verdict schema and quotes submission text; proven on golden submissions s01 (expect pass), s07 (expect fail), s12 (expect fail — the JSON-mode borderline). Requires an LLM API key (OPENAI_API_KEY or ANTHROPIC_API_KEY) in the worker environment.
 
 ---
 
@@ -20,7 +20,7 @@ Build the Layer-1 grading CLI (S0.3) — task prompt issued to the worker AI. Do
 
 - [x] S0.1 Four content schemas written as JSON Schema (unit, rubric, data-variant, persona) — accepted on review 2026-08-21; validator output confirms 4 valid + 1 expected-invalid
 - [x] S0.2 Golden-path unit 3.2.1 authored in full: lesson (3 layers), worked example, completion problem + checks, retrieval seeds, rubric v1, 15 pre-graded golden submissions — accepted on execution-verified review 2026-08-21
-- [ ] S0.3 CLI: point at a repo → run its pytest in Docker → parse per-test results. *Done when: a fixture repo with one failing test prints which test failed*
+- [x] S0.3 CLI: point at a repo → run its pytest in Docker → parse per-test results. *Done when: a fixture repo with one failing test prints which test failed* — accepted on execution-verified review 2026-08-21 (fixture names the failing nodeid; completion base fails naming the 5 gap tests; filled copy passes 3/3 after the no-gap-markers scoping fix; faq/3.2.1.md stub added)
 - [ ] S0.4 CLI: rubric judge → structured verdict (pass/fail per criterion + quoted evidence). *Done when: verdict JSON validates against its schema and quotes submission text*
 - [ ] S0.5 CLI: defend-your-work — generate 2–3 follow-up questions from a submission's actual code. *Done when: questions reference specifics of the submitted code, not generics*
 - [ ] S0.6 Judge calibration: run judge over the 15 golden submissions, compare to human grades, record agreement %
@@ -96,6 +96,9 @@ Build the Layer-1 grading CLI (S0.3) — task prompt issued to the worker AI. Do
 - **2026-08-21** — Submission layout contract (extract_claims.py / claims_messy.jsonl / tests/test_build.py / CLI flags) is declared in each checks file's header; the grading runner (S0.3+) enforces it and the unit page (S2.3) communicates it.
 - **2026-08-21** — platform/ is created at S0.3 as platform/cli (Python grading CLI); the Next.js learner app lands in platform/app at S2.3 (amends the earlier "platform created at Stage 1" layout note).
 - **2026-08-21** — Deployment topology: learner app (platform/app) deploys to Vercel; grading core (FastAPI + Docker sandbox runner + LLM proxy) deploys to a separate container/VM host — provider chosen at S1.4. Docker Desktop is a local dev requirement for the grading loop, not a deployment constraint.
+- **2026-08-21** — S0.3 accepted on execution-verified review: fixture FAIL names the failing nodeid; completion base FAILs naming the 5 gap tests; filled copy 3/3 PASS; Docker 29.7.2 + keel-runner:0.1 (python:3.12-slim, pydantic 2.13.4 / pytest 9.1.1) verified; protected files timestamp-verified untouched.
+- **2026-08-21** — Content bug found by the worker, fixed by the reviewing session: no-gap-markers-remain now scopes its grep to the two student-edited files (schemas.py, extractor.py) because test_extractor.py references GAP anchors by design. Rule: checks assert only on files the student controls; every check must pass on a known-good solution and fail on the unfilled base.
+- **2026-08-21** — Checks format supports three expect forms: exit_zero | exit_nonzero | {output_contains}. CLI architecture: thin host CLI (PyYAML only) orchestrating one Docker container per check (--network none, 512m, 1 cpu, read-only /work, rw scratch, 120s wall-clock kill); graded code runs only inside the runner image.
 
 ## Blockers / open questions
 

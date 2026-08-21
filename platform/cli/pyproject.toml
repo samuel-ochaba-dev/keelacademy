@@ -1,0 +1,16 @@
+[project]
+name = "keel-grader"
+version = "0.1.0"
+description = "keelacademy Layer-1 grading CLI: run a submission's checks in a sandboxed Docker container and parse per-test results."
+requires-python = ">=3.12"
+dependencies = ["PyYAML>=6.0"]
+
+[project.scripts]
+keel-l1 = "grader.l1:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["grader"]

@@ -7,9 +7,12 @@
   run: units/phase-3/3.2.1/completion/test_extractor.py
   expect: exit_zero
 
+# Scoped to the two files students edit: test_extractor.py references the GAP
+# anchors in its own docstring/comments by design, so a repo-wide grep could
+# never pass even for a correct completion.
 - id: no-gap-markers-remain
   type: command
-  run: grep -rE "GAP [0-9]" units/phase-3/3.2.1/completion/ --include="*.py"
+  run: grep -E "GAP [0-9]" units/phase-3/3.2.1/completion/schemas.py units/phase-3/3.2.1/completion/extractor.py
   expect: exit_nonzero
 
 - id: pipeline-runs-end-to-end
