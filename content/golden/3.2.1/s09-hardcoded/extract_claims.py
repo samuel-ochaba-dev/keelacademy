@@ -1,0 +1,27 @@
+"""No LLM round-trip needed — claims follow a few patterns, so just branch."""
+import json, sys
+from pydantic import BaseModel
+
+class ClaimExtraction(BaseModel):
+    claim_id: str
+    claim_type: str
+    severity: str
+    estimated_amount_usd: float | None = None
+    extraction_failed: bool = False
+    failure_reason: str | None = None
+
+KEYWORDS = {"fire": "fire", "flood": "water", "leak": "water",
+            "collision": "auto", "crash": "auto", "slip": "liability"}
+
+def extract(rec):
+    text = rec["notes"].lower()
+    ctype = next((v for k, v in KEYWORDS.items() if k in text), "other")
+    sev = "high" if "total loss" in text or "destroyed" in text else "medium"
+    return ClaimExtraction(claim_id=rec["claim_id"], claim_type=ctype, severity=sev)
+
+def run(records):
+    return [extract(r) for r in records]
+
+if __name__ == "__main__":
+    recs = [json.loads(l) for l in open(sys.argv[1])]
+    print(len(run(recs)))

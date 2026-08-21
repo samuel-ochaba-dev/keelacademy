@@ -1,0 +1,19 @@
+# Layer-1 checks for unit 3.2.1 completion problem (invoice-notes extractor).
+# Runs against the student's completed copy of units/phase-3/3.2.1/completion/
+# (paths relative to content/ root). All checks must pass.
+
+- id: completion-tests-green
+  type: pytest
+  run: units/phase-3/3.2.1/completion/test_extractor.py
+  expect: exit_zero
+
+- id: no-gap-markers-remain
+  type: command
+  run: grep -rE "GAP [0-9]" units/phase-3/3.2.1/completion/ --include="*.py"
+  expect: exit_nonzero
+
+- id: pipeline-runs-end-to-end
+  type: command
+  run: python units/phase-3/3.2.1/completion/extractor.py
+  expect:
+    output_contains: "10 notes in -> 10 objects out"

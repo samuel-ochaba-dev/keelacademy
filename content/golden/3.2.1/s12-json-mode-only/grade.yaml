@@ -1,0 +1,12 @@
+submission: s12-json-mode-only
+expected: borderline
+criteria:
+  schema-constrained-generation: fail
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: pass
+overall: fail
+grader_notes: "BORDERLINE. Excellent submission that uses JSON mode (json_object) instead of schema-constrained generation; schema is described in the prompt. The rubric explicitly says plain JSON mode does not satisfy criterion 1 (syntax-only constraint). Own Pydantic boundary compensates in practice — a judge that hasn't internalized that note may pass it. Fails on the letter of exactly one criterion."
+graded_by: human
+graded_on: 2026-08-21

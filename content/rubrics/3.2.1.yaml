@@ -1,0 +1,50 @@
+id: rubric-3.2.1
+version: 1
+pass_rule: all
+judge:
+  prompt: prompts/judge-3.2.1.md
+  model_tier: mid
+golden_set: golden/3.2.1/
+criteria:
+  - id: schema-constrained-generation
+    description: >-
+      The extractor obtains model output through a schema-constrained generation
+      mechanism — strict json_schema response_format, a forced tool/function
+      definition, or an equivalent guided-decoding parameter — not JSON merely
+      promised in the prompt. (Plain JSON mode alone does NOT satisfy this
+      criterion: it constrains syntax, not schema.)
+    evidence: >-
+      Quote the provider-call lines showing the constraint (response_format /
+      tool_choice / guided parameter) actually passed in the request.
+  - id: pydantic-validation-boundary
+    description: >-
+      Every model output passes through ClaimExtraction validation (Pydantic
+      model_validate / model_validate_json) before anything downstream consumes
+      it; no raw parsed dicts or raw model text flow past the extractor.
+    evidence: >-
+      Quote the model_validate call site and note the return type of the
+      extraction function.
+  - id: defined-fallback
+    description: >-
+      A validation failure produces a defined fallback value — a schema-valid
+      ClaimExtraction explicitly marked as failed (e.g. extraction_failed=True
+      with a failure_reason) — never a propagated exception, a None return, or a
+      skipped record.
+    evidence: >-
+      Quote the except ValidationError branch (or equivalent) showing what is
+      constructed and returned.
+  - id: failures-logged
+    description: >-
+      Every fallback is logged with enough context to find the record again:
+      the claim identifier and the validation reason, at the moment of failure.
+    evidence: >-
+      Quote the log statement and its format fields (must include claim id and
+      reason).
+  - id: conservation-tested
+    description: >-
+      The submission contains executable evidence (a test, or a committed run
+      artifact with the code that produced it) that the 20 messy inputs yield
+      exactly 20 outputs with no silent drops — N-in/N-out is checked, not
+      assumed.
+    evidence: >-
+      Quote the assertion or the run artifact line(s) demonstrating 20-in/20-out.

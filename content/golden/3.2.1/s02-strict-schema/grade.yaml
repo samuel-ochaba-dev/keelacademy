@@ -1,0 +1,12 @@
+submission: s02-strict-schema
+expected: pass
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: pass
+overall: pass
+grader_notes: "model_validate_json in one step, claim_id overwritten from input after validation (acceptable: still enforced by schema). All five criteria cleanly met."
+graded_by: human
+graded_on: 2026-08-21

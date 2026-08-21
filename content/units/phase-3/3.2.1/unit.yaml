@@ -1,0 +1,37 @@
+id: "3.2.1"
+phase: 3
+est_hours: 6
+prereq_units: ["2.4.2", "1.5.1"]
+last_verified:
+  concept_core: 2026-08-21
+  applied_context: 2026-08-21
+  tool_specifics: 2026-08-21
+learn: units/phase-3/3.2.1/learn.md
+practice:
+  worked_example: units/phase-3/3.2.1/worked-example/
+  completion_problem:
+    base: units/phase-3/3.2.1/completion/
+    checks: checks/3.2.1.completion.yaml
+  retrieval_seeds:
+    - "why free-text LLM output cannot be parsed reliably by downstream systems"
+    - "why schema-constrained generation beats prompt-promised JSON"
+    - "JSON mode vs tool-calling-style structured outputs — what each actually guarantees"
+    - "Pydantic v2 model_validate as an enforcement boundary, not just a dataclass"
+    - "graceful degradation: fallback objects and logged validation failures instead of silent drops"
+build:
+  deliverable: "Rebuild your claim extractor (Phase 1/2 work) so it returns a Pydantic-validated `ClaimExtraction` object every time, with a defined fallback when the model's output fails validation."
+  submission: repo
+  data_variant: meridian@v3
+verify:
+  layers: [1, 2, 3]
+  deterministic_checks: checks/3.2.1.build.yaml
+  rubric: rubrics/3.2.1.yaml
+gate:
+  unlocks: ["3.2.2"]
+unstuck:
+  - symptom: "Pydantic nested-model validation fails with 'Input should be a valid dict'"
+    fix_ref: faq/3.2.1.md#nested-validation
+  - symptom: "Model returns valid JSON but wrong shape (strings where numbers expected)"
+    fix_ref: faq/3.2.1.md#wrong-shape
+  - symptom: "json.loads raises on model output despite JSON mode being on"
+    fix_ref: faq/3.2.1.md#json-mode-still-marks

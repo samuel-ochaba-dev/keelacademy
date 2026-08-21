@@ -1,0 +1,12 @@
+submission: s14-artifact-evidence
+expected: borderline
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: pass
+overall: pass
+grader_notes: "BORDERLINE. No pytest suite at all — but committed artifacts from a real run: out.jsonl has exactly 20 schema-shaped lines and run.log carries 3 FALLBACK lines with claim ids and reasons, produced by the submitted code. Rubric allows 'executable evidence (a test, or a committed run artifact with the code that produced it)'. Passed on the artifact. Judges skeptical of artifacts (reproducibility) may fail criterion 5 — calibration case for exactly that boundary."
+graded_by: human
+graded_on: 2026-08-21

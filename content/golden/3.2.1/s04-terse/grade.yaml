@@ -1,0 +1,12 @@
+submission: s04-terse
+expected: pass
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: pass
+overall: pass
+grader_notes: "Unreadable but correct: forced-tool structured output, single validation boundary, flagged fallback, id+reason in logs, real tests. Style is not a rubric criterion."
+graded_by: human
+graded_on: 2026-08-21

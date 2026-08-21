@@ -1,0 +1,12 @@
+submission: s05-retry
+expected: pass
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: pass
+overall: pass
+grader_notes: "Retry-then-fallback is a legitimate refinement (each retry also logged). Conservation holds: retry loop cannot drop. All criteria met."
+graded_by: human
+graded_on: 2026-08-21

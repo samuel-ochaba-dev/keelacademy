@@ -1,0 +1,12 @@
+submission: s08-no-fallback
+expected: fail
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: fail
+  failures-logged: fail
+  conservation-tested: fail
+overall: fail
+grader_notes: "Half-right: constrained generation + real validation boundary. But failures skip the record (logged only as 'skipping', and the record is dropped from output). Not a defined fallback, not 20/20, and the log line lacks a reason tied to the output record. 'Fail loudly' was implemented as 'drop quietly-ish'."
+graded_by: human
+graded_on: 2026-08-21

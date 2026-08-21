@@ -1,0 +1,12 @@
+submission: s13-nineteen-fixture
+expected: borderline
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: pass
+  conservation-tested: fail
+overall: fail
+grader_notes: "BORDERLINE. The code is a full pass, and the conservation test is real — but the fixture silently shrank to 19 records (comment admits deleting a corrupted line), so the evidence shows 19-in/19-out, not the 20 the bar names. The pattern is right; the proof isn't. Criterion 5 requires evidence of the actual bar. Judges may split on whether N-in/N-out generally suffices."
+graded_by: human
+graded_on: 2026-08-21

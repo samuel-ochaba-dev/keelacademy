@@ -1,0 +1,12 @@
+submission: s07-freetext-regex
+expected: fail
+criteria:
+  schema-constrained-generation: fail
+  pydantic-validation-boundary: fail
+  defined-fallback: fail
+  failures-logged: fail
+  conservation-tested: pass
+overall: fail
+grader_notes: "Free-text completion + regex mining. ClaimExtraction is defined but never used; no constraint on generation, no validation, no fallback, no logs. Count happens to conserve (20 dicts) so conservation-tested technically passes. The unit's whole subject matter is missing."
+graded_by: human
+graded_on: 2026-08-21

@@ -1,0 +1,20 @@
+{"claim_id": "CLM-9000", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9001", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9002", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9003", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9004", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9005", "claim_type": "other", "severity": "low", "extraction_failed": true, "failure_reason": "estimated_amount_usd: Input should be a valid number"}
+{"claim_id": "CLM-9006", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9007", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9008", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9009", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9010", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9011", "claim_type": "other", "severity": "low", "extraction_failed": true, "failure_reason": "estimated_amount_usd: Input should be a valid number"}
+{"claim_id": "CLM-9012", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9013", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9014", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9015", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9016", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9017", "claim_type": "other", "severity": "low", "extraction_failed": true, "failure_reason": "estimated_amount_usd: Input should be a valid number"}
+{"claim_id": "CLM-9018", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}
+{"claim_id": "CLM-9019", "claim_type": "other", "severity": "low", "extraction_failed": false, "failure_reason": null}

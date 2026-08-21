@@ -1,0 +1,12 @@
+submission: s06-silent-drops
+expected: fail
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: fail
+  failures-logged: fail
+  conservation-tested: fail
+overall: fail
+grader_notes: "Classic silent-drop: except returns None and run() filters it out; the test even blesses the loss (>=15). Constrained call + validation are real, but 20-in-20-out is violated and nothing is logged. Exactly the regulated-workflow failure the unit exists to prevent."
+graded_by: human
+graded_on: 2026-08-21

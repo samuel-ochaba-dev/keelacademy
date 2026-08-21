@@ -1,0 +1,51 @@
+# Layer-1 checks for unit 3.2.1 build deliverable.
+#
+# Submission contract (what the checks assume about the student's repo):
+#   extract_claims.py        runnable pipeline; defines the Pydantic ClaimExtraction
+#   claims_messy.jsonl       the 20 messy claim texts from the student's data variant
+#   tests/test_build.py      pytest suite the student wrote (1.5.1 habit)
+#   CLI: python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log
+#
+# These checks encode the curriculum's Prove-it bar verbatim: "Running it against
+# 20 messy real-world-style claim texts produces 20 valid schema objects — with
+# the failures logged, not silently dropped."
+
+- id: schema-object-importable
+  type: command
+  run: python -c "from extract_claims import ClaimExtraction; import pydantic; assert issubclass(ClaimExtraction, pydantic.BaseModel)"
+  expect: exit_zero
+
+- id: twenty-in-twenty-out
+  type: pytest
+  run: tests/test_build.py::test_twenty_in_twenty_out
+  expect: exit_zero
+
+- id: outputs-are-valid-schema-objects
+  type: pytest
+  run: tests/test_build.py::test_all_outputs_are_valid_claimextractions
+  expect: exit_zero
+
+- id: fallback-never-raises-never-drops
+  type: pytest
+  run: tests/test_build.py::test_bad_input_yields_flagged_object_not_exception
+  expect: exit_zero
+
+- id: failures-logged
+  type: pytest
+  run: tests/test_build.py::test_every_fallback_is_logged
+  expect: exit_zero
+
+- id: end-to-end-run-conserves-records
+  type: command
+  run: bash -c "python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log && [ $(wc -l < out.jsonl) -eq 20 ]"
+  expect: exit_zero
+
+- id: end-to-end-run-logs-fallbacks
+  type: command
+  run: bash -c "python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log && grep FALLBACK run.log"
+  expect: exit_zero
+
+- id: logged-failures-name-the-claim
+  type: command
+  run: bash -c "python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log && grep -E 'FALLBACK.*CLM-' run.log"
+  expect: exit_zero

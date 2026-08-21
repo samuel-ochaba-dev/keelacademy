@@ -1,0 +1,12 @@
+submission: s11-print-no-reason
+expected: borderline
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: pass
+  failures-logged: fail
+  conservation-tested: pass
+overall: fail
+grader_notes: "BORDERLINE. Everything solid except the log line: print() with claim id but NO reason (the reason does live on the object). Rubric requires id AND reason in the log; by the letter criterion 4 fails. A generous judge might read failure_reason off the returned object and pass it — this is exactly the kind of case calibration needs."
+graded_by: human
+graded_on: 2026-08-21

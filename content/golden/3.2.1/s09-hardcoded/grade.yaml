@@ -1,0 +1,12 @@
+submission: s09-hardcoded
+expected: fail
+criteria:
+  schema-constrained-generation: fail
+  pydantic-validation-boundary: fail
+  defined-fallback: fail
+  failures-logged: fail
+  conservation-tested: pass
+overall: fail
+grader_notes: "No model in the loop at all — keyword if/else pretending to be an extractor. Bypasses everything the unit teaches; can't fail (so no fallback exists to define), validates nothing external. Conserves count trivially. Fails 4/5."
+graded_by: human
+graded_on: 2026-08-21
