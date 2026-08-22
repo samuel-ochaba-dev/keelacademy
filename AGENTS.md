@@ -26,6 +26,6 @@ How any session — human or AI — picks this project up without losing context
 /build-plan.md            the build approach (how)
 /build-state.md           live progress (where we are)
 /AGENTS.md                this file
-/platform                 the code: platform/cli (grading CLI, created at S0.3), platform/app (learner app, created at S2.3)
+/platform                 the code: platform/cli (grading CLI, created at S0.3), platform/grading (grading-core service + Postgres schema, created at S1.1), platform/app (learner app, created at S2.3)
 /content                  lessons, rubrics, fixtures, personas (created at Stage 0)
 ```

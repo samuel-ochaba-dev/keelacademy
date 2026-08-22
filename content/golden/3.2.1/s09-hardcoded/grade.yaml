@@ -5,8 +5,8 @@ criteria:
   pydantic-validation-boundary: fail
   defined-fallback: fail
   failures-logged: fail
-  conservation-tested: pass
+  conservation-tested: fail
 overall: fail
-grader_notes: "No model in the loop at all — keyword if/else pretending to be an extractor. Bypasses everything the unit teaches; can't fail (so no fallback exists to define), validates nothing external. Conserves count trivially. Fails 4/5."
+grader_notes: "No model in the loop at all — keyword if/else pretending to be an extractor. Bypasses everything the unit teaches; can't fail (so no fallback exists to define), validates nothing external. Count conservation is only 'asserted' by print(len(run(recs))) — no assertion, no artifact, so by the rubric's 'checked, not assumed' bar the conservation criterion fails too. Fails 5/5. (Corrected 2026-08-21 during S0.6 spot-check: conservation was originally recorded as pass, contradicting both the rubric wording and these notes.)"
 graded_by: human
 graded_on: 2026-08-21

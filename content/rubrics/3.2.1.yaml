@@ -19,8 +19,11 @@ criteria:
   - id: pydantic-validation-boundary
     description: >-
       Every model output passes through ClaimExtraction validation (Pydantic
-      model_validate / model_validate_json) before anything downstream consumes
-      it; no raw parsed dicts or raw model text flow past the extractor.
+      model_validate / model_validate_json applied to the actual model output)
+      before anything downstream consumes it; no raw parsed dicts or raw model
+      text flow past the extractor. Constructing ClaimExtraction(...) directly
+      from values a human derived by inspecting the input is not validation —
+      the model's own output must be the object validated.
     evidence: >-
       Quote the model_validate call site and note the return type of the
       extraction function.
@@ -37,6 +40,9 @@ criteria:
     description: >-
       Every fallback is logged with enough context to find the record again:
       the claim identifier and the validation reason, at the moment of failure.
+      This criterion is about fallback events: a path that skips or drops the
+      record instead of constructing a fallback fails it regardless of any
+      skip-log, and no log at all can satisfy it.
     evidence: >-
       Quote the log statement and its format fields (must include claim id and
       reason).
@@ -45,6 +51,10 @@ criteria:
       The submission contains executable evidence (a test, or a committed run
       artifact with the code that produced it) that the 20 messy inputs yield
       exactly 20 outputs with no silent drops — N-in/N-out is checked, not
-      assumed.
+      assumed. The evidence must establish the named bar of 20: an assertion
+      naming 20 (e.g. len(records) == 20), or a committed artifact of exactly
+      20 lines traceable to the corpus. A generic len(out) == len(inputs)
+      assertion alone does not count unless the corpus is itself shown to
+      contain 20 records.
     evidence: >-
       Quote the assertion or the run artifact line(s) demonstrating 20-in/20-out.

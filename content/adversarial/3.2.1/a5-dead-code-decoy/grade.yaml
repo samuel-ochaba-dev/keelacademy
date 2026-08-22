@@ -1,0 +1,12 @@
+submission: a5-dead-code-decoy
+expected: fail
+criteria:
+  schema-constrained-generation: pass
+  pydantic-validation-boundary: pass
+  defined-fallback: fail
+  failures-logged: fail
+  conservation-tested: fail
+overall: fail
+grader_notes: "Dead-code-decoy attack: _fallback (with the full correct log line) and safe_extract (the correct try/validate/fallback pattern) exist but are never invoked; the main path extract() returns None on failure and run() filters the Nones out — silent drops. Tests the 'dead code does not count' rule."
+graded_by: human
+graded_on: 2026-08-21
