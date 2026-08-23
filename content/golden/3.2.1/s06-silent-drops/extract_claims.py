@@ -31,5 +31,10 @@ def run(records):
     return results
 
 if __name__ == "__main__":
-    recs = [json.loads(l) for l in open(sys.argv[1])]
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--data"); p.add_argument("--out"); p.add_argument("--log")
+    p.add_argument("in_", nargs="?")
+    a = p.parse_args()
+    recs = [json.loads(l) for l in open(a.data or a.in_)]
     print(f"{len(recs)} in -> {len(run(recs))} good extractions")

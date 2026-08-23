@@ -46,10 +46,18 @@ def run(records: list[dict]) -> list[ClaimExtraction]:
     return [extract(r) for r in records]
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    records = [json.loads(l) for l in open(sys.argv[1])]
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--data", help="input records (JSONL); positional IN also accepted")
+    ap.add_argument("--out", help="output path (JSONL); positional OUT also accepted")
+    ap.add_argument("--log", help="run log path (fallbacks land here); default stderr")
+    ap.add_argument("data_pos", nargs="?", help=argparse.SUPPRESS)
+    ap.add_argument("out_pos", nargs="?", help=argparse.SUPPRESS)
+    args = ap.parse_args()
+    logging.basicConfig(level=logging.INFO, filename=args.log)
+    records = [json.loads(l) for l in open(args.data or args.data_pos)]
     results = run(records)
-    with open(sys.argv[2], "w") as f:
+    with open(args.out or args.out_pos, "w") as f:
         for r in results:
             f.write(r.model_dump_json() + "\n")
     print(f"{len(records)} in -> {len(results)} out")

@@ -32,11 +32,12 @@ python -m grader.defend <submission_dir> [--tier mid] [--json out.json]
 ## Layer-2 usage
 
 ```
-python -m grader.judge <submission_dir> --rubric content/rubrics/3.2.1.yaml [--json out.json]
+python -m grader.judge <submission_dir> --rubric content/rubrics/3.2.1/v1.yaml [--json out.json]
 ```
 
 - The rubric's `judge.prompt` path is resolved relative to the content/ root
-  (i.e. the parent of the rubric's own directory).
+  (the rubric's ancestors are searched for the prompt path, so any rubric
+  layout under content/ works).
 - Submission files injected: everything except `grade.yaml` (grader answers),
   `claims_messy.jsonl` (data fixture), and `__pycache__/` — per the submission
   layout contract declared in the checks file's header.
@@ -53,7 +54,7 @@ python -m grader.judge <submission_dir> --rubric content/rubrics/3.2.1.yaml [--j
 
 ```
 python -m grader.calibrate --golden content/golden/3.2.1 \
-    --rubric content/rubrics/3.2.1.yaml [--json report.json]
+    --rubric content/rubrics/3.2.1/v1.yaml [--json report.json]
 ```
 
 - Judges every submission dir under `--golden` in sorted order via the same
@@ -69,6 +70,46 @@ python -m grader.calibrate --golden content/golden/3.2.1 \
 - Exit code: **0 iff overall agreement ≥ 90% AND zero errors; else 1** — these
   are the semantics the S1.6 golden-set regression gate inherits.
 - This harness is the seed of the S1.6 CI gate on rubric PRs.
+
+## Rubric versioning
+
+Rubrics live at `content/rubrics/<unit_id>/v<N>.yaml` (was
+`content/rubrics/<unit_id>.yaml` before S1.6). Each file's top-level
+`version:` must equal the `v<N>` in its filename. The **highest version
+number is the ACTIVE rubric** for the unit; `grader.rubric_version.
+resolve_active_rubric(unit_id)` implements that rule. Tools that need an
+exact historical version (judge/calibrate/gate) take an explicit path.
+
+`content/tools/validate-rubrics.py` (stdlib + PyYAML only) validates every
+`content/rubrics/*/v*.yaml` against `content/schemas/rubric.schema.json` and
+checks filename/version-field consistency; exit 0 all-valid, 1 otherwise.
+Since S2.1 it also fails on any other `.yaml` shape under `content/rubrics/`
+(top-level, nested deeper, or not named `v<N>.yaml`) — such a file would be
+skipped by both the validator and `resolve_active_rubric`.
+
+## Regression gate (S1.6)
+
+```
+python -m grader.gate --golden content/golden/3.2.1 \
+    --rubric content/rubrics/3.2.1/v1.yaml [--json gate-report.json]
+```
+
+- Runs the **same** calibration code path as `grader.calibrate` (shared
+  `run_calibration` — no fork), then applies gate thresholds.
+- **PASS iff zero judge errors AND overall agreement ≥ 14/15 AND criterion
+  agreement ≥ 72/75** (ratios, so they scale if the golden set grows).
+  Rationale: the S0.7 baseline is 15/15 overall + 75/75 criterion; a dated
+  ruling in build-state.md established that the judge's per-criterion failure
+  set can vary between runs at temperature 0 while overall stays stable, so
+  the gate is primarily on OVERALL agreement with criterion as a secondary
+  signal. The one-submission / three-criterion margins absorb observed judge
+  variance, while any real rubric degradation flips multiple submissions and
+  fails hard.
+- Exit 0 = PASS, 1 = FAIL.
+- CI: `.github/workflows/rubric-gate.yml` runs the validator + this gate
+  (against the ACTIVE rubric via the resolver) on PRs touching
+  `content/rubrics/**`, `content/golden/**`, or `platform/cli/grader/**`.
+  This is the merge-blocking gate from the Stage 1 exit criteria.
 
 ## API key convention
 

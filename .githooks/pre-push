@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# keelacademy content gate (S2.1) — runs on every push.
+#
+# Blocks the push when content fails schema validation; the validator output
+# names the offending file(s). CI (.github/workflows/content-gate.yml) runs
+# the same two commands on content PRs.
+#
+# One-time activation (per clone — a human setup act, not under test):
+#   git config core.hooksPath .githooks
+#
+# Bypass for scripted tooling (loud by design):
+#   KEEL_SKIP_CONTENT_GATE=1 git push
+set -u
+cd "$(git rev-parse --show-toplevel)"
+
+if [ "${KEEL_SKIP_CONTENT_GATE:-0}" = "1" ]; then
+    echo "[keel-content-gate] SKIPPED via KEEL_SKIP_CONTENT_GATE=1 — content schemas NOT validated on this push" >&2
+    exit 0
+fi
+
+PY="$(command -v python3 || command -v python)"
+if [ -z "$PY" ]; then
+    echo "[keel-content-gate] BLOCKED: no python interpreter found — cannot validate content" >&2
+    exit 1
+fi
+
+fail=0
+echo "[keel-content-gate] validating content (units, examples, variants, personas, rubrics)..."
+if ! "$PY" content/tools/validate.py; then
+    echo "[keel-content-gate] BLOCKED: content/tools/validate.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
+if ! "$PY" content/tools/validate-rubrics.py; then
+    echo "[keel-content-gate] BLOCKED: content/tools/validate-rubrics.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
+if [ $fail = 0 ]; then
+    echo "[keel-content-gate] OK — content validates, push allowed."
+fi
+exit $fail

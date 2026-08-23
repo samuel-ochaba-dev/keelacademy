@@ -2,7 +2,7 @@
 
 Usage:
     python -m grader.calibrate --golden content/golden/3.2.1 \
-        --rubric content/rubrics/3.2.1.yaml [--json report.json]
+        --rubric content/rubrics/3.2.1/v1.yaml [--json report.json]
 
 Iterates every submission directory under --golden in sorted order, judges it
 via the SAME code path as the CLI (grader.judge.judge — no duplicated LLM
@@ -23,13 +23,13 @@ from pathlib import Path
 import yaml
 
 from .judge import JudgeError, judge
-from .llm import LLMError, trace
+from .llm import LLMError, begin_trace_call, set_trace_caller, trace
 from .submission import SubmissionError
 
 OVERALL_THRESHOLD = 0.90
 
 TRANSIENT_MARKERS = ("timed out", "connection reset", "name resolution",
-                     "temporarily unavailable", "api unreachable")
+                     "temporarily unavailable", "api unreachable", "rate limit")
 
 
 def is_transient(exc: Exception) -> bool:
@@ -41,6 +41,8 @@ def judge_with_retry(submission_dir: Path, rubric_path: Path, attempts: int = 3)
     """Network flakiness (DNS blips, resets, read timeouts) is common on long
     runs; retry transient failures so calibration measures grading, not the
     network. Non-transient judge errors propagate immediately."""
+    begin_trace_call()  # attempt ordinal resets per submission; transient
+    # retries and JSON-nudge retries both advance it within this call.
     for attempt in range(1, attempts + 1):
         try:
             return judge(submission_dir, rubric_path)
@@ -88,19 +90,14 @@ def compare(verdict: dict, reference: dict) -> list[dict]:
     return rows
 
 
-def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
-        prog="grader.calibrate",
-        description="judge-vs-golden-set agreement harness (seed of the S1.6 regression gate)")
-    ap.add_argument("--golden", required=True, type=Path, help="golden set dir (e.g. content/golden/3.2.1)")
-    ap.add_argument("--rubric", required=True, type=Path, help="rubric YAML")
-    ap.add_argument("--json", type=Path, help="write the JSON report here")
-    args = ap.parse_args(argv)
-
-    dirs = sorted(d for d in args.golden.iterdir() if d.is_dir())
+def run_calibration(golden_dir: Path, rubric_path: Path) -> dict:
+    """Judge every submission under golden_dir with rubric_path (same judge
+    code path as the CLI), compare against each grade.yaml, print the
+    agreement table, and return the full report dict. Shared by calibrate and
+    the S1.6 gate (grader.gate) — one code path, no fork."""
+    dirs = sorted(d for d in golden_dir.iterdir() if d.is_dir())
     if not dirs:
-        print(f"error: no submission dirs in {args.golden}", file=sys.stderr)
-        return 2
+        raise ValueError(f"no submission dirs in {golden_dir}")
 
     results = []
     errors = 0
@@ -108,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         name = d.name
         try:
             reference = load_reference(d / "grade.yaml")
-            verdict = judge_with_retry(d, args.rubric)
+            verdict = judge_with_retry(d, rubric_path)
         except (JudgeError, SubmissionError, LLMError, ValueError, OSError) as exc:
             errors += 1
             print(f"ERROR judging {name}: {exc}", file=sys.stderr)
@@ -149,26 +146,49 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Errors:               {errors}")
     print(f"Tokens (graded runs): in={prompt_tokens} out={completion_tokens}")
 
-    if args.json:
-        args.json.write_text(json.dumps({
-            "golden": str(args.golden),
-            "rubric": str(args.rubric),
-            "results": results,
-            "summary": {
-                "total": len(results),
-                "overall_matches": overall_matches,
-                "overall_agreement_pct": round(overall_pct, 2),
-                "criterion_matches": crit_matches,
-                "criterion_total": crit_total,
-                "criterion_agreement_pct": round(crit_pct, 2),
-                "errors": errors,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-            },
-        }, indent=2))
-        print(f"report written to {args.json}")
+    return {
+        "golden": str(golden_dir),
+        "rubric": str(rubric_path),
+        "results": results,
+        "summary": {
+            "total": len(results),
+            "overall_matches": overall_matches,
+            "overall_agreement_pct": round(overall_pct, 2),
+            "criterion_matches": crit_matches,
+            "criterion_total": crit_total,
+            "criterion_agreement_pct": round(crit_pct, 2),
+            "errors": errors,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+        },
+    }
 
-    ok = errors == 0 and overall_pct >= OVERALL_THRESHOLD * 100
+
+def write_report(report: dict, json_path: Path) -> None:
+    json_path.write_text(json.dumps(report, indent=2))
+    print(f"report written to {json_path}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="grader.calibrate",
+        description="judge-vs-golden-set agreement harness (seed of the S1.6 regression gate)")
+    ap.add_argument("--golden", required=True, type=Path, help="golden set dir (e.g. content/golden/3.2.1)")
+    ap.add_argument("--rubric", required=True, type=Path, help="rubric YAML")
+    ap.add_argument("--json", type=Path, help="write the JSON report here")
+    args = ap.parse_args(argv)
+
+    set_trace_caller("calibrate", force=True)
+    try:
+        report = run_calibration(args.golden, args.rubric)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        write_report(report, args.json)
+
+    s = report["summary"]
+    ok = s["errors"] == 0 and s["overall_agreement_pct"] >= OVERALL_THRESHOLD * 100
     return 0 if ok else 1
 
 

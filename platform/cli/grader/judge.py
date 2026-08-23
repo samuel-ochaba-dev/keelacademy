@@ -1,7 +1,10 @@
 """Layer-2 rubric-judge CLI.
 
 Usage:
-    python -m grader.judge <submission_dir> --rubric content/rubrics/3.2.1.yaml [--json out.json]
+    python -m grader.judge <submission_dir> --rubric content/rubrics/3.2.1/v1.yaml [--json out.json]
+
+Exit codes: 0 pass, 1 fail, 2 error, 3 budget-blocked (LLM proxy returned 429
+budget_exceeded — routed via KEEL_LLM_BASE_URL with KEEL_LLM_STUDENT_ID).
 
 Reads the submission as text (never executes it), injects the rubric verbatim and
 the submission's files into the rubric's judge prompt, calls the LLM for the tier
@@ -24,7 +27,9 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator
 
-from .llm import MODEL_TIERS, LLMError, call_with_json_retry, require_api_key, trace
+from .llm import (MODEL_TIERS, LLMBudgetExceeded, LLMError, begin_trace_call,
+                  call_with_json_retry, require_api_key, set_trace_caller,
+                  set_trace_tier, trace)
 from .submission import SubmissionError, gather_submission
 
 SCHEMA_PATH = Path(__file__).with_name("verdict.schema.json")
@@ -51,24 +56,40 @@ def build_prompt(rubric: dict, rubric_text: str, judge_prompt_text: str, submiss
     return prompt + "\n\n## Submission\n\n```\n" + submission_text + "\n```\n"
 
 
+def resolve_prompt_path(rubric_path: Path, prompt_rel: str) -> Path:
+    """The rubric's judge.prompt is a path relative to the content/ root. The
+    rubric may sit at content/rubrics/<unit>.yaml (legacy flat layout),
+    content/rubrics/<unit>/vN.yaml (versioned layout), or a temp location
+    inside content/ — so search ancestors for one where the prompt exists
+    instead of assuming a fixed nesting depth."""
+    for ancestor in rubric_path.resolve().parents:
+        candidate = ancestor / prompt_rel
+        if candidate.is_file():
+            return candidate
+    raise JudgeError(f"judge prompt {prompt_rel!r} not found under any ancestor of {rubric_path}")
+
+
 def judge(submission_dir: Path, rubric_path: Path) -> dict:
+    set_trace_caller("judge")  # set-once: calibrate/gate keep their own tag
     api_key = require_api_key()
 
     rubric_text = rubric_path.read_text()
     rubric = load_rubric(rubric_path)
 
-    content_root = rubric_path.parent.parent  # content/rubrics/x.yaml -> content/
-    prompt_path = content_root / rubric["judge"]["prompt"]
+    prompt_path = resolve_prompt_path(rubric_path, rubric["judge"]["prompt"])
     tier = rubric["judge"]["model_tier"]
     if tier not in MODEL_TIERS:
         raise JudgeError(f"unknown model_tier {tier!r} (have {sorted(MODEL_TIERS)})")
     model = MODEL_TIERS[tier]["model"]
+    set_trace_tier(tier)
 
     submission_text = gather_submission(submission_dir)
     prompt = build_prompt(rubric, rubric_text, prompt_path.read_text(), submission_text)
 
     try:
         parsed, meta = call_with_json_retry(model, [{"role": "user", "content": prompt}], api_key)
+    except LLMBudgetExceeded:
+        raise  # budget-blocked must reach main() unmangled (exit code 3)
     except LLMError as exc:
         raise JudgeError(str(exc)) from exc
 
@@ -122,8 +143,15 @@ def main(argv: list[str] | None = None) -> int:
     if not args.submission_dir.is_dir():
         print(f"error: submission dir not found: {args.submission_dir}", file=sys.stderr)
         return 2
+    begin_trace_call()
     try:
         verdict = judge(args.submission_dir, args.rubric)
+    except LLMBudgetExceeded as exc:
+        # Exit code 3 is the budget-blocked signal the S1.8 worker maps to a
+        # distinct no-verdict outcome; the student's budget was the blocker,
+        # not the submission.
+        print(f"error: budget exceeded: {exc}", file=sys.stderr)
+        return 3
     except (JudgeError, SubmissionError, LLMError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

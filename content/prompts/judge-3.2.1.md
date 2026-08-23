@@ -15,7 +15,7 @@ ask for; do not penalize style the rubric does not mention.
 
 ## Rubric (verbatim)
 
-<!-- RUBRIC_INSERT: the platform injects content/rubrics/3.2.1.yaml criteria here -->
+<!-- RUBRIC_INSERT: the platform injects content/rubrics/3.2.1/v<N>.yaml criteria here -->
 
 **pass_rule: all** — the submission passes overall if and only if every criterion
 passes. There are no partial credits.

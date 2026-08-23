@@ -9,6 +9,9 @@ __pycache__/
 .verify-*
 .check-*
 .diag-*
+.patch-*
+.inspect-*
+.cleanup-*
 
 # Never commit secrets
 *.env

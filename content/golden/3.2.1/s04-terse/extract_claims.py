@@ -17,7 +17,13 @@ def extract(rec):
         return ClaimExtraction(claim_id=rec["claim_id"], claim_type="other", severity="low",
                                extraction_failed=True, failure_reason=str(e)[:300])
 if __name__ == "__main__":
-    rs = [json.loads(l) for l in open(sys.argv[1])]
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--data"); p.add_argument("--out"); p.add_argument("--log")
+    p.add_argument("in_", nargs="?"); p.add_argument("out_", nargs="?")
+    a = p.parse_args()
+    if a.log: logging.basicConfig(filename=a.log, level=logging.ERROR)
+    rs = [json.loads(l) for l in open(a.data or a.in_)]
     os = [extract(r) for r in rs]
-    open(sys.argv[2],"w").write("\n".join(o.model_dump_json() for o in os))
+    open(a.out or a.out_,"w").write("\n".join(o.model_dump_json() for o in os))
     print(len(rs), len(os))

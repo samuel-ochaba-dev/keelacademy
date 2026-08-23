@@ -37,7 +37,7 @@
 
 - id: end-to-end-run-conserves-records
   type: command
-  run: bash -c "python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log && [ $(wc -l < out.jsonl) -eq 20 ]"
+  run: bash -c 'python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log && [ $(wc -l < out.jsonl) -eq 20 ]'
   expect: exit_zero
 
 - id: end-to-end-run-logs-fallbacks

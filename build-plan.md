@@ -32,7 +32,7 @@ build:
 verify:
   layers: [1, 2, 3]                   # which verification layers apply
   deterministic_checks: checks/3.2.1.build.yaml
-  rubric: rubrics/3.2.1.yaml
+  rubric: rubrics/3.2.1/v1.yaml
 gate: { unlocks: ["3.2.2"] }
 unstuck:
   - { symptom: "Pydantic nested-model validation fails", fix_ref: faq/3.2.1.md#nested-validation }

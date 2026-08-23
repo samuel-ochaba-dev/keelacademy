@@ -24,7 +24,8 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-from .llm import MODEL_TIERS, LLMError, call_with_json_retry, require_api_key, trace
+from .llm import (MODEL_TIERS, LLMError, begin_trace_call, call_with_json_retry, require_api_key,
+                  set_trace_caller, set_trace_tier, trace)
 from .submission import SubmissionError, gather_submission
 
 SCHEMA_PATH = Path(__file__).with_name("defend.schema.json")
@@ -99,10 +100,12 @@ def check_anchors(questions: list[dict], submission_text: str) -> list[str]:
 
 
 def defend(submission_dir: Path, tier: str) -> dict:
+    set_trace_caller("defend")
     api_key = require_api_key()
     if tier not in MODEL_TIERS:
         raise DefendError(f"unknown tier {tier!r} (have {sorted(MODEL_TIERS)})")
     model = MODEL_TIERS[tier]["model"]
+    set_trace_tier(tier)
 
     submission_text = gather_submission(submission_dir)
     prompt = build_prompt(submission_text)
@@ -164,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.submission_dir.is_dir():
         print(f"error: submission dir not found: {args.submission_dir}", file=sys.stderr)
         return 2
+    begin_trace_call()
     try:
         result = defend(args.submission_dir, args.tier)
     except (DefendError, SubmissionError, LLMError) as exc:
