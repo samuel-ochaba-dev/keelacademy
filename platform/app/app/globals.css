@@ -1,1 +1,228 @@
-/* CSS completely torn down per instruction */
+@import "tailwindcss";
+
+/*
+  Keel Academy marketing design system.
+  Language: warm editorial "school paper". Fraunces display + Geist body,
+  paper neutrals, one schoolhouse green accent, hairline rules.
+  Dials: VARIANCE 6 / MOTION 3 / DENSITY 5.
+  Dark mode: semantic tokens flip under prefers-color-scheme.
+*/
+
+@theme {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --paper: #f6f2e9;
+  --paper-raised: #fcfaf2;
+  --ink: #221e15;
+  --ink-soft: #5b5341;
+  --line: #ded5bf;
+  --school: #2e5a39;
+  --school-strong: #22452b;
+  --mark: #a84a2b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #171410;
+    --paper-raised: #1f1b14;
+    --ink: #ebe5d4;
+    --ink-soft: #aca389;
+    --line: #363124;
+    --school: #93c19d;
+    --school-strong: #b6dabd;
+    --mark: #d9906d;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-school: var(--school);
+  --color-school-strong: var(--school-strong);
+  --color-mark: var(--mark);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--school) 28%, transparent);
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  pre {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  a {
+    color: var(--school-strong);
+    text-decoration-color: color-mix(in srgb, var(--school) 45%, transparent);
+    text-underline-offset: 0.18em;
+  }
+
+  a:hover {
+    text-decoration-color: var(--school);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--school);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Skip link: hidden until focused */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--school);
+    color: var(--paper);
+    padding: 0.5rem 1rem;
+    z-index: 50;
+  }
+
+  .skip-link:focus {
+    left: 0;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--school);
+    color: var(--paper);
+    padding: 0.7rem 1.4rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid var(--school);
+  }
+
+  .btn-primary:hover {
+    background: var(--school-strong);
+    text-decoration: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .btn-primary {
+      color: #171410;
+    }
+  }
+
+  .btn-secondary {
+    display: inline-block;
+    padding: 0.7rem 1.4rem;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    background: transparent;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--school);
+    text-decoration: none;
+  }
+
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .need {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--mark);
+    border-bottom: 1px dashed var(--mark);
+  }
+}
+
+/*
+  Motion: CSS scroll-driven reveals only. No scroll listeners anywhere.
+  Default state is fully visible; the animation applies only where
+  animation-timeline: view() is supported and motion is preferred.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: keel-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@keyframes keel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

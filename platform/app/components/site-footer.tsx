@@ -6,63 +6,68 @@ export function SiteFooter() {
   const first = units[0];
 
   return (
-    <footer>
-      <hr />
-      <div>
-        <p>
-          <strong>[Academy Brand / Name Placeholder]</strong> · [Platform Tagline Placeholder]
-        </p>
-        <p>
-          [Brief Platform Summary Description Placeholder]
-        </p>
+    <footer className="border-t border-line">
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="grid gap-8 sm:grid-cols-3">
+          <div>
+            <p className="font-display text-base font-semibold">Keel Academy</p>
+            <p className="mt-2 text-sm text-ink-soft">
+              A self-paced school for AI engineering. One real system, thirteen
+              phases, every deliverable graded. No videos, no seat-time credit.
+            </p>
+          </div>
 
-        <div>
-          <h4>[Navigation Column Title]</h4>
-          <ul>
-            {first ? (
+          <nav aria-label="Program">
+            <p className="eyebrow">The program</p>
+            <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <Link href={`/units/${first.id}`}>
-                  Unit {first.id} ([Live Status Placeholder])
+                <Link href="/curriculum" className="no-underline">
+                  Curriculum
                 </Link>
               </li>
-            ) : null}
-            <li>
-              <Link href="/submit">
-                [Submit Link Placeholder]
-              </Link>
-            </li>
-            <li>
-              <Link href="/me">
-                [Dashboard Link Placeholder]
-              </Link>
-            </li>
-          </ul>
+              <li>
+                <Link href="/pricing" className="no-underline">
+                  Pricing and the rebate
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="no-underline">
+                  FAQ
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <nav aria-label="Students">
+            <p className="eyebrow">Students</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {first ? (
+                <li>
+                  <Link href={`/units/${first.id}`} className="no-underline">
+                    Unit {first.id} (live)
+                  </Link>
+                </li>
+              ) : null}
+              <li>
+                <Link href="/sign-in" className="no-underline">
+                  Sign in
+                </Link>
+              </li>
+              <li>
+                <Link href="/me" className="no-underline">
+                  My progress
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
 
-        <div>
-          <h4>[Methodology Column Title]</h4>
-          <ul>
-            <li>
-              <a href="/#how-it-works">
-                [Learning Loop Link Placeholder]
-              </a>
-            </li>
-            <li>
-              <a href="/#verification">
-                [Verification Link Placeholder]
-              </a>
-            </li>
-            <li>
-              <a href="/#curriculum">
-                [Curriculum Link Placeholder]
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <p>
-          [Footer Summary Note Placeholder]
+        <p className="mt-10 border-t border-line pt-6 text-sm text-ink-soft">
+          Honest status: Unit 3.2.1 is the only unit live today, graded end to
+          end. The rest of the curriculum is a published spec, built phase by
+          phase in the open. You can read all of it before paying anything.
         </p>
+        <p className="mt-2 text-sm text-ink-soft">© 2026 Keel Academy</p>
       </div>
     </footer>
   );

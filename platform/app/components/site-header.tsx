@@ -8,53 +8,45 @@ export async function SiteHeader() {
   const user = await getSessionUser();
 
   return (
-    <header>
-      <div>
-        <Link href="/">
-          <strong>Keel Academy</strong>
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-6 py-3">
+        <Link href="/" className="font-display text-lg font-semibold text-ink no-underline">
+          Keel Academy
         </Link>
 
-        <nav>
-          <Link href="/submit">
-            Submit
-          </Link>
-          {" | "}
-          <a href="/#curriculum">
+        <nav className="flex items-center gap-5 text-sm">
+          <Link href="/curriculum" className="hidden no-underline sm:inline">
             Curriculum
-          </a>
-          {" | "}
-          <a href="/#verification">
-            Grading
-          </a>
-          {" | "}
+          </Link>
+          <Link href="/pricing" className="hidden no-underline sm:inline">
+            Pricing
+          </Link>
+          <Link href="/faq" className="hidden no-underline sm:inline">
+            FAQ
+          </Link>
           {user ? (
             <>
-              <Link href="/me">
-                My progress ({user.email})
+              <Link href="/me" className="no-underline">
+                My progress
               </Link>
-              {" | "}
-              <Link href="/sign-out">
+              <Link href="/sign-out" className="no-underline text-ink-soft">
                 Sign out
               </Link>
             </>
           ) : (
             <>
-              <Link href="/sign-in">
+              <Link href="/sign-in" className="no-underline text-ink-soft">
                 Sign in
               </Link>
               {first ? (
-                <>
-                  {" | "}
-                  <Link href={`/units/${first.id}`}>
-                    Start unit {first.id}
-                  </Link>
-                </>
+                <Link href={`/units/${first.id}`} className="btn-primary !py-1.5 !px-3 text-sm">
+                  Start Unit {first.id}
+                </Link>
               ) : null}
             </>
           )}
         </nav>
       </div>
-      <hr />
     </header>
   );
 }
