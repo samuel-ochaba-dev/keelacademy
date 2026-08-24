@@ -17,6 +17,33 @@ const UNIT_ID_PATTERN = /^\d+\.\d+\.\d+$/;
 
 export type LastVerified = { concept_core: string; applied_context: string; tool_specifics: string };
 
+export type MapModule = {
+  id: string;
+  title: string;
+  description: string;
+  is_gate?: boolean;
+};
+
+export type MapPhase = {
+  phase: number;
+  id: string;
+  title: string;
+  est_hours: number;
+  why: string;
+  outcome: string;
+  meridian_role: string;
+  gate_id?: string;
+  rebate_pct?: number;
+  note?: string;
+  badge?: string;
+  modules: MapModule[];
+};
+
+export type CurriculumMap = {
+  version: number;
+  phases: MapPhase[];
+};
+
 export type UnitYaml = {
   id: string;
   phase: number;
@@ -150,6 +177,29 @@ export function listUnits(): { id: string; phase: number }[] {
     }
   }
   return units.sort((a, b) => a.phase - b.phase || a.id.localeCompare(b.id));
+}
+
+export function isUnitAuthored(unitId: string): boolean {
+  try {
+    const root = findContentRoot();
+    return findUnitDir(root, unitId) !== null;
+  } catch {
+    return false;
+  }
+}
+
+export function loadCurriculumMap(): CurriculumMap {
+  try {
+    const contentRoot = findContentRoot();
+    const filePath = path.join(/* turbopackIgnore: true */ contentRoot, "curriculum", "phases.yaml");
+    if (!existsSync(filePath)) {
+      return { version: 1, phases: [] };
+    }
+    const text = readFileSync(filePath, "utf8");
+    return parseYaml(text) as CurriculumMap;
+  } catch {
+    return { version: 1, phases: [] };
+  }
 }
 
 function parseLesson(md: string): Lesson {

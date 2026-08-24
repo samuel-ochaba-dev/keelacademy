@@ -8,23 +8,35 @@ grading store. This service is the only shape it gets:
     GET /healthz                 -> {"ok": true}
     GET /submissions/<id>        -> submission + verdict + event timeline
                                     (404 {"error": "not_found"} for unknown ids)
+    GET /students/<id>/gates     -> per-student gate state (S2.7): unlocked
+                                    units + cleared gates, both read off the
+                                    engine's own writes (unlocked_units table
+                                    and gate.passed events). Gate RULES live
+                                    in content/gates/; the app renders them
+                                    from the content repo and joins this
+                                    endpoint for the student's state.
+    GET /students/<id>/submissions -> per-student submissions listing with
+                                    verdict overalls (S2.8 additive route)
+                                    for progress map joins.
 
 Read-only by construction: the module issues SELECT statements only — no
 INSERT, UPDATE, or DELETE appears in this file — and it wraps each request in
 BEGIN/ROLLBACK so even a future edit cannot accidentally commit. Database
 access follows the house convention: env KEEL_DB_CMD (shlex-split,
-psql-compatible command) via the shared db.py helper, one session per request.
+psql-compatible) via the shared db.py helper, one session per request.
 The learner app learns about this service through KEEL_READER_URL, a plain
 base URL with no credential in it; every secret stays in the grading core's
 environment.
 
 Capability-URL model: submission ids are the access token. The endpoint never
 lists submissions and answers nothing about rows the caller did not name. The
-verdict page says the link is private; real per-student auth arrives with S2.5.
+verdict page says the link is private; real per-student auth arrived with S2.5
+(app routes gate these reads behind the signed-in session before calling in).
 """
 
 import json
 import os
+import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -54,6 +66,16 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/healthz":
             self._respond(200, {"ok": True})
+            return
+
+        m_gates = re.match(r"^/students/(\d{1,15})/gates$", self.path)
+        if m_gates:
+            self._student_gates(int(m_gates.group(1)))
+            return
+
+        m_subs = re.match(r"^/students/(\d{1,15})/submissions$", self.path)
+        if m_subs:
+            self._student_submissions(int(m_subs.group(1)))
             return
 
         prefix = "/submissions/"
@@ -134,6 +156,72 @@ ROLLBACK;
             "submission": submission,
             "verdict": verdict,
             "events": events,
+        })
+
+    def _student_gates(self, student_id):
+        """Per-student gate state (S2.7). SELECTs only, tagged result sets
+        like the enroll profile route so the two parse unambiguously. Both
+        sources are the gate engine's own writes: unlocked_units rows and
+        gate.passed events on the spine. An unknown student simply has no
+        state — every list is empty."""
+        sql = """BEGIN;
+SELECT 'U', unit_id, gate_id, unlocked_at
+FROM unlocked_units WHERE student_id = %d ORDER BY id;
+SELECT 'P', payload->>'gate_id', payload->>'unit_id', occurred_at
+FROM events
+WHERE type = 'gate.passed' AND payload->>'student_id' = %s
+ORDER BY seq;
+ROLLBACK;
+""" % (student_id, sql_str(str(student_id)))
+        try:
+            rows = db_sql(sql)
+        except RuntimeError:
+            self._respond(500, {"error": "database error"})
+            return
+        unlocked = [
+            {"unit_id": r[1], "gate_id": r[2], "unlocked_at": r[3]}
+            for r in rows if r[0] == "U"
+        ]
+        passed = [
+            {"gate_id": r[1], "unit_id": r[2], "passed_at": r[3]}
+            for r in rows if r[0] == "P"
+        ]
+        self._respond(200, {
+            "student_id": student_id,
+            "unlocked_units": unlocked,
+            "gates_passed": passed,
+        })
+
+    def _student_submissions(self, student_id):
+        """Per-student submissions listing with verdicts (S2.8). SELECTs only,
+        BEGIN/ROLLBACK. Unknown student -> 404. Returns the student's submissions
+        with latest verdict overall."""
+        sql = """BEGIN;
+SELECT 'S', id FROM students WHERE id = %d;
+SELECT 'R', s.id, s.unit_id, s.status, s.created_at, v.overall
+FROM submissions s
+LEFT JOIN verdicts v ON v.submission_id = s.id
+WHERE s.student_id = %d
+ORDER BY s.id DESC;
+ROLLBACK;
+""" % (student_id, student_id)
+        try:
+            rows = db_sql(sql)
+        except RuntimeError:
+            self._respond(500, {"error": "database error"})
+            return
+        student_rows = [r for r in rows if r[0] == "S"]
+        if not student_rows:
+            self._respond(404, {"error": "not_found"})
+            return
+        submissions = [
+            {"id": int(r[1]), "unit_id": r[2], "status": r[3],
+             "created_at": r[4], "overall": r[5] or None}
+            for r in rows if r[0] == "R"
+        ]
+        self._respond(200, {
+            "student_id": student_id,
+            "submissions": submissions,
         })
 
 

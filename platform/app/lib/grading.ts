@@ -122,6 +122,38 @@ export async function lookupSubmission(rawId: string): Promise<GradingLookup> {
   }
 }
 
+export type StudentSubmissionSummary = {
+  id: number;
+  unit_id: string;
+  status: SubmissionStatus;
+  created_at: string;
+  overall: "pass" | "fail" | null;
+};
+
+export type StudentSubmissionsLookup =
+  | { state: "ok"; data: { student_id: number; submissions: StudentSubmissionSummary[] } }
+  | { state: "not-found" }
+  | { state: "unreachable"; detail: string };
+
+export async function fetchStudentSubmissions(studentId: number): Promise<StudentSubmissionsLookup> {
+  try {
+    const res = await fetch(`${readerBaseUrl()}/students/${studentId}/submissions`, {
+      cache: "no-store",
+    });
+    if (res.status === 404) return { state: "not-found" };
+    if (!res.ok) return { state: "unreachable", detail: `reader answered HTTP ${res.status}` };
+    return {
+      state: "ok",
+      data: (await res.json()) as { student_id: number; submissions: StudentSubmissionSummary[] },
+    };
+  } catch (err) {
+    return {
+      state: "unreachable",
+      detail: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 /** Tokens the grading calls for this submission charged to the student budget. */
 export function budgetCharged(view: SubmissionView): {
   tokens: number;

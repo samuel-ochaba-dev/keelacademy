@@ -46,12 +46,14 @@ FIXTURE_CASES = [
     ("rubric.schema.json", "content/examples/rubric.example.yaml", True),
     ("variant.schema.json", "content/examples/variant.example.yaml", True),
     ("persona.schema.json", "content/examples/persona.example.yaml", True),
+    ("map.schema.json", "content/examples/map.example.yaml", True),
     ("unit.schema.json", "content/examples/unit.invalid.yaml", False),
 ]
 
 # (schema, glob relative to content/, may_be_empty)
 DISCOVERED = [
     ("unit.schema.json", "units/**/unit.yaml", False),
+    ("map.schema.json", "curriculum/*.yaml", True),
     ("variant.schema.json", "variants/*.yaml", True),
     ("persona.schema.json", "personas/*.yaml", True),
 ]

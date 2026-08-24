@@ -25,13 +25,21 @@ if [ -z "$PY" ]; then
 fi
 
 fail=0
-echo "[keel-content-gate] validating content (units, examples, variants, personas, rubrics)..."
+echo "[keel-content-gate] validating content (units, examples, variants, personas, rubrics, gates)..."
 if ! "$PY" content/tools/validate.py; then
     echo "[keel-content-gate] BLOCKED: content/tools/validate.py failed — offending file(s) named in the FAIL lines above" >&2
     fail=1
 fi
 if ! "$PY" content/tools/validate-rubrics.py; then
     echo "[keel-content-gate] BLOCKED: content/tools/validate-rubrics.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
+if ! "$PY" content/tools/validate-gates.py; then
+    echo "[keel-content-gate] BLOCKED: content/tools/validate-gates.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
+if ! "$PY" content/tools/validate-map.py; then
+    echo "[keel-content-gate] BLOCKED: content/tools/validate-map.py failed — offending file(s) named in the FAIL lines above" >&2
     fail=1
 fi
 if [ $fail = 0 ]; then

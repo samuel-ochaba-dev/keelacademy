@@ -27,6 +27,7 @@ export async function SiteHeader() {
         {/* Desktop nav */}
         <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
           <HeaderLink href="/curriculum">Curriculum</HeaderLink>
+          {user ? <HeaderLink href="/map">Meridian Map</HeaderLink> : null}
           <HeaderLink href="/pricing">Pricing</HeaderLink>
           <HeaderLink href="/submit">Submission Guide</HeaderLink>
           <HeaderLink href="/faq">FAQ</HeaderLink>
@@ -109,6 +110,7 @@ function MobileMenu({ firstUnitId, signedIn }: { firstUnitId: string | null; sig
           <div className="my-2 border-t border-line" />
           {signedIn ? (
             <>
+              <MobileLink href="/map">Meridian Map</MobileLink>
               <MobileLink href="/me">Dashboard</MobileLink>
               <MobileLink href="/sign-out">Sign out</MobileLink>
             </>

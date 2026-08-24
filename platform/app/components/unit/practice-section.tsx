@@ -1,18 +1,32 @@
 import { ContentArriving } from "@/components/content-arriving";
 import { SectionHeading } from "@/components/unit/section-heading";
+import { PracticeWorkbench } from "@/components/unit/practice-workbench";
 import type { MarkdownDoc } from "@/lib/content";
 import { IconZap } from "@/components/icons";
+import type { PracticeAttemptSummary, PracticeManifest } from "@/lib/practice";
 
 type PracticeSectionProps = {
+  unitId: string;
   workedExample: MarkdownDoc | null;
   completionProblem: MarkdownDoc | null;
   retrievalSeeds: string[];
+  manifest: PracticeManifest | null;
+  initialAttempts: PracticeAttemptSummary[];
+  isEnrolled: boolean;
+  isSignedIn: boolean;
+  serviceDown: boolean;
 };
 
 export function PracticeSection({
+  unitId,
   workedExample,
   completionProblem,
   retrievalSeeds,
+  manifest,
+  initialAttempts,
+  isEnrolled,
+  isSignedIn,
+  serviceDown,
 }: PracticeSectionProps) {
   return (
     <section
@@ -26,6 +40,7 @@ export function PracticeSection({
           lead="Warm up before the build: study an annotated worked example of a parallel task, then solve the completion problem."
         />
 
+        {/* 1. Worked example */}
         <div className="mt-8">
           <div className="flex items-baseline gap-3">
             <span className="font-mono text-xs text-accent">1</span>
@@ -44,6 +59,7 @@ export function PracticeSection({
           )}
         </div>
 
+        {/* 2. Completion problem */}
         <div className="mt-10">
           <div className="flex items-baseline gap-3">
             <span className="font-mono text-xs text-accent">2</span>
@@ -60,8 +76,21 @@ export function PracticeSection({
               <ContentArriving what="The completion problem (the worked example with gaps to fill)" />
             </div>
           )}
+
+          {/* Interactive practice workbench */}
+          <div className="mt-8">
+            <PracticeWorkbench
+              unitId={unitId}
+              manifest={manifest}
+              initialAttempts={initialAttempts}
+              isEnrolled={isEnrolled}
+              isSignedIn={isSignedIn}
+              serviceDown={serviceDown}
+            />
+          </div>
         </div>
 
+        {/* 3. Retrieval checkpoints */}
         <div className="mt-10">
           <div className="flex items-baseline gap-3">
             <span className="font-mono text-xs text-accent">3</span>

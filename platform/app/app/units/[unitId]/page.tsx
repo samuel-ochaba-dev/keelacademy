@@ -8,6 +8,13 @@ import { BuildSection } from "@/components/unit/build-section";
 import { VerifySection } from "@/components/unit/verify-section";
 import { UnstuckSection } from "@/components/unit/unstuck-section";
 import { IconArrowRight, IconChevronRight } from "@/components/icons";
+import { getSessionUser } from "@/lib/auth";
+import { ensureStudent, fetchProfile } from "@/lib/enroll";
+import {
+  fetchPracticeAttempts,
+  fetchPracticeManifest,
+  type PracticeAttemptSummary,
+} from "@/lib/practice";
 
 export const dynamic = "force-dynamic";
 
@@ -49,14 +56,50 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   const unit = tryLoadUnit(unitId);
   if (!unit) notFound();
 
-  const { yaml, lesson, workedExample, completionProblem, checks, contract, rubric, faq, curriculum } =
-    unit;
+  const {
+    yaml,
+    lesson,
+    workedExample,
+    completionProblem,
+    checks,
+    contract,
+    rubric,
+    faq,
+    curriculum,
+  } = unit;
   const subtitleParts = lesson?.subtitle
     ? lesson.subtitle
         .split("·")
         .map((part) => part.trim())
         .filter(Boolean)
     : [];
+
+  const user = await getSessionUser();
+  const isSignedIn = !!user;
+  let isEnrolled = false;
+  let studentId: number | null = null;
+  let practiceAttempts: PracticeAttemptSummary[] = [];
+
+  if (user) {
+    const studentRes = await ensureStudent(user);
+    if (studentRes.state === "ok") {
+      studentId = studentRes.data;
+      const profileRes = await fetchProfile(studentId);
+      if (profileRes.state === "ok") {
+        isEnrolled = profileRes.data.enrollments.some(
+          (e) => e.unit_id === unitId && e.status === "active",
+        );
+      }
+      const attemptsRes = await fetchPracticeAttempts(studentId, unitId);
+      if (attemptsRes.state === "ok") {
+        practiceAttempts = attemptsRes.data.attempts;
+      }
+    }
+  }
+
+  const manifestRes = await fetchPracticeManifest(unitId);
+  const practiceManifest = manifestRes.state === "ok" ? manifestRes.data : null;
+  const practiceServiceDown = manifestRes.state === "unreachable";
 
   return (
     <article>
@@ -136,9 +179,15 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
       <div>
         <LearnSection lesson={lesson} curriculum={curriculum} lastVerified={yaml.last_verified} />
         <PracticeSection
+          unitId={yaml.id}
           workedExample={workedExample}
           completionProblem={completionProblem}
           retrievalSeeds={yaml.practice.retrieval_seeds}
+          manifest={practiceManifest}
+          initialAttempts={practiceAttempts}
+          isEnrolled={isEnrolled}
+          isSignedIn={isSignedIn}
+          serviceDown={practiceServiceDown}
         />
         <BuildSection unit={yaml} contract={contract} />
         <VerifySection unit={yaml} checks={checks} rubric={rubric} curriculum={curriculum} />

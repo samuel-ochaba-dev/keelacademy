@@ -18,6 +18,7 @@ Runs on every push:
 ```bash
 python3 content/tools/validate.py        # units (discovered), examples, variants, personas
 python3 content/tools/validate-rubrics.py  # rubrics + filename/version layout
+python3 content/tools/validate-gates.py    # gate rules + filename/gate-id layout
 ```
 
 Either validator failing blocks the push; the validator output names the

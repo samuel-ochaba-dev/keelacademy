@@ -15,11 +15,20 @@ import {
 import { listUnits } from "@/lib/content";
 import { formatUtc } from "@/lib/grading";
 import {
+  fetchStudentGates,
+  loadGateRules,
+  type GateRule,
+  type GatesLookup,
+  type PassedGate,
+} from "@/lib/gates";
+import {
   IconArrowRight,
   IconAward,
   IconZap,
   IconAlertTriangle,
   IconCpu,
+  IconLock,
+  IconUnlock,
 } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -100,10 +109,12 @@ export default async function MePage({ searchParams }: Props) {
 }
 
 async function EnrolledSections({ studentId }: { studentId: number }) {
-  const [profileResult, submissionsResult] = await Promise.all([
+  const [profileResult, submissionsResult, gatesLookup] = await Promise.all([
     fetchProfile(studentId),
     fetchOwnSubmissions(studentId),
+    fetchStudentGates(studentId),
   ]);
+  const gateRules = loadGateRules();
   const units = listUnits();
   const enrolledUnits = new Set(
     profileResult.state === "ok" ? profileResult.data.enrollments.map((e) => e.unit_id) : [],
@@ -160,8 +171,8 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
             <h2 className="text-base font-semibold text-ink">Curriculum units</h2>
             <p className="text-[13px] text-ink-3">Available and enrolled units on your path.</p>
           </div>
-          <Link href="/curriculum" className="link-arrow text-xs">
-            View full map
+          <Link href="/map" className="link-arrow text-xs">
+            View Meridian map
             <IconArrowRight size={12} />
           </Link>
         </div>
@@ -208,6 +219,9 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
           </div>
         )}
       </section>
+
+      {/* Gates */}
+      {gateRules.length > 0 ? <GatesSection rules={gateRules} lookup={gatesLookup} /> : null}
 
       {/* Rebates */}
       {rebates.length > 0 ? <RebateSection rebates={rebates} /> : null}
@@ -263,6 +277,79 @@ function UnitRowAction({
         {priceLabel ? `Enroll (${priceLabel})` : `Enroll unit ${unitId}`}
       </button>
     </form>
+  );
+}
+
+function gatesUnlocksSentence(rule: GateRule, cleared: boolean): string {
+  if (rule.unlocks.length === 0) {
+    return cleared
+      ? "This was the last gate of the technical track."
+      : "Nothing sits behind this gate. It is the last one.";
+  }
+  const list = rule.unlocks.join(", ");
+  return cleared ? `Units ${list} are now unlocked.` : `Clearing it unlocks units ${list}.`;
+}
+
+function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLookup }) {
+  const passed = new Map<string, PassedGate>(
+    lookup.state === "ok" ? lookup.data.gates_passed.map((g) => [g.gate_id, g]) : [],
+  );
+
+  return (
+    <section className="panel overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-line bg-inset px-6 py-4">
+        <span className="grid size-9 place-items-center rounded-lg border border-line bg-raised text-accent">
+          <IconUnlock size={17} />
+        </span>
+        <div>
+          <h2 className="text-base font-semibold text-ink">Gates</h2>
+          <p className="text-[13px] text-ink-3">
+            A gate clears only on a passing verdict from the grading pipeline. Push your build for
+            the gate unit and the pipeline decides.
+          </p>
+        </div>
+      </div>
+
+      {lookup.state !== "ok" ? (
+        <p className="px-6 py-5 text-sm text-ink-3">
+          Gate status is temporarily unavailable. Refresh in a moment.
+        </p>
+      ) : (
+        <div className="overflow-x-auto p-2">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Gate</th>
+                <th>Status</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rules.map((rule) => {
+                const clearedAt = passed.get(rule.gate_id);
+                const cleared = clearedAt !== undefined;
+                return (
+                  <tr key={rule.gate_id}>
+                    <td className="font-medium text-ink">{rule.title}</td>
+                    <td>
+                      <span className={cleared ? "chip-pass" : "chip"}>
+                        <IconLock size={11} className={cleared ? "hidden" : "mr-1 inline align-[-1px]"} />
+                        {cleared ? "cleared" : "locked"}
+                      </span>
+                    </td>
+                    <td className="max-w-[52ch] text-[13px] leading-relaxed text-ink-2">
+                      {cleared && clearedAt
+                        ? `Cleared on ${formatUtc(clearedAt.passed_at)}. ${gatesUnlocksSentence(rule, true)}`
+                        : `${rule.summary} ${gatesUnlocksSentence(rule, false)}`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
