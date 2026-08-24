@@ -3,6 +3,7 @@ import Link from "next/link";
 import { authMode } from "@/lib/auth";
 import { offlineSignInAction } from "@/app/auth/actions";
 import { OfflineAuthNote } from "@/components/auth/offline-note";
+import { IconKeelLogo, IconArrowRight, IconAlertTriangle } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,7 @@ export default async function SignInPage({ searchParams }: Props) {
   if (mode === "clerk") {
     const { SignIn } = await import("@clerk/nextjs");
     return (
-      <div>
-        <h1>Sign In to Keel Academy</h1>
+      <div className="shell flex max-w-md justify-center py-20">
         <SignIn />
       </div>
     );
@@ -38,44 +38,63 @@ export default async function SignInPage({ searchParams }: Props) {
   const errorBody = error ? ERRORS[error] : null;
 
   return (
-    <div>
-      <h1>Sign In to Your Account</h1>
-      <p>
-        Access your unit enrollments, submission verdicts, and token budget.
-      </p>
-
-      {errorBody ? (
-        <div role="alert">
-          <p><strong>Error:</strong> {errorBody}</p>
+    <div className="shell flex max-w-md flex-col py-16 sm:py-24">
+      <div className="panel p-8">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg border border-line-strong bg-inset text-accent">
+            <IconKeelLogo size={20} />
+          </span>
+          <h1 className="text-xl font-semibold tracking-tight text-ink">Sign in to Keel Academy</h1>
         </div>
-      ) : null}
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">
+          Access your unit enrollments, submission verdicts, and token budget.
+        </p>
 
-      <form action={offlineSignInAction}>
-        <input type="hidden" name="next" value={next ?? "/me"} />
-        <div>
-          <label htmlFor="email">Email Address</label>
-          <br />
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            defaultValue={email ?? ""}
-            placeholder="developer@example.com"
-          />
-        </div>
-        <br />
-        <button type="submit">
-          Sign In
-        </button>
-        <p>
+        {errorBody ? (
+          <div
+            role="alert"
+            className="mt-5 flex items-start gap-3 rounded-lg border border-fail/40 bg-fail/5 px-4 py-3"
+          >
+            <IconAlertTriangle size={15} className="mt-0.5 shrink-0 text-fail" />
+            <p className="text-[13px] leading-relaxed text-ink-2">{errorBody}</p>
+          </div>
+        ) : null}
+
+        <form action={offlineSignInAction} className="mt-6 space-y-5">
+          <input type="hidden" name="next" value={next ?? "/me"} />
+
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-ink">
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              defaultValue={email ?? ""}
+              placeholder="developer@example.com"
+              className="w-full rounded-lg border border-line-strong bg-inset px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/70 focus:border-accent/60 focus:outline-none"
+            />
+          </div>
+
+          <button type="submit" className="btn-primary w-full py-3">
+            Sign in
+            <IconArrowRight size={15} />
+          </button>
+        </form>
+
+        <p className="mt-6 border-t border-line pt-5 text-sm text-ink-3">
           Don&apos;t have an account yet?{" "}
-          <Link href={next ? `/sign-up?next=${encodeURIComponent(next)}` : "/sign-up"}>
+          <Link
+            href={next ? `/sign-up?next=${encodeURIComponent(next)}` : "/sign-up"}
+            className="font-medium text-accent hover:text-accent-strong"
+          >
             Create an account
           </Link>
         </p>
-      </form>
+      </div>
 
       <OfflineAuthNote mode={mode} />
     </div>

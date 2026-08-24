@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUnits } from "@/lib/content";
+import { Reveal } from "@/components/reveal";
+import { IconCheck, IconAward, IconArrowRight } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Curriculum",
+  title: "13-Phase Curriculum & Capstone Standard",
   description:
-    "Thirteen phases, one anchor client, 700 to 950 hours. The full AI Engineer's Path curriculum, phase by phase, with real outcomes per phase.",
+    "Thirteen phases, one anchor client, 700 to 950 hours. The complete AI Engineer's Path curriculum from setup to production capstone.",
 };
 
 type Phase = {
   id: string;
+  phaseNum: number;
   name: string;
+  estHours: string;
+  badge?: string;
   why: string;
   outcome: string;
   modules: string[];
@@ -19,108 +24,219 @@ type Phase = {
 
 const PHASES: Phase[] = [
   {
-    id: "Phase 0",
-    name: "Orientation & Setup",
-    why: "Setup is where self-taught learners quietly quit, so the school treats it as the first deliverable instead of a chore before the real work. Sandbox, environment, and the first drill all happen in the first session.",
-    outcome: "Your environment runs, and you have already met the client you will serve for the entire program.",
-    modules: ["0.1 Meet the client", "0.2 How the curriculum works", "0.3 Environment setup"],
+    id: "phase-0",
+    phaseNum: 0,
+    name: "Orientation & Environment Setup",
+    estHours: "20 hours",
+    why: "Environment setup is where self-taught learners quietly drop off. We treat sandboxing, tooling, and your first drill as the initial deliverable completed in your first session.",
+    outcome: "Your isolated Docker environment runs, and you meet Meridian Mutual: the anchor client you serve across all thirteen phases.",
+    modules: ["0.1 Meet the client: Meridian Mutual", "0.2 How the curriculum and grading loop work", "0.3 One-click Docker environment setup"],
   },
   {
-    id: "Phase 1",
+    id: "phase-1",
+    phaseNum: 1,
     name: "Software Engineering Foundations",
-    why: "Every later phase stands on this, so nothing here is taught as abstract syntax. Python, git, APIs, async, and testing are all taught as pieces of the Meridian claims pipeline.",
-    outcome: "You can write, test, and structure the code the rest of the program is built on.",
-    modules: ["1.1 Python for AI engineering", "1.2 Version control & collaborative workflow", "1.3 Working with APIs & web services", "1.4 Async programming & concurrency", "1.5 Testing & code quality"],
-    note: "Already program for a living? A 20-minute placement diagnostic skips you past the basics.",
+    estHours: "100 hours",
+    why: "Every subsequent phase stands on engineering fundamentals. Python, git workflows, HTTP APIs, async programming, and pytest are taught as components of the claims intake pipeline.",
+    outcome: "You structure, test, and containerize asynchronous backend code ready for high-throughput model pipelines.",
+    modules: [
+      "1.1 Python for AI engineering (type hints, Pydantic, data structures)",
+      "1.2 Version control & collaborative git workflows",
+      "1.3 Working with HTTP APIs, webhooks, and rate limits",
+      "1.4 Asynchronous programming, event loops & concurrency",
+      "1.5 Testing suites, code quality & pytest fixtures",
+    ],
+    note: "Experienced programmers can take a 20-minute adaptive diagnostic to place straight into Phase 2.",
   },
   {
-    id: "Phase 2",
-    name: "LLM Fundamentals",
-    why: "Most AI flakiness is a mental-model problem. If you think in prompts-as-magic, every failure is a surprise.",
-    outcome: "You can predict model behavior: what fits in a context window, why outputs drift, when to switch providers, and how to call an LLM API like an engineer, with retries, timeouts, and structured handling.",
-    modules: ["2.1 How transformer models work, practically", "2.2 Tokens, context windows & model behavior", "2.3 The model provider landscape and how to choose", "2.4 Calling LLM APIs like an engineer"],
+    id: "phase-2",
+    phaseNum: 2,
+    name: "LLM Fundamentals & Model Physics",
+    estHours: "60 hours",
+    why: "Most prompt fragility comes from flawed mental models. When models are treated as magic, non-deterministic failures feel impossible to debug.",
+    outcome: "You predict model behavior: tokenization nuances, context compression, attention mechanics, provider differences, and engineered API handling.",
+    modules: [
+      "2.1 How transformer models work practically (next-token prediction)",
+      "2.2 Tokens, context windows & model degradation patterns",
+      "2.3 The model provider landscape and trade-off matrices",
+      "2.4 Calling LLM APIs with retries, backoff, and timeouts",
+    ],
   },
   {
-    id: "Phase 3",
+    id: "phase-3",
+    phaseNum: 3,
     name: "Prompt Engineering as a Discipline",
-    why: "A prompt you cannot diff, version, or test is not engineering. It is an incantation.",
-    outcome: "You write prompts as code: versioned, tested, and trusted, with structured outputs that parse every time or fail loudly.",
-    modules: ["3.1 System prompt design", "3.2 Structured outputs & schema-constrained generation", "3.3 Few-shot & in-context learning design", "3.4 Prompts as code: versioning & testing"],
-    note: "Unit 3.2.1 is live today. It is the unit you can enroll in right now.",
+    estHours: "80 hours",
+    badge: "Unit 3.2.1 live",
+    why: "Prompts you cannot diff, test, and version in git are incantations, not engineering. We treat prompts as strict software artifacts.",
+    outcome: "You author versioned, schema-constrained prompts with deterministic JSON outputs that parse every time or fail with structured error logs.",
+    modules: [
+      "3.1 System prompt design & role conditioning",
+      "3.2 Structured outputs & schema-constrained generation (Unit 3.2.1)",
+      "3.3 Few-shot exemplars & dynamic in-context retrieval",
+      "3.4 Prompts as code: versioning, CI testing & regression gates",
+    ],
+    note: "Unit 3.2.1 is live and accepting submissions today with full automated grading.",
   },
   {
-    id: "Phase 4",
-    name: "Retrieval-Augmented Generation & Knowledge Grounding",
-    why: "Retrieval fails silently. The answer sounds right while being grounded in nothing, and nobody notices until a client does.",
-    outcome: "You can ground answers in real policy documents and prove the grounding holds, with chunking, embeddings, hybrid search, and reranking working together.",
-    modules: ["4.1 Chunking & document processing", "4.2 Embeddings & vector databases", "4.3 Hybrid search & reranking", "4.4 Agentic & graph-based retrieval"],
+    id: "phase-4",
+    phaseNum: 4,
+    name: "Retrieval-Augmented Generation (RAG) & Grounding",
+    estHours: "80 hours",
+    why: "Retrieval fails quietly: the model hallucinates plausible answers without grounding, and nobody notices until an auditor or customer checks the policy clause.",
+    outcome: "You ground answers in Meridian policy documents using hybrid search, chunking strategies, dense embeddings, and cross-encoder rerankers.",
+    modules: [
+      "4.1 Semantic chunking, metadata extraction & PDF parsing",
+      "4.2 Dense vector embeddings & vector databases (Qdrant)",
+      "4.3 Hybrid search (BM25 + vector) & reciprocal rank fusion",
+      "4.4 Agentic retrieval loops & graph-based knowledge indices",
+    ],
   },
   {
-    id: "Phase 5",
+    id: "phase-5",
+    phaseNum: 5,
     name: "Tool Use & Agent Orchestration",
-    why: "Agents fail in loops, and they fail expensively. This is also where most self-taught builders stall, and the curriculum says so out loud before you get there.",
-    outcome: "You build agents that call tools with budgets, stop conditions, and memory that survives a long conversation.",
-    modules: ["5.1 Function calling & tool schemas", "5.2 Single-agent reasoning loops", "5.3 Multi-agent orchestration", "5.4 Orchestration frameworks & interoperability protocols", "5.5 Memory & state design"],
-    note: "Clearing the Phase 5 integration gate inside its window earns the first completion rebate.",
+    estHours: "80 hours",
+    badge: "15% rebate gate",
+    why: "Autonomous agents fail in infinite loops and blow through budgets. This is where most builders stall; we provide explicit stop conditions and state machines.",
+    outcome: "You build multi-tool agents that query policy databases, calculate payouts, and make triage routing decisions within strict token budgets.",
+    modules: [
+      "5.1 Function calling schemas & structured parameter validation",
+      "5.2 Single-agent ReAct reasoning loops with hard stop conditions",
+      "5.3 Multi-agent orchestration & hierarchical routing",
+      "5.4 Orchestration frameworks & protocol interoperability",
+      "5.5 Persistent conversation memory & state compaction",
+    ],
+    note: "Passing the Phase 5 integration gate inside 365 days triggers your first 15% completion rebate.",
   },
   {
-    id: "Phase 6",
+    id: "phase-6",
+    phaseNum: 6,
     name: "Fine-Tuning & Model Adaptation",
-    why: "Fine-tuning is the most over-prescribed tool in the stack. Used wrong, it is an expensive way to avoid fixing your retrieval.",
-    outcome: "You choose between prompting, RAG, and fine-tuning on evidence, and you only pay for LoRA when it actually wins.",
-    modules: ["6.1 When to fine-tune (vs. prompt vs. RAG)", "6.2 Supervised fine-tuning fundamentals", "6.3 LoRA/QLoRA hands-on", "6.4 Preference-based methods"],
+    estHours: "60 hours",
+    why: "Fine-tuning is frequently misapplied to fix retrieval problems. We teach you when fine-tuning is economically justified and how to execute parameter-efficient tuning.",
+    outcome: "You know when to prompt, when to retrieve, and when to fine-tune. You prepare instruction datasets and train LoRA adapters on open models.",
+    modules: [
+      "6.1 Decision framework: Prompting vs RAG vs Fine-tuning",
+      "6.2 Dataset preparation, data synthesis & formatting",
+      "6.3 Hands-on LoRA/QLoRA parameter-efficient training",
+      "6.4 Preference optimization (DPO) for domain tone alignment",
+    ],
   },
   {
-    id: "Phase 7",
-    name: "Evaluation & Observability",
-    why: "This is the phase the entire school is built on. The platform grades your work with exactly the discipline this phase teaches: golden sets, judges calibrated against humans, full traces, regression gates.",
-    outcome: "You can put a number on 'it works', trace any single decision the system made, and catch a regression before a user does.",
-    modules: ["7.1 Building golden datasets", "7.2 Automated & LLM-as-judge evaluation", "7.3 Production observability & tracing", "7.4 Regression testing for non-deterministic systems"],
+    id: "phase-7",
+    phaseNum: 7,
+    name: "Evaluation & Production Observability",
+    estHours: "70 hours",
+    badge: "The school's core discipline",
+    why: "This is the cornerstone discipline of the entire school. Keel grades your work using the exact evaluation methodology taught in this phase.",
+    outcome: "You build golden evaluation datasets, calibrate LLM judges against human baselines, instrument distributed traces, and wire automated CI regression gates.",
+    modules: [
+      "7.1 Curating representative golden evaluation datasets",
+      "7.2 Heuristic and LLM-as-judge scoring with quoted evidence",
+      "7.3 Distributed tracing, token cost accounting & latency telemetry",
+      "7.4 CI/CD regression testing for probabilistic models",
+    ],
   },
   {
-    id: "Phase 8",
+    id: "phase-8",
+    phaseNum: 8,
     name: "Cost & Performance Engineering",
-    why: "Three thousand claims a month is where demo economics go to die. A system that costs more than the labor it saves is a science project.",
-    outcome: "You can model token spend before you ship, route cheap tasks to cheap models, and hand a CFO a cost sheet they accept.",
-    modules: ["8.1 Token & cost modeling", "8.2 Model routing", "8.3 Prompt caching & latency optimization"],
+    estHours: "50 hours",
+    why: "At 3,000 claims a month, inefficient LLM calls destroy unit economics. A system that costs more than the human labor it replaces is unviable.",
+    outcome: "You model token costs, implement dynamic model routing from low-tier to frontier models, leverage prompt caching, and optimize latency.",
+    modules: [
+      "8.1 Token economics, context modeling & ROI calculations",
+      "8.2 Dynamic cascading model routers (cheap-first fallbacks)",
+      "8.3 Prompt prefix caching, semantic caching & batching",
+    ],
   },
   {
-    id: "Phase 9",
+    id: "phase-9",
+    phaseNum: 9,
     name: "Security, Safety & Governance",
-    why: "A claims system reads hostile input for a living. Prompt injection is not an edge case here; it is Tuesday.",
-    outcome: "You build the defenses, the human-in-the-loop checkpoints, and the audit trail that let a compliance officer say yes to running this on real customer data.",
-    modules: ["9.1 Prompt injection & adversarial input defense", "9.2 The standard risk categories for LLM applications", "9.3 Human-in-the-loop design for high-stakes actions", "9.4 Audit trails, data privacy & access control"],
+    estHours: "60 hours",
+    why: "An automated claims system ingests untrusted user documents. Adversarial prompt injection and data leakage must be defended systematically.",
+    outcome: "You build input guardrails, prevent prompt injections, enforce human-in-the-loop approvals for high-value payouts, and maintain tamper-evident audit logs.",
+    modules: [
+      "9.1 Direct and indirect prompt injection defense",
+      "9.2 PII redaction, data sanitization & access policies",
+      "9.3 Human-in-the-loop checkpoints for critical decisions",
+      "9.4 Immutable audit logging & regulatory compliance trails",
+    ],
   },
   {
-    id: "Phase 10",
-    name: "Deployment & Production (LLMOps)",
-    why: "Shipping a probabilistic system is a different discipline from shipping deterministic software, and most deployment courses pretend otherwise.",
-    outcome: "You wrap the system as an API, containerize it, wire CI/CD that tolerates non-determinism, and run monitoring and on-call without heroics.",
-    modules: ["10.1 Wrapping AI systems as APIs", "10.2 Containerization & environment management", "10.3 CI/CD for probabilistic systems", "10.4 Monitoring, alerting & on-call"],
+    id: "phase-10",
+    phaseNum: 10,
+    name: "Deployment & Production LLMOps",
+    estHours: "60 hours",
+    why: "Deploying probabilistic systems is fundamentally different from traditional web development. Latency spikes and model drift require dedicated infrastructure.",
+    outcome: "You wrap your system in FastAPI endpoints, containerize with Docker, deploy to scalable infrastructure, and build monitoring dashboards.",
+    modules: [
+      "10.1 Packaging AI pipelines as robust REST APIs",
+      "10.2 Ephemeral containerization & sandbox runners",
+      "10.3 CI/CD deployment pipelines with evaluation barriers",
+      "10.4 Production monitoring, drift alerting & on-call runbooks",
+    ],
   },
   {
-    id: "Phase 11",
-    name: "The Business of AI Engineering (parallel track)",
-    why: "Finishing technically strong and financially broke is the most common ending to this story, and it happens because the business skills get saved for 'later'. This track runs from week one, paired with the technical phases, and every artifact gets rehearsed against an AI counterparty before it gets written.",
-    outcome: "You leave with a niche, case studies, a pricing model, rehearsed discovery calls, and a sendable proposal with an explicit not-included section.",
-    modules: ["11.1 Positioning & niche selection", "11.2 Portfolio & case studies", "11.3 Pricing models", "11.4 Finding & qualifying leads", "11.5 Discovery calls & scoping", "11.6 Proposals & contracts", "11.7 Scope management & client communication", "11.8 Delivery, reporting & retainer conversion", "11.9 Testimonials, referrals & staying current"],
+    id: "phase-11",
+    phaseNum: 11,
+    name: "The Business of AI Engineering",
+    estHours: "80 hours",
+    badge: "Parallel track from day one",
+    why: "Graduating technically competent but financially broke is the standard failure mode of self-taught engineers. This track runs in parallel from week one.",
+    outcome: "You rehearse discovery calls against AI prospects, calculate value-based pricing, draft sendable proposals with explicit exclusions, and send real outreach.",
+    modules: [
+      "11.1 Positioning, niche selection & positioning statements",
+      "11.2 Architectural case studies & portfolio assets",
+      "11.3 Value-based pricing models & ROI calculators",
+      "11.4 Prospect qualification & outreach workflows",
+      "11.5 Discovery call simulations scored against rubrics",
+      "11.6 Proposals, contracts & mandatory not-included scope",
+      "11.7 Retainer conversion, handoff & client communication",
+    ],
+    note: "Unlocked on day one alongside the technical phases so business reps compound with technical building.",
   },
   {
-    id: "Phase 12",
-    name: "Capstone & Portfolio",
-    why: "One project proves depth. Three more prove it was not a fluke of the industry you happened to start in.",
-    outcome: "The Meridian system end to end, three cross-industry portfolio projects, and the full project ladder in one place, verified.",
-    modules: ["12.1 The capstone: Meridian Mutual, end to end", "12.2 Portfolio projects beyond insurance", "12.3 The full project ladder"],
-    note: "Clearing the capstone gate inside its window earns the second completion rebate.",
+    id: "phase-12",
+    phaseNum: 12,
+    name: "Capstone & Cross-Industry Portfolio",
+    estHours: "100 hours",
+    badge: "15% rebate gate",
+    why: "One vertical project proves depth; three additional projects prove you can architect AI systems across healthcare, finance, and legal domains.",
+    outcome: "The complete Meridian claims triage pipeline running in production, plus three cross-domain portfolio deliverables and an unscripted video walkthrough.",
+    modules: [
+      "12.1 The Capstone: Meridian Mutual end to end in production",
+      "12.2 Cross-Industry Portfolio: Legal brief analyzer",
+      "12.3 Cross-Industry Portfolio: Healthcare clinical notes extractor",
+      "12.4 Cross-Industry Portfolio: Financial earnings report synthesizer",
+    ],
+    note: "Clearing the capstone gate inside 365 days triggers your final 15% completion rebate.",
   },
 ];
 
-const DONE_BAR = [
-  "The system works, with a golden-set accuracy score you are not embarrassed by.",
-  "You can explain every why, not just every how, in a recorded defense.",
-  "It survives a skeptical technical reviewer and a skeptical business owner.",
-  "The business layer is real: one outreach email, actually sent to a real business.",
-  "Your first pitch is ready to send the day you finish, because the capstone recording is the pitch.",
+const SECTION_14_CRITERIA = [
+  {
+    title: "Verified golden-set accuracy",
+    description: "Your capstone system achieves a verified accuracy score on a held-out golden dataset of 100+ adversarial claims.",
+  },
+  {
+    title: "Recorded defend-your-work defense",
+    description: "You answer unscripted interview questions explaining every architectural decision, trade-off, and failure recovery path.",
+  },
+  {
+    title: "Technical stakeholder defense",
+    description: "Your system survives a simulated review from a skeptical CTO persona requiring telemetry, cost caps, and security audits.",
+  },
+  {
+    title: "Business owner defense",
+    description: "Your proposal and case study survive a CFO persona evaluation focused on ROI, unit economics, and risk management.",
+  },
+  {
+    title: "Real-world outreach gate",
+    description: "You submit proof of one real outreach email sent to a real business with a sendable, priced proposal.",
+  },
 ];
 
 export default function CurriculumPage() {
@@ -128,96 +244,180 @@ export default function CurriculumPage() {
   const first = units[0];
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-      <p className="eyebrow">The curriculum</p>
-      <h1 className="font-display mt-6 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">
-        Thirteen phases, one client, no electives.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
-        Everything you build serves one engagement: turning Meridian Mutual&apos;s
-        manual claims intake into a pipeline a regulator, a claims manager, and a
-        CFO would all sign off on. Every phase ends in an integration project that
-        plugs into that running system. The business track runs in parallel from
-        week one, because saving it for the end is how engineers finish skilled
-        and broke.
-      </p>
-      <p className="mt-4 max-w-2xl font-mono text-sm text-ink-soft">
-        700 to 950 hours total · 9 to 15 months at 12 to 15 hours a week · faster full-time
-      </p>
+    <div>
+      {/* Header */}
+      <section className="border-b border-line">
+        <div className="shell pt-16 pb-10 sm:pt-20">
+          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+            Thirteen phases, one client, no electives.
+          </h1>
+          <p className="mt-5 max-w-[62ch] text-base leading-relaxed text-ink-2 sm:text-lg">
+            Every sub-module serves a single anchor engagement: transforming Meridian Mutual&apos;s
+            manual claims triage into a production pipeline a compliance officer, CTO, and CFO will
+            all sign off on.
+          </p>
 
-      <div className="mt-14 space-y-0 border-t border-line">
-        {PHASES.map((phase) => (
-          <section key={phase.id} className="reveal border-b border-line py-10">
-            <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-              <div>
-                <p className="eyebrow">{phase.id}</p>
-                <h2 className="font-display mt-2 text-2xl font-semibold leading-snug">
-                  {phase.name}
-                </h2>
-                {phase.note ? (
-                  <p className="mt-3 border-l-2 border-school pl-3 text-sm text-ink-soft">
-                    {phase.note}
-                  </p>
-                ) : null}
-              </div>
-              <div>
-                <p className="leading-relaxed text-ink-soft">{phase.why}</p>
-                <p className="mt-4 leading-relaxed">
-                  <em>{phase.outcome}</em>
-                </p>
-                <ul className="mt-4 grid gap-x-8 gap-y-1.5 text-sm text-ink-soft sm:grid-cols-2">
-                  {phase.modules.map((m) => (
-                    <li key={m}>{m}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <section className="py-14">
-        <p className="eyebrow">Section 14</p>
-        <h2 className="font-display mt-4 text-3xl font-semibold">
-          What &ldquo;done&rdquo; means.
-        </h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          There is no exam. The bar is the curriculum&apos;s own definition of done,
-          made checkable:
-        </p>
-        <ul className="mt-6 max-w-2xl space-y-3">
-          {DONE_BAR.map((item) => (
-            <li key={item.slice(0, 24)} className="flex gap-3 leading-relaxed">
-              <span aria-hidden className="mt-1 text-school">✓</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+          {/* Phase jump rail */}
+          <nav
+            aria-label="Jump to phase"
+            className="mt-8 flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {PHASES.map((p) => (
+              <a
+                key={p.id}
+                href={`#${p.id}`}
+                className="shrink-0 rounded-full border border-line-strong px-3.5 py-1.5 font-mono text-xs text-ink-3 transition-colors hover:border-accent/50 hover:text-accent"
+              >
+                P{p.phaseNum}
+              </a>
+            ))}
+            <a
+              href="#capstone"
+              className="shrink-0 rounded-full border border-accent/40 px-3.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent-soft"
+            >
+              Capstone bar
+            </a>
+          </nav>
+        </div>
       </section>
 
-      <section className="border-t border-line pt-12 pb-4">
-        <h2 className="font-display text-2xl font-semibold">
-          The honest fine print
-        </h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          One unit, 3.2.1, is live and fully graded today. The other twelve phases
-          above are the published spec the school is building against, phase by
-          phase, in curriculum order. Tools named in the lessons are the current
-          defaults as of 2026, and the tool-specific sections of every lesson are
-          re-audited quarterly, because this stack moves and the school pretends
-          otherwise at its peril.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-4">
+      {/* Phase timeline */}
+      <section className="shell py-16 sm:py-20">
+        <div className="relative">
+          {/* Timeline rail */}
+          <div
+            className="absolute top-2 bottom-2 left-[13px] w-px bg-line sm:left-[17px]"
+            aria-hidden
+          />
+          <div className="space-y-12">
+            {PHASES.map((phase) => (
+              <PhaseBlock key={phase.id} phase={phase} firstUnitId={first?.id ?? null} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 14: Graduation bar */}
+      <section id="capstone" className="border-t border-line bg-raised/30">
+        <div className="shell section">
+          <Reveal>
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
+                <IconAward size={19} />
+              </span>
+              <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                What &ldquo;done&rdquo; means.
+              </h2>
+            </div>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              There is no multiple-choice final exam. You graduate by clearing five checks lifted
+              directly from Section 14 of the architecture.
+            </p>
+          </Reveal>
+
+          <div className="mt-10 divide-y divide-line border-y border-line">
+            {SECTION_14_CRITERIA.map((criterion, index) => (
+              <Reveal key={criterion.title} delay={Math.min(index * 0.05, 0.2)}>
+                <div className="grid gap-2 py-5 sm:grid-cols-[200px_1fr] sm:gap-6">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-accent">{index + 1}</span>
+                    <h3 className="text-[15px] font-semibold text-ink">{criterion.title}</h3>
+                  </div>
+                  <p className="text-sm leading-relaxed text-ink-2">{criterion.description}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal className="mt-8">
+            <p className="max-w-[72ch] rounded-xl border border-accent/25 bg-accent-soft px-6 py-5 text-sm leading-relaxed text-ink-2">
+              <span className="font-semibold text-ink">The Delivery-Ready credential:</span>{" "}
+              clearing all five checks updates your public verified profile with immutable
+              references to your git commits, test runs, and judge verdicts.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="border-t border-line">
+        <div className="shell flex flex-col items-start justify-between gap-6 py-16 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink">Ready to start Phase 3?</h2>
+            <p className="mt-2 text-sm text-ink-2">
+              Unit 3.2.1 is open for enrollment with the live grading pipeline.
+            </p>
+          </div>
           {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary">
+            <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
               Start Unit {first.id}
+              <IconArrowRight size={16} />
             </Link>
           ) : null}
-          <Link href="/pricing" className="btn-secondary">
-            See pricing
-          </Link>
         </div>
       </section>
     </div>
+  );
+}
+
+function PhaseBlock({ phase, firstUnitId }: { phase: Phase; firstUnitId: string | null }) {
+  return (
+    <article id={phase.id} className="relative scroll-mt-24 pl-10 sm:pl-14">
+      {/* Timeline node */}
+      <span
+        className="absolute top-1.5 left-0 grid size-7 place-items-center rounded-full border border-line-strong bg-raised font-mono text-[10px] text-accent sm:size-9 sm:text-[11px]"
+        aria-hidden
+      >
+        {phase.phaseNum}
+      </span>
+
+      <Reveal>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <h2 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+            {phase.name}
+          </h2>
+          <span className="font-mono text-xs text-ink-3">{phase.estHours}</span>
+          {phase.badge ? <span className="chip-accent">{phase.badge}</span> : null}
+        </div>
+
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          <div>
+            <p className="font-mono text-[11px] tracking-[0.1em] text-ink-3 uppercase">
+              Why this phase exists
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{phase.why}</p>
+          </div>
+          <div>
+            <p className="font-mono text-[11px] tracking-[0.1em] text-ink-3 uppercase">
+              The concrete outcome
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{phase.outcome}</p>
+          </div>
+        </div>
+
+        <ul className="mt-5 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+          {phase.modules.map((m) => (
+            <li key={m} className="flex items-start gap-2.5 text-sm text-ink-2">
+              <IconCheck size={14} className="mt-1 shrink-0 text-accent" />
+              {m}
+            </li>
+          ))}
+        </ul>
+
+        {phase.note ? (
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-inset px-4 py-3">
+            <p className="text-[13px] leading-relaxed text-ink-3">
+              <span className="text-ink-2">Note:</span> {phase.note}
+            </p>
+            {phase.phaseNum === 3 && firstUnitId ? (
+              <Link href={`/units/${firstUnitId}`} className="link-arrow shrink-0 text-xs">
+                Start Unit {firstUnitId}
+                <IconArrowRight size={12} />
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
+      </Reveal>
+    </article>
   );
 }

@@ -1,123 +1,142 @@
 import Link from "next/link";
+import Image from "next/image";
 import { listUnits, loadUnit } from "@/lib/content";
+import { Reveal } from "@/components/reveal";
 import { HeroInspection } from "@/components/hero-inspection";
+import {
+  IconArrowRight,
+  IconCheckCircle,
+  IconShieldCheck,
+  IconCpu,
+  IconTerminal,
+  IconAward,
+  IconAlertTriangle,
+} from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
-const PAIN_PARAGRAPHS = [
-  "You know the pattern. You follow a tutorial, wire up a framework, and by Sunday night you have a demo that reads a PDF and answers questions about it. It feels like progress.",
-  "Then somebody asks how you know it works. Not once, but on the three-thousandth input. What it costs to run at that volume. What happens when a claim arrives as a blurry scan stapled to a rude email and a policy document with exclusions on page fourteen. You tweak the prompt, rerun the demo, and hope. That is not engineering. That is guessing with nicer tooling.",
-  "The sinking feeling is not a you problem. Nobody ever graded your work, so you never found out where the gaps were. Tutorials cannot do that part. They can only show you theirs.",
+const PAIN_POINTS = [
+  {
+    title: "The weekend demo trap",
+    body: "You follow a tutorial, wire up a framework, and by Sunday night you have a demo that reads a PDF and answers questions. It feels like progress.",
+  },
+  {
+    title: "The 3,000th input problem",
+    body: "Then someone asks how you know it works on messy real-world scans, rude emails, or hostile inputs. What it costs to run at volume. You tweak the prompt, rerun once, and hope. That is not engineering.",
+  },
+  {
+    title: "The missing grader",
+    body: "The sinking feeling is not a you problem. Nobody ever graded your work, so you never found out where the gaps were. Tutorials show you their happy path; they cannot evaluate yours.",
+  },
 ];
 
 const UNIT_STEPS = [
   {
-    num: "01",
     name: "Learn",
-    body: "A written lesson, not a video playlist. Every lesson is built in three layers: the concept that changes slowly, how that concept shows up in the Meridian pipeline, and the current tool syntax, which is marked separately so it gets re-audited every quarter.",
+    body: "A written lesson in three layers: the enduring concept, how it lands in the Meridian pipeline, and current tool specifics audited quarterly.",
   },
   {
-    num: "02",
     name: "Practice",
-    body: "A fully worked example of a parallel task, annotated line by line with the why behind each decision. Then a completion problem: the same example with pieces removed, auto-graded. In Unit 3.2.1 the parallel task is an invoice-notes parser, the same shape as your claim-notes extractor, different enough that copying it gets you nothing.",
+    body: "An annotated worked example of a parallel task, then a completion problem with gaps you fill and verify against deterministic checks.",
   },
   {
-    num: "03",
     name: "Build",
-    body: "The deliverable, verbatim from the curriculum, against your own variant of the Meridian data. Your corpus is seeded from your student id, so an answer key copied from another student fails on your data.",
+    body: "The curriculum deliverable against your own variant of the Meridian corpus. Copied answer keys fail on your data.",
   },
   {
-    num: "04",
     name: "Verify",
-    body: "You push to git. Sandboxed tests run, a judge grades the work against a versioned rubric and quotes your own code as evidence, and at gate units you answer defend-your-work questions about the decisions the judge flagged.",
+    body: "Push your repo. Isolated containers run the tests, a calibrated judge grades against a versioned rubric, and gates trigger code defenses.",
   },
   {
-    num: "05",
     name: "Unstuck",
-    body: "Every unit carries a panel of the specific ways it usually breaks, written from real student failures. It is the answer you would have asked a TA for at 11pm, except you do not wait for anyone.",
+    body: "A panel of specific failure modes and concrete fixes, grown from real student attempts. The answer you would ask a TA for at 11pm.",
   },
 ];
 
 const VERIFICATION_LAYERS = [
   {
     layer: "Layer 1",
-    name: "Sandboxed tests",
-    detail: "Runs on every submission",
-    body: "Your code executes in an isolated container with hard limits on time, memory, and network. In Unit 3.2.1 that is 8 checks against 20 deliberately messy claim notes, including the ones designed to break a naive parser.",
+    name: "Automated sandbox checks",
+    detail: "Runs on every git push",
+    icon: IconTerminal,
+    body: "Your code executes in an isolated Docker container with strict CPU, memory, time, and network bounds. In Unit 3.2.1, eight checks run against 20 messy claim notes including adversarial inputs.",
   },
   {
     layer: "Layer 2",
-    name: "Rubric judgment",
+    name: "Calibrated rubric judge",
     detail: "Calibrated against human grades",
-    body: "A versioned rubric (5 criteria in 3.2.1) graded by a judge that must quote your code or your logs as evidence for every call. The judge is calibrated against a golden set of pre-graded submissions, and any rubric change that degrades its agreement with human grades blocks its own merge.",
+    icon: IconShieldCheck,
+    body: "A versioned rubric with concrete criteria. The judge must quote exact lines of your code or logs as auditable evidence. Rubric changes that degrade agreement with human baselines block their own merge.",
   },
   {
     layer: "Layer 3",
     name: "Defend your work",
-    detail: "At gate units",
-    body: "Short interview questions about the decisions the judge flagged. Why this schema, why log instead of drop, what breaks at ten times the volume. Submissions written by pasting AI output tend to fall apart here, which is the point.",
+    detail: "Mandatory at gate units",
+    icon: IconCpu,
+    body: "Follow-up questions generated directly from your submitted code. Why this schema, why log instead of drop, what breaks at ten times volume. Copy-pasted AI code falls apart here.",
   },
   {
     layer: "Layer 4",
     name: "Recorded walkthrough",
-    detail: "At the high-stakes gates",
-    body: "You narrate the system running, end to end. It doubles as the first asset in your portfolio, because a client can watch it too.",
+    detail: "High-stakes integration gates",
+    icon: IconAward,
+    body: "An unscripted video walkthrough of your system running end to end. Hard to fake, and it doubles as a proof asset for your client portfolio.",
   },
 ];
 
-const PHASE_ROWS = [
-  { id: "0-1", title: "Orientation and engineering foundations", focus: "Setup in the first hour, then Python, git, APIs, async, and testing, taught as pieces of the claims pipeline." },
-  { id: "2-3", title: "LLM fundamentals and prompt engineering", focus: "How the models actually behave, then prompts as versioned, tested code. Unit 3.2.1 is live today." },
-  { id: "4-5", title: "Retrieval and agents", focus: "Grounding answers in real policy documents, then tool-using agents with budgets and stop conditions." },
-  { id: "6-8", title: "Fine-tuning, evaluation, and cost", focus: "When adaptation is worth paying for, how to put a number on 'it works', and a cost model a CFO accepts." },
-  { id: "9-10", title: "Security and production", focus: "Prompt-injection defense, audit trails, and the CI/CD and monitoring that keep a probabilistic system alive." },
-  { id: "11", title: "The business track, in parallel from week one", focus: "Positioning, pricing, discovery calls rehearsed against AI personas, and a proposal with an explicit not-included section." },
-  { id: "12", title: "Capstone and portfolio", focus: "The Meridian system end to end, plus three projects in other industries so your proof is not one vertical deep." },
+const PHASE_BLOCKS = [
+  { id: "0-1", title: "Orientation and engineering foundations", hours: "120h", focus: "Setup in the first hour, then Python, git, APIs, async, and testing taught through the claims pipeline." },
+  { id: "2-3", title: "LLM fundamentals, prompts as code", hours: "140h", focus: "Model physics, context limits, and prompts as versioned, tested artifacts. Unit 3.2.1 is live today." },
+  { id: "4-5", title: "Retrieval and agent orchestration", hours: "160h", focus: "Grounding answers in policy documents, then tool-using agents with budgets and stop conditions." },
+  { id: "6-8", title: "Fine-tuning, evaluation, cost engineering", hours: "180h", focus: "When adaptation is worth paying for, putting a number on reliability, and cost models a CFO accepts." },
+  { id: "9-10", title: "Security, governance, LLMOps", hours: "140h", focus: "Prompt-injection defense, audit trails, and the CI/CD and monitoring that keep probabilistic systems stable." },
+  { id: "11", title: "The business of AI engineering", hours: "80h", focus: "A parallel track from day one: pricing, discovery calls rehearsed against AI personas, proposals with explicit exclusions." },
+  { id: "12", title: "Capstone and cross-industry portfolio", hours: "100h", focus: "The Meridian system end to end, plus three projects in other verticals so your proof is not one industry deep." },
 ];
 
 const TAKEAWAYS = [
-  "A working, verified claims-triage system: intake, extraction, retrieval, agent triage, evaluation, cost controls, audit trail, deployment.",
-  "Three portfolio projects outside insurance, so you can pitch more than one industry.",
-  "A priced, sendable proposal, with the explicit not-included section that keeps scope honest.",
-  "One real outreach email, actually sent to one real business. That is a graduation requirement, not a suggestion.",
-  "A Delivery-Ready credential that means something, because every gate behind it was checked by something that does not know you and does not grade on sympathy.",
+  "A working, verified claims-triage system: intake, extraction, retrieval, agent triage, evaluation, cost controls, audit trails, and deployment.",
+  "Three portfolio projects outside insurance, proving your architecture transfers across domains.",
+  "A priced, sendable proposal with the explicit not-included scope that keeps client engagements honest.",
+  "One real outreach email actually sent to one real business: a strict graduation requirement.",
+  "A Delivery-Ready credential backed by an immutable ledger of test logs and rubric evidence.",
 ];
 
 const SHORTCOMINGS = [
   {
-    title: "We are one unit deep.",
-    body: "Unit 3.2.1 is live with full grading. The rest of the curriculum exists as a published, fully specified plan and is being built phase by phase. You can read the entire plan before you pay for anything, and you should.",
+    title: "We are one unit deep today",
+    body: "Unit 3.2.1 is live with full automated grading. The other twelve phases exist as an open, fully specified blueprint and are built phase by phase. You can inspect the entire plan before paying.",
   },
   {
-    title: "There are no videos and no live classes.",
-    body: "Lessons are text, help comes from written worked examples, an always-on concierge, and the unstuck panels. If you learn best by watching someone talk, this format will feel dry.",
+    title: "No videos and no live lectures",
+    body: "Lessons are concise technical text. Help comes from annotated worked examples, an always-on concierge, and unstuck panels. If you need video instruction, this will feel dry.",
   },
   {
-    title: "There is no certificate PDF.",
-    body: "The credential is the verified work itself: the repos, the verdicts, the recorded walkthroughs. If you need a frameable document, we cannot give you one.",
+    title: "No attendance certificate PDF",
+    body: "The credential is the verified work itself: git repositories, test logs, rubric quotes, and defend interviews. We do not issue participation PDFs.",
   },
   {
-    title: "Finishing is still on you.",
-    body: "Pods, weekly digests, and the completion rebate all push in the right direction. Nothing drags you across the line. Most people who start a 700-hour self-paced program do not finish it, and we would rather you know that now.",
+    title: "Finishing is entirely on you",
+    body: "Pods, weekly digests, and the completion rebate provide structure, but nobody will drag you across the finish line. Most people who start self-paced programs quit; we design for the ones who finish.",
   },
 ];
 
 const HOME_FAQS = [
   {
-    q: "Do I get a certificate?",
-    a: "No. You get something harder to fake: a verified portfolio and a Delivery-Ready credential that only exists because your work passed tests, rubric grading, and a defense. A PDF that says you watched videos proves the opposite of what we are going for.",
+    q: "Do I get a certificate when I finish?",
+    a: "No. You get something harder to fake: a verified portfolio and a Delivery-Ready credential that exists only because your work passed sandboxed tests, rubric grading, and an unscripted defense.",
   },
   {
-    q: "Who is this not for?",
-    a: "Anyone who wants to watch rather than build, anyone looking for a six-week transformation, and anyone who needs a teacher checking in to keep going. The program is 700 to 950 hours of graded building. That filters most people out, and it is supposed to.",
+    q: "Who is this school not for?",
+    a: "Anyone who wants to watch video playlists rather than write code, anyone looking for a six-week shortcut, and anyone who needs a human teacher chasing them for homework. This is 700 to 950 hours of graded building.",
   },
   {
-    q: "Can I start today?",
-    a: "Yes. Unit 3.2.1 is open for enrollment right now, with the full grading pipeline behind it. It sits inside Phase 3, prompt engineering as a discipline, and it is a real slice of the whole method.",
+    q: "Can I start Unit 3.2.1 right now?",
+    a: "Yes. Unit 3.2.1 is open for enrollment today with the complete grading pipeline active. It sits inside Phase 3, structured outputs, and demonstrates the exact learning and grading loop used across the entire school.",
   },
   {
-    q: "What does it cost?",
-    a: "The pricing page has the current number and the completion rebate, which hands money back when you clear the big gates. Short version: one-time pricing, no subscription, and part of it comes back when you do the work.",
+    q: "How does the completion rebate work?",
+    a: "You pay once. Clear the Phase 5 integration gate inside 365 days and 15% comes back. Clear the final capstone gate and another 15% comes back. You earn back 30% total by completing the work on schedule.",
   },
 ];
 
@@ -127,305 +146,452 @@ export default function LandingPage() {
   const firstUnit = first ? loadUnit(first.id) : null;
   const checksCount = firstUnit?.checks?.length ?? 0;
   const criteriaCount = firstUnit?.rubric?.criteria.length ?? 0;
+  const unitTitle = firstUnit?.lesson?.title ?? "Structured Outputs";
 
   return (
-    <div className="mx-auto max-w-5xl px-6">
-      {/* 1. HERO */}
-      <section className="py-16 sm:py-24">
-        <p className="eyebrow">Keel Academy · The AI Engineer&apos;s Path</p>
-        <h1 className="font-display mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] sm:text-6xl">
-          You don&apos;t need another AI course. You need your work graded.
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
-          Keel is a self-paced engineering school. You build one production-grade
-          AI system end to end, a claims-triage pipeline for a fictional insurer,
-          and every deliverable is checked by sandboxed tests, a calibrated rubric
-          judge, and a defend-your-work interview. 700 to 950 hours. No videos.
-          No credit for showing up.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary">
-              Start Unit {first.id}
-            </Link>
-          ) : null}
-          <Link href="/curriculum" className="btn-secondary">
-            Read the full curriculum
-          </Link>
+    <div>
+      {/* ------------------------------- HERO ------------------------------- */}
+      <section className="relative overflow-hidden border-b border-line">
+        {/* Bathymetric texture, masked so type stays dominant. */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <Image
+            src="/depth-chart.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-[0.28]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-ground/70 via-ground/55 to-ground" />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_70%_20%,rgba(45,212,191,0.09),transparent_70%)]" />
         </div>
 
-        {firstUnit && (
-          <div className="card mt-12 max-w-2xl">
-            <p className="eyebrow">Now teaching</p>
-            <p className="mt-3 font-display text-xl font-semibold">
-              Unit {firstUnit.yaml.id} · {firstUnit.lesson?.title ?? "Structured outputs"}
+        <div className="shell-wide relative grid items-center gap-12 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-20 lg:pb-24">
+          <div>
+            {first ? (
+              <p className="rise inline-flex items-center gap-2.5 rounded-full border border-accent/30 bg-accent-soft px-3.5 py-1.5 font-mono text-[11px] tracking-[0.08em] text-accent">
+                <span className="live-dot" aria-hidden />
+                UNIT {first.id} LIVE, NOW ENROLLING
+              </p>
+            ) : null}
+
+            <h1 className="rise rise-1 mt-6 max-w-[13ch] text-4xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-5xl lg:text-[3.6rem]">
+              You do not need another AI tutorial.
+              <span className="block text-accent-strong">You need your work graded.</span>
+            </h1>
+
+            <p className="rise rise-2 mt-6 max-w-[52ch] text-lg leading-relaxed text-ink-2">
+              Build one production-grade claims pipeline across 13 phases. Every deliverable faces
+              sandboxed tests, calibrated judges, and a code defense.
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              {firstUnit.yaml.build.deliverable}
-            </p>
-            <p className="mt-3 font-mono text-xs uppercase tracking-wider text-ink-soft">
-              {firstUnit.yaml.est_hours} hours · {checksCount} sandbox checks · {criteriaCount} rubric criteria
-            </p>
-            <p className="mt-3 text-xs text-ink-soft">
-              This card is rendered from the actual unit files in the content repo,
-              not from marketing copy.
-            </p>
+
+            <div className="rise rise-3 mt-8 flex flex-wrap items-center gap-3">
+              {first ? (
+                <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
+                  Start Unit {first.id}
+                  <IconArrowRight size={16} />
+                </Link>
+              ) : null}
+              <Link href="/curriculum" className="btn-ghost px-5 py-3 text-[15px]">
+                Explore the curriculum
+              </Link>
+            </div>
           </div>
-        )}
+
+          {/* Live unit card: real content-repo data, rendered at request time. */}
+          {firstUnit && first ? (
+            <div className="rise rise-2 panel relative overflow-hidden bg-raised/90 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.55)] backdrop-blur-sm">
+              <div className="scanline flex items-center justify-between gap-4 border-b border-line px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
+                    <IconCpu size={20} />
+                  </span>
+                  <div>
+                    <p className="font-mono text-[11px] tracking-[0.08em] text-ink-3">
+                      NOW ENROLLING
+                    </p>
+                    <p className="text-sm font-semibold text-ink">
+                      Unit {firstUnit.yaml.id}: {unitTitle}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-3 divide-x divide-line border-b border-line">
+                <Stat value={String(firstUnit.yaml.est_hours)} label="hours" />
+                <Stat value={String(checksCount)} label="sandbox checks" />
+                <Stat value={String(criteriaCount)} label="rubric criteria" />
+              </dl>
+
+              <div className="px-6 py-5">
+                <p className="text-sm leading-relaxed text-ink-2">
+                  <span className="font-medium text-ink">Deliverable:</span>{" "}
+                  {firstUnit.yaml.build.deliverable}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <span className="font-mono text-xs text-ink-3">
+                    data variant: {firstUnit.yaml.build.data_variant}
+                  </span>
+                  <Link href={`/units/${firstUnit.yaml.id}`} className="link-arrow text-xs">
+                    Inspect unit specs
+                    <IconArrowRight size={12} />
+                  </Link>
+                </div>
+              </div>
+
+              <p className="border-t border-line bg-inset/60 px-6 py-3 font-mono text-[11px] tracking-[0.06em] text-ink-3">
+                700-950 HOURS TOTAL / NO VIDEOS / NO CREDIT FOR SHOWING UP
+              </p>
+            </div>
+          ) : null}
+        </div>
       </section>
 
-      <hr />
+      {/* -------------------- THE PROBLEM + INSPECTION BENCH ------------------ */}
+      <section className="section">
+        <div className="shell">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              The demo works. Then someone asks questions.
+            </h2>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              Reliability, evaluation, cost controls, and security are learnable engineering
+              disciplines, not intuitions. You master them by building real systems and having them
+              graded honestly.
+            </p>
+          </Reveal>
 
-      {/* 2. PAIN */}
-      <section className="py-16 sm:py-20">
-        <p className="eyebrow">Sound familiar?</p>
-        <div className="reveal mt-6 max-w-2xl">
-          <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl">
-            The demo works. Then someone asks questions.
-          </h2>
-          <div className="mt-6 space-y-5 leading-relaxed">
-            {PAIN_PARAGRAPHS.map((p) => (
-              <p key={p.slice(0, 24)}>{p}</p>
+          <div className="mt-12 grid gap-8 md:grid-cols-3 md:gap-10">
+            {PAIN_POINTS.map((item, index) => (
+              <Reveal key={item.title} delay={index * 0.08}>
+                <div className="border-l-2 border-line-strong pl-5 md:border-l-0 md:border-t-2 md:pt-5 md:pl-0">
+                  <h3 className="text-base font-semibold text-ink">{item.title}</h3>
+                  <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{item.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal className="mt-14" delay={0.1}>
+            <HeroInspection />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* --------------------------- THE UNIT LOOP --------------------------- */}
+      <section id="method" className="section border-t border-line bg-raised/30">
+        <div className="shell">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Every unit runs the same five-step loop.
+            </h2>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              Across 150+ units the cadence never changes, so you always know what today looks like
+              before opening your editor.
+            </p>
+          </Reveal>
+
+          <ol className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
+            {UNIT_STEPS.map((step, index) => (
+              <li key={step.name} className="bg-raised p-6 transition-colors hover:bg-raised-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[13px] font-medium tracking-[0.06em] text-accent">
+                    {step.name.toUpperCase()}
+                  </span>
+                  {index < UNIT_STEPS.length - 1 ? (
+                    <IconArrowRight size={12} className="text-ink-3 md:hidden" />
+                  ) : null}
+                </div>
+                <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ----------------------- VERIFICATION ENGINE ------------------------- */}
+      <section id="verification" className="section border-t border-line">
+        <div className="shell">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Four verification layers between you and a false pass.
+            </h2>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              Most courses verify completion with multiple-choice quizzes or basic string matching.
+              Keel runs an automated evaluation pipeline that catches fragile prompts, test gaming,
+              and hallucinations.
+            </p>
+          </Reveal>
+
+          <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
+            {VERIFICATION_LAYERS.map((v, index) => {
+              const Icon = v.icon;
+              return (
+                <Reveal key={v.layer} delay={index * 0.06}>
+                  <div className="flex h-full flex-col gap-4 bg-raised p-7">
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="grid size-10 place-items-center rounded-lg border border-line-strong bg-inset text-accent">
+                        <Icon size={19} />
+                      </span>
+                      <span className="font-mono text-[11px] tracking-[0.08em] text-ink-3">
+                        {v.layer} / {v.detail}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-ink">{v.name}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-ink-2">{v.body}</p>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+
+          <Reveal delay={0.1}>
+            <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-xl border border-accent/25 bg-accent-soft px-6 py-5 sm:flex-row sm:items-center">
+              <div>
+                <p className="text-sm font-semibold text-ink">
+                  The platform evaluates itself the way it teaches evaluation
+                </p>
+                <p className="mt-1 max-w-[62ch] text-sm leading-relaxed text-ink-2">
+                  Every grading call is traced with full prompts, responses, token usage, and
+                  latency. The Phase 7 observability discipline is active on your submissions from
+                  day one.
+                </p>
+              </div>
+              <Link href="/submit" className="link-arrow shrink-0">
+                Read the submission contract
+                <IconArrowRight size={13} />
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* --------------------------- CURRICULUM MAP -------------------------- */}
+      <section id="curriculum" className="section border-t border-line bg-raised/30">
+        <div className="shell grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+          <Reveal>
+            <div className="lg:sticky lg:top-24">
+              <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                One client. Thirteen phases. 700 to 950 hours.
+              </h2>
+              <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-ink-2">
+                From setup to capstone, you work for Meridian Mutual, a regional insurer handling
+                3,000 messy claims monthly. Every sub-module connects to that running architecture.
+              </p>
+              <Link href="/curriculum" className="btn-ghost mt-7">
+                Read the complete curriculum
+                <IconArrowRight size={15} />
+              </Link>
+            </div>
+          </Reveal>
+
+          <div className="divide-y divide-line border-y border-line">
+            {PHASE_BLOCKS.map((block, index) => (
+              <Reveal key={block.id} delay={Math.min(index * 0.04, 0.2)}>
+                <Link
+                  href={`/curriculum#phase-${block.id.split("-")[0]}`}
+                  className="group grid grid-cols-[86px_1fr] items-baseline gap-4 py-5 transition-colors hover:bg-raised-2/50 sm:grid-cols-[110px_1fr]"
+                >
+                  <div className="font-mono text-xs text-ink-3">
+                    <span className="text-accent">P{block.id}</span> {block.hours}
+                  </div>
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-ink transition-colors group-hover:text-accent-strong">
+                      {block.title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-2">{block.focus}</p>
+                  </div>
+                </Link>
+              </Reveal>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="reveal mt-12">
-          <HeroInspection />
+      {/* ----------------------------- TAKEAWAYS ------------------------------ */}
+      <section className="section border-t border-line">
+        <div className="shell">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              What you walk away with.
+            </h2>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              We cannot guarantee clients; nobody honestly can. What we guarantee is narrower: when
+              you finish, your work is real, defended, and checked by a system with no incentive to
+              flatter you.
+            </p>
+          </Reveal>
+
+          <ul className="mt-12 grid gap-x-12 gap-y-6 md:grid-cols-2">
+            {TAKEAWAYS.map((takeaway, index) => (
+              <Reveal key={takeaway.slice(0, 30)} delay={Math.min(index * 0.05, 0.2)}>
+                <li className="flex gap-3.5">
+                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border border-pass/40 bg-pass/10 text-pass">
+                    <IconCheckCircle size={13} />
+                  </span>
+                  <p className="text-sm leading-relaxed text-ink-2">{takeaway}</p>
+                </li>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <hr />
+      {/* ------------------------- HONEST LIMITATIONS ------------------------- */}
+      <section className="section border-t border-line bg-raised/30">
+        <div className="shell">
+          <Reveal>
+            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Where Keel falls short today.
+            </h2>
+            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
+              Most courses hide their limitations behind marketing adjectives. Ours sit on the
+              homepage so you can make a clear-eyed decision.
+            </p>
+          </Reveal>
 
-      {/* 3. REFRAME + PIVOT */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-2xl">
-          <p className="leading-relaxed">
-            Here is the good news. Reliability, evaluation, cost control, security:
-            these are learnable engineering disciplines, not taste. But they cannot
-            be learned by watching. You learn them by building something real and
-            having it graded honestly, over and over, until the work holds up.
-          </p>
-          <p className="mt-5 font-display text-2xl font-semibold">
-            I built Keel to be that grader.
-          </p>
-        </div>
-      </section>
-
-      <hr />
-
-      {/* 4. METHOD */}
-      <section id="how-it-works" className="py-16 sm:py-20">
-        <p className="eyebrow">The method</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          Every unit runs the same loop.
-        </h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          The curriculum has more than 150 units, and every one of them works the
-          same five-step way. You always know what today looks like.
-        </p>
-
-        <ol className="mt-10 space-y-0 border-t border-line">
-          {UNIT_STEPS.map((step) => (
-            <li key={step.num} className="reveal grid gap-3 border-b border-line py-8 sm:grid-cols-[4rem_10rem_1fr]">
-              <span className="font-mono text-sm text-ink-soft">{step.num}</span>
-              <span className="font-display text-xl font-semibold">{step.name}</span>
-              <p className="leading-relaxed text-ink-soft">{step.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <hr />
-
-      {/* 5. GRADING */}
-      <section id="verification" className="py-16 sm:py-20">
-        <p className="eyebrow">How you are graded</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          Four layers between you and a false pass.
-        </h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          Most courses grade you the way a smoke detector guards a casino: loudly,
-          and only when it doesn&apos;t matter. Keel&apos;s whole reason to exist is
-          the verification stack, so here is exactly how it works.
-        </p>
-
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {VERIFICATION_LAYERS.map((v) => (
-            <div key={v.layer} className="card reveal">
-              <p className="eyebrow">{v.layer} · {v.detail}</p>
-              <h3 className="font-display mt-3 text-xl font-semibold">{v.name}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{v.body}</p>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          One more thing, because it matters: the school grades itself with the same
-          discipline it teaches. Every grading call is traced, prompt and response,
-          and the trace is auditable later. The evaluation rigor you learn in
-          Phase 7 is the rigor applied to your own verdicts from day one.
-        </p>
-      </section>
-
-      <hr />
-
-      {/* 6. CURRICULUM MAP */}
-      <section id="curriculum" className="py-16 sm:py-20">
-        <p className="eyebrow">The map</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          One client. Thirteen phases. 700 to 950 hours.
-        </h2>
-        <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-          From your first unit to your capstone, you work for one fictional client:
-          Meridian Mutual, a 65-person regional insurer processing about 3,000
-          claims a month. Today a human reads every intake form, scan, photo, and
-          phone note, and routing a claim takes two to three days. Your job, across
-          thirteen phases, is to build the system that fixes that, and then learn
-          to sell it.
-        </p>
-
-        <div className="mt-10 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="w-28">Phases</th>
-                <th className="w-72">Block</th>
-                <th>What it covers</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PHASE_ROWS.map((row) => (
-                <tr key={row.id} className="reveal">
-                  <td className="font-mono text-ink-soft">{row.id}</td>
-                  <td className="font-medium">{row.title}</td>
-                  <td className="text-ink-soft">{row.focus}</td>
-                </tr>
+          <Reveal className="mt-12">
+            <div className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
+              {SHORTCOMINGS.map((item) => (
+                <div key={item.title} className="bg-raised p-7">
+                  <div className="flex items-center gap-2.5">
+                    <IconAlertTriangle size={16} className="text-warn" />
+                    <h3 className="text-base font-semibold text-ink">{item.title}</h3>
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-ink-2">{item.body}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="mt-6 text-sm">
-          <Link href="/curriculum">Read the full curriculum, phase by phase →</Link>
-        </p>
-      </section>
-
-      <hr />
-
-      {/* 7. WHAT YOU WALK AWAY WITH */}
-      <section className="py-16 sm:py-20">
-        <p className="eyebrow">The finish line</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          What you walk away with.
-        </h2>
-        <ul className="mt-8 max-w-2xl space-y-4">
-          {TAKEAWAYS.map((t) => (
-            <li key={t.slice(0, 24)} className="reveal flex gap-3 leading-relaxed">
-              <span aria-hidden className="mt-1 text-school">✓</span>
-              <span>{t}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-8 max-w-2xl leading-relaxed text-ink-soft">
-          We cannot guarantee you clients. Nobody honestly can. What we guarantee
-          is narrower and stronger: if you finish, the work is real, and it was
-          verified by something with no reason to be kind to you.
-        </p>
-      </section>
-
-      <hr />
-
-      {/* 8. HONEST LIMITATIONS */}
-      <section className="py-16 sm:py-20">
-        <p className="eyebrow">Before you decide</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          Where Keel falls short today.
-        </h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {SHORTCOMINGS.map((s) => (
-            <div key={s.title} className="reveal border-l-2 border-mark pl-5">
-              <h3 className="font-display text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{s.body}</p>
             </div>
-          ))}
+          </Reveal>
         </div>
       </section>
 
-      <hr />
-
-      {/* 9. FOUNDER */}
-      <section className="py-16 sm:py-20">
-        <p className="eyebrow">The person behind it</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          Hi, I&apos;m <span className="need">[NEED: founder first name]</span>.
-        </h2>
-        <div className="mt-6 max-w-2xl space-y-5 leading-relaxed">
-          <p>
-            <span className="need">[NEED: origin story. In what year, at what company, did you hit the wall this school solves? One specific memory, not a resume summary.]</span>
-          </p>
-          <p>
-            <span className="need">[NEED: credibility specifics. Systems you have built, scale, years, domains. Real facts only.]</span>
-          </p>
-          <p>
-            What I can tell you now, because the repo proves it: Keel has no
-            teaching staff by design. The grading pipeline is built with the same
-            evaluation discipline the curriculum teaches in Phase 7, every verdict
-            is traced and auditable, and keeping the rubrics honest is the one job
-            I deliberately did not automate.
-          </p>
-          <p>
-            <span className="need">[NEED: closing line to the reader, in your own words. Why does this school exist for you?]</span>
-          </p>
-        </div>
-      </section>
-
-      <hr />
-
-      {/* 10. QUESTIONS */}
-      <section className="py-16 sm:py-20">
-        <p className="eyebrow">Fair questions</p>
-        <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-          Asked by skeptics, answered plainly.
-        </h2>
-        <dl className="mt-10 max-w-3xl space-y-8">
-          {HOME_FAQS.map((faq) => (
-            <div key={faq.q} className="reveal">
-              <dt className="font-display text-lg font-semibold">{faq.q}</dt>
-              <dd className="mt-2 leading-relaxed text-ink-soft">{faq.a}</dd>
+      {/* -------------------------- FOUNDER STATEMENT ------------------------- */}
+      <section className="section border-t border-line">
+        <div className="shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <Reveal>
+            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Why Keel has zero teaching staff, by design.
+            </h2>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <div className="space-y-5 text-base leading-relaxed text-ink-2">
+              <p>
+                When human TAs grade student code, two things consistently happen: grading becomes
+                subjective and inconsistent across reviewers, and the price of the school must scale
+                to feed a growing teaching staff.
+              </p>
+              <p>
+                Keel runs on a different premise: that automated verification, deterministic sandbox
+                checks, LLM judges calibrated against human golden sets, code-defense interviews,
+                and recorded walkthroughs, can deliver faster and more rigorous feedback at a
+                fraction of the cost.
+              </p>
+              <p>
+                Every grading verdict is logged as an immutable trace. Keeping the rubrics strict
+                and the engineering honest is the single job we do not automate.
+              </p>
+              <div className="flex items-center justify-between gap-4 border-t border-line pt-5">
+                <span className="font-mono text-xs text-ink-3">KEEL PLATFORM ARCHITECTURE</span>
+                <Link href="/pricing" className="link-arrow">
+                  Pricing and the rebate model
+                  <IconArrowRight size={13} />
+                </Link>
+              </div>
             </div>
-          ))}
-        </dl>
-        <p className="mt-8 text-sm">
-          <Link href="/faq">Read the full FAQ →</Link>
-        </p>
+          </Reveal>
+        </div>
       </section>
 
-      <hr />
+      {/* -------------------------------- FAQ --------------------------------- */}
+      <section className="section border-t border-line bg-raised/30">
+        <div className="shell max-w-3xl">
+          <Reveal>
+            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Plain answers to fair questions.
+            </h2>
+          </Reveal>
 
-      {/* 11. FINAL CTA */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-2xl">
-          <h2 className="font-display text-3xl font-semibold sm:text-4xl">
-            Start with the unit that&apos;s live.
-          </h2>
-          <p className="mt-4 leading-relaxed text-ink-soft">
-            {firstUnit
-              ? `Unit ${firstUnit.yaml.id} takes about ${firstUnit.yaml.est_hours} hours. You will build a structured-extraction pipeline for messy claim notes, run it against sandboxed tests, and get a real rubric verdict with evidence quoted from your own code. If the loop works on you the way it should, the other twelve phases are waiting.`
-              : "The first unit is being wired up right now. Check back shortly."}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            {first ? (
-              <Link href={`/units/${first.id}`} className="btn-primary">
-                Start Unit {first.id}
-              </Link>
-            ) : null}
-            <Link href="/pricing" className="btn-secondary">
-              See pricing
-            </Link>
+          <div className="mt-10 divide-y divide-line border-y border-line">
+            {HOME_FAQS.map((faq) => (
+              <Reveal key={faq.q}>
+                <details className="group py-5">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-ink transition-colors hover:text-accent-strong">
+                    {faq.q}
+                    <IconArrowRight
+                      size={15}
+                      className="shrink-0 text-ink-3 transition-transform group-open:rotate-90"
+                    />
+                  </summary>
+                  <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-ink-2">{faq.a}</p>
+                </details>
+              </Reveal>
+            ))}
           </div>
+
+          <Reveal className="mt-8">
+            <Link href="/faq" className="link-arrow">
+              Read all frequently asked questions
+              <IconArrowRight size={14} />
+            </Link>
+          </Reveal>
         </div>
       </section>
+
+      {/* ------------------------------ FINAL CTA ------------------------------ */}
+      <section className="relative overflow-hidden border-t border-line">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <Image
+            src="/depth-chart.webp"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-bottom opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-ground via-ground/60 to-ground/80" />
+        </div>
+
+        <div className="shell relative py-24 text-center sm:py-28">
+          <Reveal>
+            <p className="inline-flex items-center gap-2.5 font-mono text-[11px] tracking-[0.08em] text-accent">
+              <span className="live-dot" aria-hidden />
+              UNIT {first ? first.id : "3.2.1"} READY TO GRADE
+            </p>
+            <h2 className="mx-auto mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              Start with the unit that is live today.
+            </h2>
+            <p className="mx-auto mt-4 max-w-[58ch] text-base leading-relaxed text-ink-2">
+              Unit 3.2.1 takes about six hours. You build a schema-constrained extraction engine
+              for messy claim notes, push to git, and receive a verified rubric verdict with quoted
+              evidence.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {first ? (
+                <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
+                  Start Unit {first.id}
+                  <IconArrowRight size={16} />
+                </Link>
+              ) : null}
+              <Link href="/pricing" className="btn-ghost px-5 py-3 text-[15px]">
+                View pricing and the rebate
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="px-5 py-4 text-center sm:px-6">
+      <dt className="order-2 mt-1 block font-mono text-[10px] tracking-[0.1em] text-ink-3 uppercase">
+        {label}
+      </dt>
+      <dd className="order-1 text-2xl font-semibold tracking-tight text-ink">{value}</dd>
     </div>
   );
 }

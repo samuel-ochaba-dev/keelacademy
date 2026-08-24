@@ -1,6 +1,7 @@
 import { ContentArriving } from "@/components/content-arriving";
 import { SectionHeading } from "@/components/unit/section-heading";
 import type { CurriculumAnchor, Lesson, LastVerified } from "@/lib/content";
+import { IconBookOpen, IconLayers } from "@/components/icons";
 
 type LearnSectionProps = {
   lesson: Lesson | null;
@@ -11,10 +12,15 @@ type LearnSectionProps = {
 export function LearnSection({ lesson, curriculum, lastVerified }: LearnSectionProps) {
   if (!lesson) {
     return (
-      <section id="learn" data-keel-section="learn">
-        <div>
-          <SectionHeading title="Learn" lead="The core lesson, written specifically for the system you are building." />
-          <ContentArriving what="The lesson" />
+      <section id="learn" data-keel-section="learn" className="border-t border-line">
+        <div className="shell py-14">
+          <SectionHeading
+            title="Learn"
+            lead="The core lesson, written specifically for the system you are building."
+          />
+          <div className="mt-8">
+            <ContentArriving what="The unit lesson" />
+          </div>
         </div>
       </section>
     );
@@ -27,45 +33,67 @@ export function LearnSection({ lesson, curriculum, lastVerified }: LearnSectionP
   };
 
   return (
-    <section id="learn" data-keel-section="learn">
-      <div>
-        <hr />
+    <section id="learn" data-keel-section="learn" className="scroll-mt-20 border-t border-line">
+      <div className="shell py-14">
         <SectionHeading
           title="Learn"
-          lead="The lesson in three layers: the concept core, how it applies to Meridian, and current tool specifics."
+          lead="The lesson in three layers: the enduring concept core, how it applies to Meridian, and current tool specifics."
         />
 
-        {curriculum?.learn ? (
-          <div>
-            <p><strong>Curriculum Context:</strong></p>
-            <p>{curriculum.learn}</p>
+        {curriculum?.learn && (
+          <div className="mt-8 max-w-none rounded-xl border border-line bg-raised p-6">
+            <div className="flex items-center gap-2 text-accent">
+              <IconBookOpen size={15} />
+              <p className="font-mono text-[11px] tracking-[0.1em] uppercase">Curriculum context</p>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink-2">{curriculum.learn}</p>
             {curriculum.tools ? (
-              <p>Tools: {curriculum.tools}</p>
+              <p className="mt-3 font-mono text-xs text-ink-3">Tools: {curriculum.tools}</p>
             ) : null}
           </div>
-        ) : null}
+        )}
 
-        <div dangerouslySetInnerHTML={{ __html: lesson.introHtml }} />
+        <div
+          className="prose-keel mt-8 max-w-none"
+          dangerouslySetInnerHTML={{ __html: lesson.introHtml }}
+        />
 
         {lesson.layers.length > 0 ? (
-          <div>
-            {lesson.layers.map((layer, index) => {
-              const date = verifiedDate(layer.name);
-              return (
-                <details key={layer.name} open={index === 0}>
-                  <summary>
-                    <strong>{layer.name}</strong>
-                    {date ? ` (verified ${date})` : ""}
-                  </summary>
-                  <div>
-                    <div dangerouslySetInnerHTML={{ __html: layer.html }} />
-                  </div>
-                </details>
-              );
-            })}
+          <div className="mt-10">
+            <p className="font-mono text-[11px] tracking-[0.1em] text-ink-3 uppercase">
+              Instructional layers
+            </p>
+            <div className="mt-4 space-y-3">
+              {lesson.layers.map((layer, index) => {
+                const date = verifiedDate(layer.name);
+                return (
+                  <details
+                    key={layer.name}
+                    open={index === 0}
+                    className="panel group px-5 py-0 [&_summary::-webkit-details-marker]:hidden"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <IconLayers size={16} className="text-accent" />
+                        <span className="text-[15px] font-medium text-ink">{layer.name}</span>
+                      </div>
+                      {date ? (
+                        <span className="font-mono text-[11px] text-ink-3">
+                          audited {date}
+                        </span>
+                      ) : null}
+                    </summary>
+                    <div
+                      className="prose-keel border-t border-line pt-4 pb-5"
+                      dangerouslySetInnerHTML={{ __html: layer.html }}
+                    />
+                  </details>
+                );
+              })}
+            </div>
           </div>
         ) : (
-          <div>
+          <div className="mt-8">
             <ContentArriving what="The three lesson layers (concept core, applied context, tool specifics)" />
           </div>
         )}

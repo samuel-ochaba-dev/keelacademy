@@ -3,6 +3,7 @@ import Link from "next/link";
 import { authMode } from "@/lib/auth";
 import { offlineSignUpAction } from "@/app/auth/actions";
 import { OfflineAuthNote } from "@/components/auth/offline-note";
+import { IconKeelLogo, IconArrowRight, IconAlertTriangle } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +30,7 @@ export default async function SignUpPage({ searchParams }: Props) {
   if (mode === "clerk") {
     const { SignUp } = await import("@clerk/nextjs");
     return (
-      <div>
-        <h1>Create Your Account</h1>
+      <div className="shell flex max-w-md justify-center py-20">
         <SignUp />
       </div>
     );
@@ -39,58 +39,78 @@ export default async function SignUpPage({ searchParams }: Props) {
   const errorBody = error ? ERRORS[error] : null;
 
   return (
-    <div>
-      <h1>Create Your Learner Account</h1>
-      <p>
-        Use the same email address you use for git commits so your submissions link automatically.
-      </p>
-
-      {errorBody ? (
-        <div role="alert">
-          <p><strong>Error:</strong> {errorBody}</p>
+    <div className="shell flex max-w-md flex-col py-16 sm:py-24">
+      <div className="panel p-8">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg border border-line-strong bg-inset text-accent">
+            <IconKeelLogo size={20} />
+          </span>
+          <h1 className="text-xl font-semibold tracking-tight text-ink">Create learner account</h1>
         </div>
-      ) : null}
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">
+          Use the same email address as your git commits so submissions link automatically.
+        </p>
 
-      <form action={offlineSignUpAction}>
-        <input type="hidden" name="next" value={next ?? "/me"} />
-        <div>
-          <label htmlFor="name">Full Name</label>
-          <br />
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            maxLength={100}
-            placeholder="Ada Lovelace"
-          />
-        </div>
+        {errorBody ? (
+          <div
+            role="alert"
+            className="mt-5 flex items-start gap-3 rounded-lg border border-fail/40 bg-fail/5 px-4 py-3"
+          >
+            <IconAlertTriangle size={15} className="mt-0.5 shrink-0 text-fail" />
+            <p className="text-[13px] leading-relaxed text-ink-2">{errorBody}</p>
+          </div>
+        ) : null}
 
-        <div>
-          <label htmlFor="email">Email Address</label>
-          <br />
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            defaultValue={email ?? ""}
-            placeholder="developer@example.com"
-          />
-        </div>
+        <form action={offlineSignUpAction} className="mt-6 space-y-5">
+          <input type="hidden" name="next" value={next ?? "/me"} />
 
-        <br />
-        <button type="submit">
-          Create Account
-        </button>
-        <p>
+          <div className="space-y-2">
+            <label htmlFor="name" className="block text-sm font-medium text-ink">
+              Full name
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              maxLength={100}
+              placeholder="Ada Lovelace"
+              className="w-full rounded-lg border border-line-strong bg-inset px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/70 focus:border-accent/60 focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-ink">
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              defaultValue={email ?? ""}
+              placeholder="developer@example.com"
+              className="w-full rounded-lg border border-line-strong bg-inset px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/70 focus:border-accent/60 focus:outline-none"
+            />
+          </div>
+
+          <button type="submit" className="btn-primary w-full py-3">
+            Create account
+            <IconArrowRight size={15} />
+          </button>
+        </form>
+
+        <p className="mt-6 border-t border-line pt-5 text-sm text-ink-3">
           Already have an account?{" "}
-          <Link href={next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in"}>
+          <Link
+            href={next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in"}
+            className="font-medium text-accent hover:text-accent-strong"
+          >
             Sign in
           </Link>
         </p>
-      </form>
+      </div>
 
       <OfflineAuthNote mode={mode} />
     </div>

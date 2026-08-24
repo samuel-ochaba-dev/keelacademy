@@ -1,220 +1,65 @@
 @import "tailwindcss";
 
 /*
-  Keel Academy marketing design system.
-  Language: warm editorial "school paper". Fraunces display + Geist body,
-  paper neutrals, one schoolhouse green accent, hairline rules.
-  Dials: VARIANCE 6 / MOTION 3 / DENSITY 5.
-  Dark mode: semantic tokens flip under prefers-color-scheme.
+  Keel Academy design system.
+
+  One theme, locked: dark. The product is a grading terminal, so every surface
+  (marketing and cockpit) lives on the same near-black ground.
+
+  Systems:
+  - Type: Geist (sans) for display and body, Geist Mono for identifiers,
+    code, and numbers. No serif anywhere.
+  - Color: one accent (teal), used identically on every page. Green, rose,
+    and amber appear only as real status semantics (pass, fail, pending).
+  - Radius: panels 12px, buttons/inputs/code 8px, badges full pill.
 */
 
 @theme {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --color-ground: #0a0d12;
+  --color-raised: #0e1218;
+  --color-raised-2: #121722;
+  --color-inset: #090c11;
+  --color-line: #1d2330;
+  --color-line-strong: #2b3342;
+  --color-ink: #e9ecf2;
+  --color-ink-2: #aab4c2;
+  --color-ink-3: #7d8899;
+  --color-accent: #2dd4bf;
+  --color-accent-strong: #5eead4;
+  --color-accent-ink: #05211c;
+  --color-accent-soft: rgba(45, 212, 191, 0.1);
+  --color-pass: #4ade80;
+  --color-fail: #fb7185;
+  --color-warn: #fbbf24;
 }
 
-:root {
-  --paper: #f6f2e9;
-  --paper-raised: #fcfaf2;
-  --ink: #221e15;
-  --ink-soft: #5b5341;
-  --line: #ded5bf;
-  --school: #2e5a39;
-  --school-strong: #22452b;
-  --mark: #a84a2b;
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: #2b3342 #0a0d12;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #171410;
-    --paper-raised: #1f1b14;
-    --ink: #ebe5d4;
-    --ink-soft: #aca389;
-    --line: #363124;
-    --school: #93c19d;
-    --school-strong: #b6dabd;
-    --mark: #d9906d;
-  }
+body {
+  background-color: var(--color-ground);
+  color: var(--color-ink-2);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@theme inline {
-  --color-paper: var(--paper);
-  --color-paper-raised: var(--paper-raised);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-line: var(--line);
-  --color-school: var(--school);
-  --color-school-strong: var(--school-strong);
-  --color-mark: var(--mark);
+::selection {
+  background: rgba(45, 212, 191, 0.25);
+  color: #e9ecf2;
 }
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-optical-sizing: auto;
-    text-rendering: optimizeLegibility;
-  }
-
-  ::selection {
-    background: color-mix(in srgb, var(--school) 28%, transparent);
-  }
-
-  hr {
-    border: 0;
-    border-top: 1px solid var(--line);
-  }
-
-  table {
-    border-collapse: collapse;
-  }
-
-  th,
-  td {
-    border: 1px solid var(--line);
-    padding: 0.5rem 0.75rem;
-    text-align: left;
-    vertical-align: top;
-  }
-
-  th {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    font-weight: 500;
-  }
-
-  pre {
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
-    padding: 1rem;
-    overflow-x: auto;
-    font-size: 0.85rem;
-    line-height: 1.5;
-  }
-
-  code {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-  }
-
-  a {
-    color: var(--school-strong);
-    text-decoration-color: color-mix(in srgb, var(--school) 45%, transparent);
-    text-underline-offset: 0.18em;
-  }
-
-  a:hover {
-    text-decoration-color: var(--school);
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--school);
-    outline-offset: 2px;
-  }
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-@layer components {
-  /* Skip link: hidden until focused */
-  .skip-link {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    background: var(--school);
-    color: var(--paper);
-    padding: 0.5rem 1rem;
-    z-index: 50;
-  }
-
-  .skip-link:focus {
-    left: 0;
-  }
-
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--ink-soft);
-  }
-
-  .btn-primary {
-    display: inline-block;
-    background: var(--school);
-    color: var(--paper);
-    padding: 0.7rem 1.4rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1px solid var(--school);
-  }
-
-  .btn-primary:hover {
-    background: var(--school-strong);
-    text-decoration: none;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .btn-primary {
-      color: #171410;
-    }
-  }
-
-  .btn-secondary {
-    display: inline-block;
-    padding: 0.7rem 1.4rem;
-    font-weight: 500;
-    border: 1px solid var(--line);
-    color: var(--ink);
-    text-decoration: none;
-    background: transparent;
-  }
-
-  .btn-secondary:hover {
-    border-color: var(--school);
-    text-decoration: none;
-  }
-
-  .card {
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
-    padding: 1.25rem 1.5rem;
-  }
-
-  .need {
-    font-family: var(--font-mono);
-    font-size: 0.85em;
-    color: var(--mark);
-    border-bottom: 1px dashed var(--mark);
-  }
-}
-
-/*
-  Motion: CSS scroll-driven reveals only. No scroll listeners anywhere.
-  Default state is fully visible; the animation applies only where
-  animation-timeline: view() is supported and motion is preferred.
-*/
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: keel-rise linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
-    }
-  }
-}
+/* ---------- entrance + state motion (all gated for reduced motion) ------- */
 
 @keyframes keel-rise {
   from {
@@ -225,4 +70,258 @@
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes keel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes keel-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+.rise {
+  animation: keel-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.rise-1 { animation-delay: 0.08s; }
+.rise-2 { animation-delay: 0.16s; }
+.rise-3 { animation-delay: 0.26s; }
+.rise-4 { animation-delay: 0.36s; }
+
+/* Live dot: reserved for real operational status only. */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  animation: keel-pulse 2.4s ease-in-out infinite;
+}
+
+/* Scanline sweep used on "grading in progress" states. */
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+.scanline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.14), transparent);
+  animation: keel-sweep 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rise,
+  .rise-1,
+  .rise-2,
+  .rise-3,
+  .rise-4 {
+    animation: none;
+  }
+  .live-dot,
+  .scanline::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------ components ------------------------------ */
+
+@layer components {
+  /* Layout shell shared by every page. */
+  .shell {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .shell-wide {
+    @apply mx-auto w-full max-w-[1400px] px-5 sm:px-8;
+  }
+
+  /* Buttons. Primary = accent fill; ghost = hairline border. */
+  .btn,
+  .btn-primary,
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium
+      transition-all duration-200 active:translate-y-px active:scale-[0.99]
+      disabled:pointer-events-none disabled:opacity-60;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    @apply bg-accent text-accent-ink hover:bg-accent-strong;
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35), 0 8px 28px -12px rgba(45, 212, 191, 0.45);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.5), 0 10px 32px -12px rgba(45, 212, 191, 0.55);
+  }
+  .btn-ghost {
+    @apply border border-line-strong text-ink-2 hover:border-accent/50 hover:text-ink;
+  }
+
+  /* Small text link with arrow affordance. */
+  .link-arrow {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent
+      transition-colors hover:text-accent-strong;
+  }
+
+  /* Status chip: mono caps inside a pill. Semantic use only. */
+  .chip,
+  .chip-accent,
+  .chip-pass,
+  .chip-fail,
+  .chip-warn {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line-strong px-2.5 py-1
+      font-mono text-[11px] leading-none tracking-[0.08em] text-ink-3;
+  }
+  .chip-accent {
+    @apply border-accent/40 text-accent;
+  }
+  .chip-pass {
+    @apply border-pass/40 text-pass;
+  }
+  .chip-fail {
+    @apply border-fail/40 text-fail;
+  }
+  .chip-warn {
+    @apply border-warn/40 text-warn;
+  }
+
+  /* Panel: the one card surface. 12px radius. */
+  .panel {
+    @apply rounded-xl border border-line bg-raised;
+  }
+
+  /* Section rhythm for marketing pages. */
+  .section {
+    @apply py-20 sm:py-28;
+  }
+
+  /* Data table: hairlines between rows only. */
+  .data-table {
+    @apply w-full text-left text-sm;
+  }
+  .data-table thead th {
+    @apply border-b border-line-strong pb-2.5 pr-4 font-mono text-[11px] font-normal
+      uppercase tracking-[0.12em] text-ink-3;
+  }
+  .data-table tbody tr {
+    @apply border-b border-line/70 transition-colors last:border-0 hover:bg-raised-2/60;
+  }
+  .data-table tbody td {
+    @apply py-3 pr-4 align-middle;
+  }
+  .data-table .num {
+    @apply font-mono text-ink;
+  }
+
+  /* Code: inline and block. */
+  code {
+    @apply font-mono;
+  }
+  code:not(pre code) {
+    @apply rounded-md border border-line bg-inset px-1.5 py-0.5 text-[0.85em] text-ink-2;
+  }
+  .code-block {
+    @apply overflow-x-auto rounded-lg border border-line bg-inset p-4 font-mono text-[13px]
+      leading-relaxed text-ink-2;
+  }
+  .code-block .tok-comment {
+    @apply text-ink-3;
+  }
+  .code-block .tok-string {
+    @apply text-accent-strong;
+  }
+  .code-block .tok-key {
+    @apply text-[#8fb4ff];
+  }
+
+  /* Breadcrumb: mono path with separators. */
+  .crumbs {
+    @apply flex flex-wrap items-center gap-1.5 font-mono text-xs text-ink-3;
+  }
+  .crumbs a {
+    @apply transition-colors hover:text-accent;
+  }
+}
+
+/* ------------------------ rendered lesson markdown ----------------------- */
+
+.prose-keel {
+  @apply text-[15px] leading-relaxed text-ink-2;
+}
+.prose-keel > *:first-child {
+  margin-top: 0;
+}
+.prose-keel h1 {
+  @apply mb-4 text-2xl font-semibold tracking-tight text-ink;
+}
+.prose-keel h2 {
+  @apply mb-3 mt-8 text-xl font-semibold tracking-tight text-ink;
+}
+.prose-keel h3 {
+  @apply mb-2 mt-6 text-base font-semibold text-ink;
+}
+.prose-keel h4 {
+  @apply mb-2 mt-5 text-sm font-semibold text-ink;
+}
+.prose-keel p {
+  @apply my-3.5;
+}
+.prose-keel ul {
+  @apply my-3.5 list-disc space-y-1.5 pl-5;
+}
+.prose-keel ol {
+  @apply my-3.5 list-decimal space-y-1.5 pl-5;
+}
+.prose-keel li::marker {
+  color: var(--color-ink-3);
+}
+.prose-keel blockquote {
+  @apply my-4 border-l-2 border-accent/50 pl-4 text-ink-2 italic;
+}
+.prose-keel a {
+  @apply text-accent underline decoration-accent/40 underline-offset-2 hover:text-accent-strong;
+}
+.prose-keel strong {
+  @apply font-semibold text-ink;
+}
+.prose-keel pre {
+  @apply my-4 overflow-x-auto rounded-lg border border-line bg-inset p-4 font-mono
+    text-[13px] leading-relaxed text-ink-2;
+}
+.prose-keel pre code {
+  @apply border-0 bg-transparent p-0;
+}
+.prose-keel table {
+  @apply my-4 w-full text-left text-sm;
+}
+.prose-keel th {
+  @apply border-b border-line-strong pb-2 pr-4 font-mono text-[11px] font-normal uppercase
+    tracking-[0.12em] text-ink-3;
+}
+.prose-keel td {
+  @apply border-b border-line/70 py-2.5 pr-4;
+}
+.prose-keel hr {
+  @apply my-8 border-line;
 }
