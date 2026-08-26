@@ -5,76 +5,76 @@ import { Reveal } from "@/components/reveal";
 import { IconCheckCircle, IconArrowRight, IconAward, IconClock } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Pricing & The Completion Rebate",
+  title: "Transparent Pricing & 30% Completion Rebate",
   description:
-    "One-time pricing with no subscription traps, and a 30% completion rebate that returns cash as you clear major integration gates.",
+    "Pay once with no subscription traps. Earn 30% of your tuition back in cash as you hit verified milestones and finish on schedule.",
 };
 
 const COMMITMENT_FACTS = [
-  "700 to 950 hours of deep engineering. At 12 to 15 hours a week, that is 9 to 15 months of steady work.",
-  "No video playlists. Lessons are concise written technical specifications, and you build from them.",
-  "No human TAs or hand-holding mentors. Feedback is instant, automated, sandboxed, and auditable.",
-  "The graduation bar is shipped, defended code, not seat time or video completion percentages.",
-  "We do not promise you instant client riches. We guarantee you graduate with verified production systems.",
+  "700 to 950 hours of deep, hands-on building. At 12 to 15 hours a week, expect 9 to 15 months of consistent progress.",
+  "No video playlists to passively watch. Lessons are concise written technical specifications that you implement in code.",
+  "Instant, objective feedback on every git push. No waiting days for human TAs to review your pull requests.",
+  "You graduate based on shipped, defended code, not time spent browsing or video completion counters.",
+  "No fake promises of overnight riches. We guarantee you graduate with a verified production portfolio you can defend.",
 ];
 
 const TIERS = [
   {
     name: "Self-Guided",
-    badge: "Most enrolled",
+    badge: "Most popular",
     price: "$1,950",
-    cadence: "one-time payment, no subscription",
-    intro: "The full curriculum and the complete automated four-layer verification engine.",
+    cadence: "one-time payment, zero subscriptions",
+    intro: "Complete access to all 13 phases, the real-world claims dataset, and the automated grading engine.",
     features: [
-      "All 13 phases and 150+ units as they ship",
-      "Unit 3.2.1 available immediately with live grading",
-      "Layer 1 Docker sandbox checks on every git push",
-      "Layer 2 calibrated rubric judge with quoted evidence",
-      "Layer 3 defend-your-work code interrogation interviews",
-      "Layer 4 unscripted capstone video defense",
-      "Your own seeded Meridian synthetic data variant",
+      "All 13 phases and 150+ units as they release",
+      "Unit 3.2.1 ready to build and grade immediately",
+      "Automated test environment checks on every git push",
+      "Objective rubric grading with exact quotes from your code",
+      "Defend-your-work code interrogation interviews",
+      "Unscripted final capstone walkthrough defense",
+      "Your own unique dataset variant (prevents answer-copying)",
       "Eligible for the full 30% completion rebate ($585 back)",
-      "Permanent Delivery-Ready credential upon graduation",
+      "Permanent Delivery-Ready public credential upon graduation",
     ],
     popular: true,
     cta: "Start with Self-Guided",
   },
   {
     name: "Cohort+",
-    badge: "Community & pods",
+    badge: "Community & accountability",
     price: "$2,450",
-    cadence: "one-time payment, no subscription",
-    intro: "Everything in Self-Guided, plus peer accountability and structured review pods.",
+    cadence: "one-time payment, zero subscriptions",
+    intro: "Everything in Self-Guided, plus a dedicated peer pod and structured weekly momentum check-ins.",
     features: [
       "Everything included in Self-Guided",
-      "Weekly start-pod matching with 6 to 10 peers",
-      "Required weekly async build logs and milestone check-ins",
-      "Structured peer-review rounds using official rubrics",
-      "Public build gallery access to showcase live systems",
-      "Priority concierge triage and expanded token budget",
+      "Matched into a pod of 6 to 10 peers starting at the same time",
+      "Weekly async build logs and milestones to keep you accountable",
+      "Structured peer-review rounds using official production rubrics",
+      "Access to the public build gallery to share your working systems",
+      "Priority concierge response and expanded grading token budget",
       "Eligible for the full 30% completion rebate ($735 back)",
     ],
     popular: false,
-    cta: "Join the next cohort pod",
+    cta: "Join a Cohort Pod",
   },
 ];
 
 const REBATE_MILESTONES = [
   {
-    gate: "Phase 5 integration gate",
-    rebate: "15% of your enrollment fee",
-    selfGuided: "$292.50 refund",
-    cohortPlus: "$367.50 refund",
+    gate: "Phase 5 Integration Gate",
+    rebate: "15% of your tuition refunded",
+    selfGuided: "$292.50 cash back",
+    cohortPlus: "$367.50 cash back",
     window: "365 days from enrollment",
-    trigger: "Verified passage of the tool-using multi-agent claims orchestrator",
+    trigger: "Verified passage of the multi-agent claims triage orchestrator",
   },
   {
-    gate: "Final capstone gate",
-    rebate: "15% of your enrollment fee",
-    selfGuided: "$292.50 refund",
-    cohortPlus: "$367.50 refund",
+    gate: "Final Capstone Gate",
+    rebate: "15% of your tuition refunded",
+    selfGuided: "$292.50 cash back",
+    cohortPlus: "$367.50 cash back",
     window: "365 days from enrollment",
-    trigger: "Verified end-to-end Meridian system plus recorded walkthrough and defend defense",
+    trigger: "Verified end-to-end Meridian system plus recorded walkthrough and code defense",
   },
 ];
 
@@ -83,194 +83,169 @@ export default function PricingPage() {
   const first = units[0];
 
   return (
-    <div>
+    <div className="space-y-0">
       {/* Header */}
-      <section className="border-b border-line">
-        <div className="shell pt-16 pb-14 sm:pt-20">
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
-            Pay once. Earn 30% back by finishing.
+      <section className="border-b border-line bg-canvas pt-12 pb-10">
+        <div className="shell">
+          <div className="flex items-center gap-2 font-mono text-xs text-amber">
+            <span className="size-1.5 rounded-full bg-amber" />
+            <span>TRANSPARENT TUITION & 30% REBATE CONSOLE</span>
+          </div>
+
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            Pay once. Earn 30% cash back by finishing.
           </h1>
-          <p className="mt-5 max-w-[62ch] text-base leading-relaxed text-ink-2 sm:text-lg">
-            No recurring monthly subscriptions. Subscriptions quietly incentivize schools to keep
-            you enrolled as long as possible. We reward you for completing the work.
+
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+            No recurring monthly subscriptions. Monthly fees quietly reward platforms for learner procrastination.
+            We align incentives by refunding $585 to $735 in cash as you ship verified milestones on schedule.
           </p>
         </div>
       </section>
 
-      {/* Tiers */}
-      <section className="shell section">
-        <div className="grid gap-6 lg:grid-cols-2">
-          {TIERS.map((tier, index) => (
-            <Reveal key={tier.name} delay={index * 0.08}>
-              <div
-                className={`panel flex h-full flex-col p-8 ${
-                  tier.popular ? "border-accent/40 shadow-[0_0_60px_-24px_rgba(45,212,191,0.35)]" : ""
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
+      {/* Tier Comparison Specification */}
+      <section className="shell py-14">
+        <div className="grid gap-8 lg:grid-cols-2">
+          {TIERS.map((tier) => (
+            <div
+              key={tier.name}
+              className={`rounded-lg border bg-raised overflow-hidden flex flex-col justify-between ${
+                tier.popular ? "border-accent/40 shadow-xl" : "border-line"
+              }`}
+            >
+              <div>
+                {/* Tier header */}
+                <div className="border-b border-line bg-inset p-6 flex items-start justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold tracking-tight text-ink">{tier.name}</h2>
-                    <p className="mt-1.5 max-w-[40ch] text-sm leading-relaxed text-ink-2">
-                      {tier.intro}
-                    </p>
+                    <span className="font-mono text-xs text-accent font-semibold uppercase">{tier.name}</span>
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="font-mono text-3xl font-bold text-ink tabular-nums">{tier.price}</span>
+                      <span className="font-mono text-xs text-ink-3">USD (ONE-TIME)</span>
+                    </div>
+                    <p className="mt-2 text-xs text-ink-3">{tier.intro}</p>
                   </div>
-                  <span className={tier.popular ? "chip-accent shrink-0" : "chip shrink-0"}>
-                    {tier.badge}
+                  {tier.badge ? (
+                    <span className="rounded border border-accent/30 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent uppercase">
+                      {tier.badge}
+                    </span>
+                  ) : null}
+                </div>
+
+                {/* Features table */}
+                <div className="p-6">
+                  <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider">
+                    SPECIFICATION BREAKDOWN
                   </span>
+                  <ul className="mt-3 space-y-2.5">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5 text-xs text-ink-2">
+                        <IconCheckCircle size={13} className="mt-0.5 shrink-0 text-accent" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              </div>
 
-                <div className="mt-7 flex items-baseline gap-2">
-                  <span className="text-4xl font-semibold tracking-tight text-ink">{tier.price}</span>
-                  <span className="font-mono text-xs text-ink-3">USD</span>
-                </div>
-                <p className="mt-1 font-mono text-xs text-ink-3">{tier.cadence}</p>
-
-                <ul className="mt-7 flex-1 space-y-3 border-t border-line pt-7">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm text-ink-2">
-                      <IconCheckCircle size={15} className="mt-0.5 shrink-0 text-accent" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
+              {/* Action button */}
+              <div className="border-t border-line bg-inset/50 p-6">
                 {first ? (
                   <Link
                     href={`/units/${first.id}`}
-                    className={`mt-8 w-full ${tier.popular ? "btn-primary" : "btn-ghost"} py-3`}
+                    className={`w-full ${tier.popular ? "btn-primary" : "btn-ghost"}`}
                   >
-                    {tier.cta}
-                    <IconArrowRight size={15} />
+                    <span>{tier.cta}</span>
+                    <IconArrowRight size={13} />
                   </Link>
                 ) : null}
               </div>
-            </Reveal>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Rebate mechanics */}
-      <section className="border-t border-line bg-raised/30">
-        <div className="shell section">
-          <Reveal>
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
-                <IconAward size={19} />
-              </span>
-              <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-                How the 30% completion rebate works.
-              </h2>
-            </div>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Standard courses offer refunds only when you are unhappy, which protects you from bad
-              content but does nothing to prevent you from quitting. Keel rewards verified momentum.
-            </p>
-          </Reveal>
+      {/* Rebate Mechanics Table */}
+      <section className="border-t border-line bg-raised/30 py-14">
+        <div className="shell">
+          <div className="flex items-center gap-2 font-mono text-xs text-pass">
+            <IconAward size={14} />
+            <span>AUTOMATED 30% COMPLETION REBATE</span>
+          </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {REBATE_MILESTONES.map((milestone, index) => (
-              <Reveal key={milestone.gate} delay={index * 0.08}>
-                <div className="panel h-full p-7">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="chip-accent">{milestone.rebate}</span>
-                    <span className="font-mono text-[11px] text-ink-3">{milestone.window}</span>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            Cash back milestones and refund triggers.
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+            Clear passing test runs and code defense gates within 365 days of enrollment, and your refund is
+            automatically credited to your original payment method via Stripe.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {REBATE_MILESTONES.map((milestone) => (
+              <div key={milestone.gate} className="rounded border border-line bg-raised p-5 space-y-3">
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="text-pass font-semibold">{milestone.rebate}</span>
+                  <span className="text-ink-4">{milestone.window}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-ink">{milestone.gate}</h3>
+                <p className="text-xs text-ink-3 leading-relaxed">{milestone.trigger}</p>
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-line font-mono text-xs">
+                  <div className="rounded bg-inset p-2">
+                    <span className="block text-[10px] text-ink-4 uppercase">Self-Guided</span>
+                    <span className="text-ink font-semibold">{milestone.selfGuided}</span>
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold tracking-tight text-ink">
-                    {milestone.gate}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-2">{milestone.trigger}</p>
-                  <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line">
-                    <div className="bg-inset px-4 py-3">
-                      <p className="font-mono text-[10px] tracking-[0.1em] text-ink-3 uppercase">
-                        Self-Guided
-                      </p>
-                      <p className="mt-1 font-mono text-sm text-ink">{milestone.selfGuided}</p>
-                    </div>
-                    <div className="bg-inset px-4 py-3">
-                      <p className="font-mono text-[10px] tracking-[0.1em] text-ink-3 uppercase">
-                        Cohort+
-                      </p>
-                      <p className="mt-1 font-mono text-sm text-ink">{milestone.cohortPlus}</p>
-                    </div>
+                  <div className="rounded bg-inset p-2">
+                    <span className="block text-[10px] text-ink-4 uppercase">Cohort+</span>
+                    <span className="text-ink font-semibold">{milestone.cohortPlus}</span>
                   </div>
                 </div>
-              </Reveal>
+              </div>
             ))}
           </div>
 
-          <Reveal className="mt-8">
-            <div className="panel space-y-4 p-7">
-              <p className="text-sm leading-relaxed text-ink-2">
-                <span className="font-semibold text-ink">Rebate mechanics:</span> your rebate is
-                pledged at enrollment at the exact price you paid. When your git submission clears
-                the gate rubric with verified verdicts, the ledger marks it earned and the refund is
-                initiated to your original payment card via Stripe.
-              </p>
-              <p className="text-sm leading-relaxed text-ink-2">
-                <span className="font-semibold text-ink">Withdrawal window:</span> if the text-first,
-                self-driven format is not for you, request a 100% refund within 14 days of
-                enrollment, before submitting your first graded deliverable.
-              </p>
-            </div>
-          </Reveal>
+          <div className="mt-6 rounded border border-line bg-inset p-4 font-mono text-xs text-ink-3 space-y-1">
+            <p><span className="text-ink font-semibold">14-DAY RISK-FREE GUARANTEE:</span> If our text-first engineering format isn&apos;t the right fit, request a 100% full refund within 14 days before submitting your first deliverable.</p>
+          </div>
         </div>
       </section>
 
-      {/* Commitment screen */}
-      <section id="commitment" className="border-t border-line">
-        <div className="shell section">
-          <Reveal>
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-lg border border-line-strong bg-inset text-accent">
-                <IconClock size={19} />
-              </span>
-              <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-                The commitment screen.
-              </h2>
-            </div>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Every student reads and affirms these five constraints before checking out. It is
-              published here openly so you can self-select with full clarity.
-            </p>
-          </Reveal>
+      {/* Commitment Protocol */}
+      <section id="commitment" className="border-t border-line bg-canvas py-14">
+        <div className="shell">
+          <div className="flex items-center gap-2 font-mono text-xs text-ink-3">
+            <IconClock size={14} className="text-accent" />
+            <span>LEARNER COMMITMENT PROTOCOL</span>
+          </div>
 
-          <ol className="mt-10 divide-y divide-line border-y border-line">
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            The five expectations you agree to before enrolling.
+          </h2>
+
+          <div className="mt-8 divide-y divide-line border-y border-line">
             {COMMITMENT_FACTS.map((fact, index) => (
-              <Reveal key={fact.slice(0, 24)} delay={Math.min(index * 0.04, 0.16)}>
-                <li className="grid grid-cols-[2.5rem_1fr] items-baseline gap-4 py-5">
-                  <span className="font-mono text-sm text-accent">{index + 1}</span>
-                  <p className="text-sm leading-relaxed text-ink-2 sm:text-[15px]">{fact}</p>
-                </li>
-              </Reveal>
+              <div key={fact.slice(0, 24)} className="grid grid-cols-[40px_1fr] items-baseline gap-4 py-4">
+                <span className="font-mono text-xs font-semibold text-accent">0{index + 1}</span>
+                <p className="text-xs leading-relaxed text-ink-2">{fact}</p>
+              </div>
             ))}
-          </ol>
-
-          <Reveal className="mt-8">
-            <p className="max-w-[72ch] rounded-xl border border-accent/25 bg-accent-soft px-6 py-5 text-sm leading-relaxed text-ink-2">
-              <span className="font-semibold text-ink">Our sole guarantee:</span> if you complete
-              the 13 phases, you leave with a verified, production-grade claims system, three
-              cross-industry portfolio repositories, an auditable verification ledger, and a
-              sendable proposal.
-            </p>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       {/* Bottom CTA */}
-      <section className="relative overflow-hidden border-t border-line">
-        <div className="shell flex flex-col items-start justify-between gap-6 py-16 sm:flex-row sm:items-center">
+      <section className="border-t border-line bg-raised/40 py-12">
+        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink">
-              Ready to verify your AI engineering?
-            </h2>
-            <p className="mt-2 text-sm text-ink-2">
+            <h2 className="text-lg font-semibold text-ink">Ready to verify your AI engineering skills?</h2>
+            <p className="text-xs text-ink-3">
               Unit 3.2.1 is available to start today with the complete grading loop.
             </p>
           </div>
           {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
-              Start Unit {first.id}
-              <IconArrowRight size={16} />
+            <Link href={`/units/${first.id}`} className="btn-primary">
+              <span>Start Unit {first.id} [Live Workbench]</span>
+              <IconArrowRight size={14} />
             </Link>
           ) : null}
         </div>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { listUnits, loadUnit } from "@/lib/content";
 import { Reveal } from "@/components/reveal";
 import { HeroInspection } from "@/components/hero-inspection";
@@ -11,132 +10,158 @@ import {
   IconTerminal,
   IconAward,
   IconAlertTriangle,
+  IconCode,
+  IconBookOpen,
 } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
-const PAIN_POINTS = [
+const DIAGNOSTIC_ROWS = [
   {
-    title: "The weekend demo trap",
-    body: "You follow a tutorial, wire up a framework, and by Sunday night you have a demo that reads a PDF and answers questions. It feels like progress.",
+    criterion: "Messy & Hostile Data",
+    naive: "Drops unstructured records silently, breaks on markdown fences, or crashes unhandled.",
+    engineered: "Strict Pydantic schema validation, quarantine dead-letter queues, and structured error logs.",
   },
   {
-    title: "The 3,000th input problem",
-    body: "Then someone asks how you know it works on messy real-world scans, rude emails, or hostile inputs. What it costs to run at volume. You tweak the prompt, rerun once, and hope. That is not engineering.",
+    criterion: "Verification Standard",
+    naive: "Vibe checks and single happy-path manual tests. Zero quantitative accuracy baselines.",
+    engineered: "Deterministic Docker sandbox test suites + automated LLM judges requiring quoted code proof.",
   },
   {
-    title: "The missing grader",
-    body: "The sinking feeling is not a you problem. Nobody ever graded your work, so you never found out where the gaps were. Tutorials show you their happy path; they cannot evaluate yours.",
+    criterion: "Token & Cost Economics",
+    naive: "Frontier model calls on every request. Inefficient prompts burning through monthly budget.",
+    engineered: "Cascading model routers, prefix caching, semantic deduplication, and formal token ROI models.",
+  },
+  {
+    criterion: "Architectural Defense",
+    naive: "A fragile demo you cannot explain or defend when a technical CTO starts asking hard questions.",
+    engineered: "Production code with recorded unscripted technical defenses and tamper-proof test traces.",
   },
 ];
 
 const UNIT_STEPS = [
   {
-    name: "Learn",
-    body: "A written lesson in three layers: the enduring concept, how it lands in the Meridian pipeline, and current tool specifics audited quarterly.",
+    step: "01",
+    name: "LEARN",
+    label: "Foundational Spec",
+    body: "Read concise, text-first technical specifications covering core transformer physics, retrieval algorithms, or routing protocols.",
   },
   {
-    name: "Practice",
-    body: "An annotated worked example of a parallel task, then a completion problem with gaps you fill and verify against deterministic checks.",
+    step: "02",
+    name: "PRACTICE",
+    label: "Interactive Gap-Fill",
+    body: "Study annotated working implementations and fill targeted architectural gaps in our interactive drill workbench before building.",
   },
   {
-    name: "Build",
-    body: "The curriculum deliverable against your own variant of the Meridian corpus. Copied answer keys fail on your data.",
+    step: "03",
+    name: "BUILD",
+    label: "Personalized Corpus",
+    body: "Write your solution against a uniquely seeded Meridian claims corpus. Answer keys cannot be copy-pasted; your code must run.",
   },
   {
-    name: "Verify",
-    body: "Push your repo. Isolated containers run the tests, a calibrated judge grades against a versioned rubric, and gates trigger code defenses.",
+    step: "04",
+    name: "VERIFY",
+    label: "Ephemeral Sandboxes",
+    body: "Push to git. An isolated container clones your repository, executes test harnesses, and returns evidence-backed rubric grades in seconds.",
   },
   {
-    name: "Unstuck",
-    body: "A panel of specific failure modes and concrete fixes, grown from real student attempts. The answer you would ask a TA for at 11pm.",
+    step: "05",
+    name: "UNSTUCK",
+    label: "2AM Curated Fixes",
+    body: "Encounter an edge case? Access curated symptom matrices and concrete fixes derived from hundreds of real developer attempts.",
   },
 ];
 
 const VERIFICATION_LAYERS = [
   {
-    layer: "Layer 1",
-    name: "Automated sandbox checks",
-    detail: "Runs on every git push",
+    layer: "LAYER 01",
+    name: "Deterministic Sandbox Harness",
+    trigger: "Executes on every git push",
     icon: IconTerminal,
-    body: "Your code executes in an isolated Docker container with strict CPU, memory, time, and network bounds. In Unit 3.2.1, eight checks run against 20 messy claim notes including adversarial inputs.",
+    body: "Your repository is cloned into a hardened Linux container. Pytest suites execute against adversarial fixtures to verify schema compliance, error handling, and performance limits.",
   },
   {
-    layer: "Layer 2",
-    name: "Calibrated rubric judge",
-    detail: "Calibrated against human grades",
+    layer: "LAYER 02",
+    name: "Evidence-Backed Rubric Judge",
+    trigger: "Line-by-line automated scoring",
     icon: IconShieldCheck,
-    body: "A versioned rubric with concrete criteria. The judge must quote exact lines of your code or logs as auditable evidence. Rubric changes that degrade agreement with human baselines block their own merge.",
+    body: "A calibrated LLM judge evaluates your architecture against strict production criteria. Verdicts are only valid if the judge attaches exact line-numbered code quotes as proof.",
   },
   {
-    layer: "Layer 3",
-    name: "Defend your work",
-    detail: "Mandatory at gate units",
+    layer: "LAYER 03",
+    name: "Defend-Your-Work Oral Defense",
+    trigger: "Required at milestone gates",
     icon: IconCpu,
-    body: "Follow-up questions generated directly from your submitted code. Why this schema, why log instead of drop, what breaks at ten times volume. Copy-pasted AI code falls apart here.",
+    body: "Answer unscripted follow-up technical questions generated directly from your submitted AST. Explain trade-offs, concurrency models, and failure recovery paths out loud.",
   },
   {
-    layer: "Layer 4",
-    name: "Recorded walkthrough",
-    detail: "High-stakes integration gates",
+    layer: "LAYER 04",
+    name: "Video Walkthrough & Proof Ledger",
+    trigger: "Final capstone qualification",
     icon: IconAward,
-    body: "An unscripted video walkthrough of your system running end to end. Hard to fake, and it doubles as a proof asset for your client portfolio.",
+    body: "Record an unscripted video walkthrough of your system running end-to-end. Your passing logs, commit hashes, and defense transcripts are published to your permanent public credential.",
   },
 ];
 
 const PHASE_BLOCKS = [
-  { id: "0-1", title: "Orientation and engineering foundations", hours: "120h", focus: "Setup in the first hour, then Python, git, APIs, async, and testing taught through the claims pipeline." },
-  { id: "2-3", title: "LLM fundamentals, prompts as code", hours: "140h", focus: "Model physics, context limits, and prompts as versioned, tested artifacts. Unit 3.2.1 is live today." },
-  { id: "4-5", title: "Retrieval and agent orchestration", hours: "160h", focus: "Grounding answers in policy documents, then tool-using agents with budgets and stop conditions." },
-  { id: "6-8", title: "Fine-tuning, evaluation, cost engineering", hours: "180h", focus: "When adaptation is worth paying for, putting a number on reliability, and cost models a CFO accepts." },
-  { id: "9-10", title: "Security, governance, LLMOps", hours: "140h", focus: "Prompt-injection defense, audit trails, and the CI/CD and monitoring that keep probabilistic systems stable." },
-  { id: "11", title: "The business of AI engineering", hours: "80h", focus: "A parallel track from day one: pricing, discovery calls rehearsed against AI personas, proposals with explicit exclusions." },
-  { id: "12", title: "Capstone and cross-industry portfolio", hours: "100h", focus: "The Meridian system end to end, plus three projects in other verticals so your proof is not one industry deep." },
+  { id: "0", name: "Orientation & Environment Setup", hours: "20h", focus: "One-click isolated Docker development environments and the Meridian Mutual intake specification." },
+  { id: "1", name: "Software Engineering Foundations", hours: "100h", focus: "Python type hints, Pydantic clean architecture, async event loops, and robust pytest harnesses." },
+  { id: "2", name: "LLM Physics & Model Mechanics", hours: "60h", focus: "Token economics, context degradation patterns, provider trade-offs, and resilient API wrappers." },
+  { id: "3", name: "Prompts as Code & Schemas", hours: "80h", badge: "Unit 3.2.1 Live", focus: "Versioned, schema-constrained prompts returning deterministic JSON. (Live and accepting submissions)." },
+  { id: "4", name: "RAG, Vector Search & Grounding", hours: "80h", focus: "Hybrid search (BM25 + vector), dense embeddings, document chunking, and strict policy grounding." },
+  { id: "5", name: "Tool-Using Agents & Orchestration", hours: "80h", badge: "15% Rebate Gate", focus: "ReAct loops, deterministic stop conditions, multi-agent routing, and state machine boundaries." },
+  { id: "6", name: "Fine-Tuning & Model Adaptation", hours: "60h", focus: "Curating high-quality datasets, parameter-efficient LoRA fine-tuning, and DPO alignment." },
+  { id: "7", name: "Evaluation & Observability", hours: "70h", focus: "Golden evaluation datasets, LLM-as-judge scoring with quotes, distributed tracing, and CI barriers." },
+  { id: "8", name: "Cost & Performance Engineering", hours: "50h", focus: "Dynamic cascading model routers, prompt caching, latency budgets, and token cost ROI modeling." },
+  { id: "9", name: "Security, Guardrails & LLMOps", hours: "60h", focus: "Direct/indirect prompt injection defense, PII sanitization, and immutable compliance audit trails." },
+  { id: "10", name: "Deployment & Scalable Infrastructure", hours: "60h", focus: "FastAPI endpoints, containerization, CI/CD evaluation barriers, and production drift telemetry." },
+  { id: "11", name: "The Business of AI Engineering", hours: "80h", badge: "Runs From Day 1", focus: "Discovery call simulations with AI personas, value pricing models, and sendable proposals." },
+  { id: "12", name: "Capstone & 4-Vertical Portfolio", hours: "100h", badge: "15% Rebate Gate", focus: "Production deployment of Meridian claims pipeline plus legal, healthcare, and finance systems." },
 ];
 
-const TAKEAWAYS = [
-  "A working, verified claims-triage system: intake, extraction, retrieval, agent triage, evaluation, cost controls, audit trails, and deployment.",
-  "Three portfolio projects outside insurance, proving your architecture transfers across domains.",
-  "A priced, sendable proposal with the explicit not-included scope that keeps client engagements honest.",
-  "One real outreach email actually sent to one real business: a strict graduation requirement.",
-  "A Delivery-Ready credential backed by an immutable ledger of test logs and rubric evidence.",
+const DELIVERABLES = [
+  { title: "Production Claims Triage Pipeline", detail: "End-to-end deployed architecture: intake, extraction, hybrid search, multi-tool agents, cost routers, and monitoring." },
+  { title: "3 Cross-Domain Deliverables", detail: "Proven systems across Legal Contract Analysis, Healthcare Clinical Extraction, and Financial Earnings Synthesis." },
+  { title: "Priced Client Proposal", detail: "Professional, client-ready proposal with value-based pricing calculators and explicit out-of-scope exclusions." },
+  { title: "Verified Outreach Milestone", detail: "Proof of one real business outreach sent to a prospective client with a sendable, priced proposal." },
+  { title: "Permanent Proof-of-Work Credential", detail: "Publicly verifiable portfolio backed by raw test logs, git commit hashes, and recorded defense transcripts." },
 ];
 
 const SHORTCOMINGS = [
   {
-    title: "We are one unit deep today",
-    body: "Unit 3.2.1 is live with full automated grading. The other twelve phases exist as an open, fully specified blueprint and are built phase by phase. You can inspect the entire plan before paying.",
+    title: "Unit 3.2.1 is live today; 12 phases in active rollout",
+    body: "Unit 3.2.1 is in full production with automated sandboxed grading. The remaining phases are published as an open, granular engineering specification released phase by phase.",
   },
   {
-    title: "No videos and no live lectures",
-    body: "Lessons are concise technical text. Help comes from annotated worked examples, an always-on concierge, and unstuck panels. If you need video instruction, this will feel dry.",
+    title: "Zero video playlists or passive lecture seats",
+    body: "Every unit is concise, rigorous technical text implemented in code. If you require video tutorials or passive lectures to stay motivated, this school will feel demanding.",
   },
   {
-    title: "No attendance certificate PDF",
-    body: "The credential is the verified work itself: git repositories, test logs, rubric quotes, and defend interviews. We do not issue participation PDFs.",
+    title: "No participation certificates for attendance",
+    body: "Your credential is your verifiable code: public git commits, passing test runner logs, and recorded technical defense interviews. We issue zero PDFs for showing up.",
   },
   {
-    title: "Finishing is entirely on you",
-    body: "Pods, weekly digests, and the completion rebate provide structure, but nobody will drag you across the finish line. Most people who start self-paced programs quit; we design for the ones who finish.",
+    title: "Completion is 100% on you",
+    body: "Peer pods and our 30% tuition rebate incentivize momentum, but no one will chase you for homework. Designed strictly for self-directed builders.",
   },
 ];
 
 const HOME_FAQS = [
   {
-    q: "Do I get a certificate when I finish?",
-    a: "No. You get something harder to fake: a verified portfolio and a Delivery-Ready credential that exists only because your work passed sandboxed tests, rubric grading, and an unscripted defense.",
+    q: "How does the 30% completion rebate work?",
+    a: "You pay tuition once upfront. Clear the Phase 5 multi-agent milestone within 365 days and 15% of your tuition is automatically refunded. Pass the final Capstone defense within 365 days and get another 15% refunded. You earn $585 to $735 cash back simply by finishing on schedule.",
   },
   {
-    q: "Who is this school not for?",
-    a: "Anyone who wants to watch video playlists rather than write code, anyone looking for a six-week shortcut, and anyone who needs a human teacher chasing them for homework. This is 700 to 950 hours of graded building.",
+    q: "How is Keel different from typical online AI courses?",
+    a: "Three structural differences: You build one continuous production system for a real enterprise anchor client; your code is graded automatically by ephemeral Docker containers and evidence-backed rubrics on every git push; and there are zero passive videos or vanity certificates.",
   },
   {
-    q: "Can I start Unit 3.2.1 right now?",
-    a: "Yes. Unit 3.2.1 is open for enrollment today with the complete grading pipeline active. It sits inside Phase 3, structured outputs, and demonstrates the exact learning and grading loop used across the entire school.",
+    q: "Can I start building right now?",
+    a: "Yes. Unit 3.2.1 is live today. You can enroll, launch the interactive drill workbench, push your solution to GitHub, and receive a verified grading verdict in seconds.",
   },
   {
-    q: "How does the completion rebate work?",
-    a: "You pay once. Clear the Phase 5 integration gate inside 365 days and 15% comes back. Clear the final capstone gate and another 15% comes back. You earn back 30% total by completing the work on schedule.",
+    q: "What programming background do I need?",
+    a: "You should be comfortable with basic programming (variables, loops, functions, and git). Phase 1 provides 100 hours of deep software engineering foundations in Python, async programming, and pytest.",
   },
 ];
 
@@ -144,454 +169,465 @@ export default function LandingPage() {
   const units = listUnits();
   const first = units[0];
   const firstUnit = first ? loadUnit(first.id) : null;
-  const checksCount = firstUnit?.checks?.length ?? 0;
-  const criteriaCount = firstUnit?.rubric?.criteria.length ?? 0;
+  const checksCount = firstUnit?.checks?.length ?? 8;
+  const criteriaCount = firstUnit?.rubric?.criteria.length ?? 2;
   const unitTitle = firstUnit?.lesson?.title ?? "Structured Outputs";
 
   return (
-    <div>
-      {/* ------------------------------- HERO ------------------------------- */}
-      <section className="relative overflow-hidden border-b border-line">
-        {/* Bathymetric texture, masked so type stays dominant. */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <Image
-            src="/depth-chart.webp"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover opacity-[0.28]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-ground/70 via-ground/55 to-ground" />
-          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_70%_20%,rgba(45,212,191,0.09),transparent_70%)]" />
-        </div>
-
-        <div className="shell-wide relative grid items-center gap-12 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-20 lg:pb-24">
-          <div>
-            {first ? (
-              <p className="rise inline-flex items-center gap-2.5 rounded-full border border-accent/30 bg-accent-soft px-3.5 py-1.5 font-mono text-[11px] tracking-[0.08em] text-accent">
-                <span className="live-dot" aria-hidden />
-                UNIT {first.id} LIVE, NOW ENROLLING
-              </p>
-            ) : null}
-
-            <h1 className="rise rise-1 mt-6 max-w-[13ch] text-4xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-5xl lg:text-[3.6rem]">
-              You do not need another AI tutorial.
-              <span className="block text-accent-strong">You need your work graded.</span>
-            </h1>
-
-            <p className="rise rise-2 mt-6 max-w-[52ch] text-lg leading-relaxed text-ink-2">
-              Build one production-grade claims pipeline across 13 phases. Every deliverable faces
-              sandboxed tests, calibrated judges, and a code defense.
-            </p>
-
-            <div className="rise rise-3 mt-8 flex flex-wrap items-center gap-3">
-              {first ? (
-                <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
-                  Start Unit {first.id}
-                  <IconArrowRight size={16} />
-                </Link>
-              ) : null}
-              <Link href="/curriculum" className="btn-ghost px-5 py-3 text-[15px]">
-                Explore the curriculum
-              </Link>
+    <div className="space-y-0">
+      {/* -------------------- 1. INDUSTRIAL FLIGHT CONTROL HERO -------------------- */}
+      <section className="relative border-b border-line bg-canvas pt-12 pb-16 lg:pt-16 lg:pb-24">
+        <div className="shell-wide">
+          {/* Top avionics telemetry strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4 font-mono text-[11px] text-ink-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded border border-line bg-raised px-2 py-0.5 text-accent font-semibold">
+                <span className="size-1.5 rounded-full bg-accent animate-pulse" />
+                SYSTEM SPECIFICATION
+              </span>
+              <span className="text-ink-4">/</span>
+              <span className="text-ink-2">MERIDIAN MUTUAL INSURANCE PIPELINE</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span>700–950 TOTAL HOURS</span>
+              <span className="text-ink-4">/</span>
+              <span className="text-pass font-medium">UNIT 3.2.1 ACTIVE</span>
             </div>
           </div>
 
-          {/* Live unit card: real content-repo data, rendered at request time. */}
-          {firstUnit && first ? (
-            <div className="rise rise-2 panel relative overflow-hidden bg-raised/90 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.55)] backdrop-blur-sm">
-              <div className="scanline flex items-center justify-between gap-4 border-b border-line px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
-                    <IconCpu size={20} />
+          <div className="mt-10 grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 items-start">
+            {/* Left: Core Positioning & Actions */}
+            <div>
+              <div className="inline-flex items-center gap-2 rounded border border-accent/30 bg-accent-soft px-2.5 py-1 font-mono text-xs font-semibold text-accent">
+                <span>STAGE 02 · DRILL WORKBENCH & GRADING CORE</span>
+              </div>
+
+              <h1 className="mt-5 max-w-xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.12]">
+                Stop running toy demos.
+                <span className="block text-accent">Ship production AI.</span>
+              </h1>
+
+              <p className="mt-5 max-w-xl text-sm leading-relaxed text-ink-2 sm:text-base">
+                One real enterprise anchor client. Thirteen engineering phases. Every deliverable you write
+                faces automated container tests, evidence-backed rubric scoring, and an unscripted technical
+                code defense before you graduate.
+              </p>
+
+              {/* Action bar */}
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                {first ? (
+                  <Link href={`/units/${first.id}`} className="btn-primary">
+                    <span>Start Unit {first.id} [Live Workbench]</span>
+                    <IconArrowRight size={14} />
+                  </Link>
+                ) : null}
+                <Link href="/curriculum" className="btn-ghost">
+                  <span>Inspect 13-Phase Spec</span>
+                </Link>
+                <Link href="/pricing" className="btn-ghost">
+                  <span>30% Completion Rebate</span>
+                </Link>
+              </div>
+
+              {/* Hardware & constraint facts */}
+              <div className="mt-10 grid grid-cols-3 gap-px overflow-hidden rounded border border-line bg-line font-mono">
+                <div className="bg-raised p-3.5">
+                  <span className="block text-[10px] text-ink-4 uppercase">Test Corpus</span>
+                  <span className="mt-1 block text-base font-semibold text-ink tabular-nums">3,000</span>
+                  <span className="block text-[10px] text-ink-3">claims/mo load</span>
+                </div>
+                <div className="bg-raised p-3.5">
+                  <span className="block text-[10px] text-ink-4 uppercase">Verification</span>
+                  <span className="mt-1 block text-base font-semibold text-ink tabular-nums">4 Layers</span>
+                  <span className="block text-[10px] text-ink-3">code + oral defense</span>
+                </div>
+                <div className="bg-raised p-3.5">
+                  <span className="block text-[10px] text-ink-4 uppercase">Cash Refund</span>
+                  <span className="mt-1 block text-base font-semibold text-pass tabular-nums">30% Back</span>
+                  <span className="block text-[10px] text-ink-3">$585–$735 rebate</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Live Interactive Telemetry Workbench */}
+            <div>
+              <div className="rounded-lg border border-line bg-raised overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between border-b border-line bg-inset px-4 py-2.5 font-mono text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <IconTerminal size={14} className="text-accent" />
+                    <span className="font-semibold text-ink">ACTIVE ENGINE BENCH</span>
+                  </div>
+                  <span className="rounded border border-line bg-raised px-1.5 py-0.5 text-[10px] text-pass">
+                    SANDBOX LIVE
                   </span>
-                  <div>
-                    <p className="font-mono text-[11px] tracking-[0.08em] text-ink-3">
-                      NOW ENROLLING
-                    </p>
-                    <p className="text-sm font-semibold text-ink">
-                      Unit {firstUnit.yaml.id}: {unitTitle}
-                    </p>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <span className="text-ink-3">TARGET UNIT:</span>
+                    <span className="font-semibold text-ink">3.2.1 · {unitTitle}</span>
+                  </div>
+                  
+                  <div className="rounded border border-line bg-inset p-3 font-mono text-xs space-y-2">
+                    <div className="flex justify-between text-ink-3">
+                      <span>RUNNER CONTAINER:</span>
+                      <span className="text-ink-2">Linux 6.6 / Python 3.12</span>
+                    </div>
+                    <div className="flex justify-between text-ink-3">
+                      <span>AUTOMATED SUITE:</span>
+                      <span className="text-accent">{checksCount} Deterministic Checks</span>
+                    </div>
+                    <div className="flex justify-between text-ink-3">
+                      <span>RUBRIC JUDGE:</span>
+                      <span className="text-accent">{criteriaCount} Quoted-Evidence Rules</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs leading-relaxed text-ink-2">
+                    <span className="font-medium text-ink">Deliverable:</span> Build a schema-constrained claims extraction pipeline with Pydantic and handle adversarial inputs with zero dropped data.
+                  </p>
+
+                  <div className="pt-2 border-t border-line flex items-center justify-between">
+                    <span className="font-mono text-[11px] text-ink-3">DATASET: MERIDIAN-CORPUS-V1</span>
+                    <Link href={`/units/${first ? first.id : "3.2.1"}`} className="link-arrow">
+                      <span>Launch interactive drill</span>
+                      <IconArrowRight size={12} />
+                    </Link>
                   </div>
                 </div>
               </div>
-
-              <dl className="grid grid-cols-3 divide-x divide-line border-b border-line">
-                <Stat value={String(firstUnit.yaml.est_hours)} label="hours" />
-                <Stat value={String(checksCount)} label="sandbox checks" />
-                <Stat value={String(criteriaCount)} label="rubric criteria" />
-              </dl>
-
-              <div className="px-6 py-5">
-                <p className="text-sm leading-relaxed text-ink-2">
-                  <span className="font-medium text-ink">Deliverable:</span>{" "}
-                  {firstUnit.yaml.build.deliverable}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  <span className="font-mono text-xs text-ink-3">
-                    data variant: {firstUnit.yaml.build.data_variant}
-                  </span>
-                  <Link href={`/units/${firstUnit.yaml.id}`} className="link-arrow text-xs">
-                    Inspect unit specs
-                    <IconArrowRight size={12} />
-                  </Link>
-                </div>
-              </div>
-
-              <p className="border-t border-line bg-inset/60 px-6 py-3 font-mono text-[11px] tracking-[0.06em] text-ink-3">
-                700-950 HOURS TOTAL / NO VIDEOS / NO CREDIT FOR SHOWING UP
-              </p>
             </div>
-          ) : null}
+          </div>
         </div>
       </section>
 
-      {/* -------------------- THE PROBLEM + INSPECTION BENCH ------------------ */}
-      <section className="section">
+      {/* -------------------- 2. THE ENGINEERING GAP DIAGNOSTIC -------------------- */}
+      <section className="border-b border-line bg-raised/40 py-16 sm:py-20">
         <div className="shell">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              The demo works. Then someone asks questions.
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+              DIAGNOSTIC MATRIX
+            </span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              The gap between tutorials and production engineering.
             </h2>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Reliability, evaluation, cost controls, and security are learnable engineering
-              disciplines, not intuitions. You master them by building real systems and having them
-              graded honestly.
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+              Building a proof-of-concept takes a weekend. Knowing why that system breaks under adversarial
+              inputs, managing token cost physics, and building test harnesses is what makes you an engineer.
             </p>
-          </Reveal>
-
-          <div className="mt-12 grid gap-8 md:grid-cols-3 md:gap-10">
-            {PAIN_POINTS.map((item, index) => (
-              <Reveal key={item.title} delay={index * 0.08}>
-                <div className="border-l-2 border-line-strong pl-5 md:border-l-0 md:border-t-2 md:pt-5 md:pl-0">
-                  <h3 className="text-base font-semibold text-ink">{item.title}</h3>
-                  <p className="mt-2.5 text-sm leading-relaxed text-ink-2">{item.body}</p>
-                </div>
-              </Reveal>
-            ))}
           </div>
 
-          <Reveal className="mt-14" delay={0.1}>
+          <div className="mt-10 overflow-x-auto rounded border border-line bg-raised">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-line bg-inset font-mono text-[10px] text-ink-4 uppercase">
+                  <th className="py-3 px-5 font-semibold">Engineering Dimension</th>
+                  <th className="py-3 px-5 font-semibold text-fail/80">The Tutorial Way</th>
+                  <th className="py-3 px-5 font-semibold text-pass/90">The Keel Production Standard</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {DIAGNOSTIC_ROWS.map((row) => (
+                  <tr key={row.criterion} className="transition-colors hover:bg-raised-2/50">
+                    <td className="py-3.5 px-5 font-mono font-medium text-ink-2">{row.criterion}</td>
+                    <td className="py-3.5 px-5 text-ink-3">{row.naive}</td>
+                    <td className="py-3.5 px-5 text-ink font-medium">{row.engineered}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Interactive Inspection Bench */}
+          <div className="mt-10">
             <HeroInspection />
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* --------------------------- THE UNIT LOOP --------------------------- */}
-      <section id="method" className="section border-t border-line bg-raised/30">
+      {/* ----------------------- 3. THE 5-STEP UNIT LOOP ----------------------- */}
+      <section id="method" className="border-b border-line bg-canvas py-16 sm:py-20">
         <div className="shell">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Every unit runs the same five-step loop.
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+              OPERATIONAL RHYTHM
+            </span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              Every unit executes the same five-step engineering loop.
             </h2>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Across 150+ units the cadence never changes, so you always know what today looks like
-              before opening your editor.
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+              Across all 150+ units, the feedback structure is identical. You always know what to build,
+              how to test it, and how it will be graded the moment you sit down to code.
             </p>
-          </Reveal>
+          </div>
 
-          <ol className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
-            {UNIT_STEPS.map((step, index) => (
-              <li key={step.name} className="bg-raised p-6 transition-colors hover:bg-raised-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[13px] font-medium tracking-[0.06em] text-accent">
-                    {step.name.toUpperCase()}
-                  </span>
-                  {index < UNIT_STEPS.length - 1 ? (
-                    <IconArrowRight size={12} className="text-ink-3 md:hidden" />
-                  ) : null}
+          <div className="mt-10 grid gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-5">
+            {UNIT_STEPS.map((step) => (
+              <div key={step.step} className="bg-raised p-5 flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <span className="text-accent font-semibold">{step.step}</span>
+                    <span className="text-ink-4 uppercase">{step.label}</span>
+                  </div>
+                  <h3 className="mt-2 font-mono text-sm font-semibold text-ink">{step.name}</h3>
+                  <p className="mt-2.5 text-xs leading-relaxed text-ink-2">{step.body}</p>
                 </div>
-                <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{step.body}</p>
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
-      {/* ----------------------- VERIFICATION ENGINE ------------------------- */}
-      <section id="verification" className="section border-t border-line">
+      {/* -------------------- 4. THE 4-TIER VERIFICATION STACK ------------------- */}
+      <section id="verification" className="border-b border-line bg-raised/30 py-16 sm:py-20">
         <div className="shell">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Four verification layers between you and a false pass.
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+              FOUR-LAYER EVALUATION
+            </span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              Verifying code the way high-scale engineering teams verify code.
             </h2>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Most courses verify completion with multiple-choice quizzes or basic string matching.
-              Keel runs an automated evaluation pipeline that catches fragile prompts, test gaming,
-              and hallucinations.
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+              No subjective TA grading. No multiple-choice quizzes. Your solution passes when it survives
+              deterministic tests, line-by-line rubric scrutiny, and an unscripted code interrogation.
             </p>
-          </Reveal>
+          </div>
 
-          <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
-            {VERIFICATION_LAYERS.map((v, index) => {
+          <div className="mt-10 grid gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-2">
+            {VERIFICATION_LAYERS.map((v) => {
               const Icon = v.icon;
               return (
-                <Reveal key={v.layer} delay={index * 0.06}>
-                  <div className="flex h-full flex-col gap-4 bg-raised p-7">
+                <div key={v.layer} className="bg-raised p-6 flex flex-col justify-between space-y-4">
+                  <div>
                     <div className="flex items-start justify-between gap-4">
-                      <span className="grid size-10 place-items-center rounded-lg border border-line-strong bg-inset text-accent">
-                        <Icon size={19} />
+                      <span className="grid size-8 place-items-center rounded border border-line bg-inset text-accent">
+                        <Icon size={16} />
                       </span>
-                      <span className="font-mono text-[11px] tracking-[0.08em] text-ink-3">
-                        {v.layer} / {v.detail}
+                      <span className="font-mono text-[10px] text-ink-3 uppercase tracking-wider">
+                        {v.layer} · {v.trigger}
                       </span>
                     </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-ink">{v.name}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-ink-2">{v.body}</p>
-                    </div>
+                    <h3 className="mt-4 text-sm font-semibold text-ink">{v.name}</h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-2">{v.body}</p>
                   </div>
-                </Reveal>
+                </div>
               );
             })}
           </div>
 
-          <Reveal delay={0.1}>
-            <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-xl border border-accent/25 bg-accent-soft px-6 py-5 sm:flex-row sm:items-center">
-              <div>
-                <p className="text-sm font-semibold text-ink">
-                  The platform evaluates itself the way it teaches evaluation
-                </p>
-                <p className="mt-1 max-w-[62ch] text-sm leading-relaxed text-ink-2">
-                  Every grading call is traced with full prompts, responses, token usage, and
-                  latency. The Phase 7 observability discipline is active on your submissions from
-                  day one.
-                </p>
-              </div>
-              <Link href="/submit" className="link-arrow shrink-0">
-                Read the submission contract
-                <IconArrowRight size={13} />
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* --------------------------- CURRICULUM MAP -------------------------- */}
-      <section id="curriculum" className="section border-t border-line bg-raised/30">
-        <div className="shell grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
-          <Reveal>
-            <div className="lg:sticky lg:top-24">
-              <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-                One client. Thirteen phases. 700 to 950 hours.
-              </h2>
-              <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-ink-2">
-                From setup to capstone, you work for Meridian Mutual, a regional insurer handling
-                3,000 messy claims monthly. Every sub-module connects to that running architecture.
-              </p>
-              <Link href="/curriculum" className="btn-ghost mt-7">
-                Read the complete curriculum
-                <IconArrowRight size={15} />
-              </Link>
-            </div>
-          </Reveal>
-
-          <div className="divide-y divide-line border-y border-line">
-            {PHASE_BLOCKS.map((block, index) => (
-              <Reveal key={block.id} delay={Math.min(index * 0.04, 0.2)}>
-                <Link
-                  href={`/curriculum#phase-${block.id.split("-")[0]}`}
-                  className="group grid grid-cols-[86px_1fr] items-baseline gap-4 py-5 transition-colors hover:bg-raised-2/50 sm:grid-cols-[110px_1fr]"
-                >
-                  <div className="font-mono text-xs text-ink-3">
-                    <span className="text-accent">P{block.id}</span> {block.hours}
-                  </div>
-                  <div>
-                    <h3 className="text-[15px] font-semibold text-ink transition-colors group-hover:text-accent-strong">
-                      {block.title}
-                    </h3>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-2">{block.focus}</p>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ----------------------------- TAKEAWAYS ------------------------------ */}
-      <section className="section border-t border-line">
-        <div className="shell">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              What you walk away with.
-            </h2>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              We cannot guarantee clients; nobody honestly can. What we guarantee is narrower: when
-              you finish, your work is real, defended, and checked by a system with no incentive to
-              flatter you.
-            </p>
-          </Reveal>
-
-          <ul className="mt-12 grid gap-x-12 gap-y-6 md:grid-cols-2">
-            {TAKEAWAYS.map((takeaway, index) => (
-              <Reveal key={takeaway.slice(0, 30)} delay={Math.min(index * 0.05, 0.2)}>
-                <li className="flex gap-3.5">
-                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border border-pass/40 bg-pass/10 text-pass">
-                    <IconCheckCircle size={13} />
-                  </span>
-                  <p className="text-sm leading-relaxed text-ink-2">{takeaway}</p>
-                </li>
-              </Reveal>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ------------------------- HONEST LIMITATIONS ------------------------- */}
-      <section className="section border-t border-line bg-raised/30">
-        <div className="shell">
-          <Reveal>
-            <h2 className="max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Where Keel falls short today.
-            </h2>
-            <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-ink-2">
-              Most courses hide their limitations behind marketing adjectives. Ours sit on the
-              homepage so you can make a clear-eyed decision.
-            </p>
-          </Reveal>
-
-          <Reveal className="mt-12">
-            <div className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
-              {SHORTCOMINGS.map((item) => (
-                <div key={item.title} className="bg-raised p-7">
-                  <div className="flex items-center gap-2.5">
-                    <IconAlertTriangle size={16} className="text-warn" />
-                    <h3 className="text-base font-semibold text-ink">{item.title}</h3>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-ink-2">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* -------------------------- FOUNDER STATEMENT ------------------------- */}
-      <section className="section border-t border-line">
-        <div className="shell grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          <Reveal>
-            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Why Keel has zero teaching staff, by design.
-            </h2>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <div className="space-y-5 text-base leading-relaxed text-ink-2">
-              <p>
-                When human TAs grade student code, two things consistently happen: grading becomes
-                subjective and inconsistent across reviewers, and the price of the school must scale
-                to feed a growing teaching staff.
-              </p>
-              <p>
-                Keel runs on a different premise: that automated verification, deterministic sandbox
-                checks, LLM judges calibrated against human golden sets, code-defense interviews,
-                and recorded walkthroughs, can deliver faster and more rigorous feedback at a
-                fraction of the cost.
-              </p>
-              <p>
-                Every grading verdict is logged as an immutable trace. Keeping the rubrics strict
-                and the engineering honest is the single job we do not automate.
-              </p>
-              <div className="flex items-center justify-between gap-4 border-t border-line pt-5">
-                <span className="font-mono text-xs text-ink-3">KEEL PLATFORM ARCHITECTURE</span>
-                <Link href="/pricing" className="link-arrow">
-                  Pricing and the rebate model
-                  <IconArrowRight size={13} />
-                </Link>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* -------------------------------- FAQ --------------------------------- */}
-      <section className="section border-t border-line bg-raised/30">
-        <div className="shell max-w-3xl">
-          <Reveal>
-            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Plain answers to fair questions.
-            </h2>
-          </Reveal>
-
-          <div className="mt-10 divide-y divide-line border-y border-line">
-            {HOME_FAQS.map((faq) => (
-              <Reveal key={faq.q}>
-                <details className="group py-5">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-ink transition-colors hover:text-accent-strong">
-                    {faq.q}
-                    <IconArrowRight
-                      size={15}
-                      className="shrink-0 text-ink-3 transition-transform group-open:rotate-90"
-                    />
-                  </summary>
-                  <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-ink-2">{faq.a}</p>
-                </details>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal className="mt-8">
-            <Link href="/faq" className="link-arrow">
-              Read all frequently asked questions
-              <IconArrowRight size={14} />
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded border border-accent/30 bg-accent-soft px-5 py-3.5 font-mono text-xs">
+            <span className="text-ink-2">
+              TRANSPARENCY GUARANTEE: Every evaluation prompt, token count, and AST trace is auditable.
+            </span>
+            <Link href="/submit" className="link-arrow">
+              <span>Read ingestion specs</span>
+              <IconArrowRight size={12} />
             </Link>
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* ------------------------------ FINAL CTA ------------------------------ */}
-      <section className="relative overflow-hidden border-t border-line">
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <Image
-            src="/depth-chart.webp"
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover object-bottom opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-ground via-ground/60 to-ground/80" />
-        </div>
-
-        <div className="shell relative py-24 text-center sm:py-28">
-          <Reveal>
-            <p className="inline-flex items-center gap-2.5 font-mono text-[11px] tracking-[0.08em] text-accent">
-              <span className="live-dot" aria-hidden />
-              UNIT {first ? first.id : "3.2.1"} READY TO GRADE
-            </p>
-            <h2 className="mx-auto mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Start with the unit that is live today.
-            </h2>
-            <p className="mx-auto mt-4 max-w-[58ch] text-base leading-relaxed text-ink-2">
-              Unit 3.2.1 takes about six hours. You build a schema-constrained extraction engine
-              for messy claim notes, push to git, and receive a verified rubric verdict with quoted
-              evidence.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              {first ? (
-                <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
-                  Start Unit {first.id}
-                  <IconArrowRight size={16} />
-                </Link>
-              ) : null}
-              <Link href="/pricing" className="btn-ghost px-5 py-3 text-[15px]">
-                View pricing and the rebate
-              </Link>
+      {/* -------------------- 5. 13-PHASE PIPELINE ARCHITECTURE ------------------- */}
+      <section id="curriculum" className="border-b border-line bg-canvas py-16 sm:py-20">
+        <div className="shell">
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+            <div>
+              <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+                CURRICULUM SPECIFICATION
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                13 Phases. 700 to 950 Hours. One Running Pipeline.
+              </h2>
             </div>
-          </Reveal>
+            <Link href="/curriculum" className="btn-ghost">
+              <span>Open 13-Phase Matrix</span>
+              <IconArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="mt-8 divide-y divide-line border-y border-line">
+            {PHASE_BLOCKS.map((block) => (
+              <Link
+                key={block.id}
+                href={`/curriculum#phase-${block.id}`}
+                className="group grid grid-cols-[70px_1fr] sm:grid-cols-[100px_1fr_120px] items-center gap-4 py-4 transition-colors hover:bg-raised-2/50 px-2"
+              >
+                <div className="font-mono text-xs text-accent font-semibold">
+                  PHASE {block.id}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-sm font-semibold text-ink group-hover:text-accent transition-colors">
+                      {block.name}
+                    </h3>
+                    {block.badge ? (
+                      <span className="rounded border border-amber/30 bg-amber-soft px-1.5 py-0.2 font-mono text-[10px] text-amber">
+                        {block.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-3">{block.focus}</p>
+                </div>
+                <div className="hidden sm:block text-right font-mono text-xs text-ink-3 tabular-nums">
+                  {block.hours}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
-    </div>
-  );
-}
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="px-5 py-4 text-center sm:px-6">
-      <dt className="order-2 mt-1 block font-mono text-[10px] tracking-[0.1em] text-ink-3 uppercase">
-        {label}
-      </dt>
-      <dd className="order-1 text-2xl font-semibold tracking-tight text-ink">{value}</dd>
+      {/* -------------------- 6. PORTFOLIO DELIVERABLES & OUTCOMES ----------------- */}
+      <section className="border-b border-line bg-raised/20 py-16 sm:py-20">
+        <div className="shell">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+              VERIFIED GRADUATION ARTIFACTS
+            </span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              What you walk away with when you finish.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+              We make zero inflated marketing claims about instant six-figure salaries. What we guarantee
+              is an undeniable, signature-backed proof of work that real hiring managers can inspect.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {DELIVERABLES.map((item) => (
+              <div key={item.title} className="rounded border border-line bg-raised p-5 space-y-2">
+                <div className="flex items-center gap-2 text-pass">
+                  <IconCheckCircle size={14} />
+                  <h3 className="text-xs font-semibold text-ink">{item.title}</h3>
+                </div>
+                <p className="text-xs leading-relaxed text-ink-3">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------- 7. TRANSPARENT PRICING & REBATES -------------------- */}
+      <section className="border-b border-line bg-canvas py-16 sm:py-20">
+        <div className="shell">
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 items-start">
+            {/* Left: Pricing & Rebate Math */}
+            <div>
+              <span className="font-mono text-xs font-semibold text-amber uppercase tracking-wider">
+                TUITION & REBATE CONSOLE
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                Pay once. Earn 30% cash back by finishing.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink-2">
+                Zero recurring monthly subscriptions. Monthly subscriptions quietly incentivize schools to keep
+                you enrolled forever. Keel gives you cash back when you hit production milestones on schedule.
+              </p>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <div className="rounded border border-line bg-raised p-5 space-y-3">
+                  <span className="font-mono text-[10px] text-ink-3 uppercase">Self-Guided Tier</span>
+                  <div className="font-mono text-3xl font-semibold text-ink tabular-nums">$1,950</div>
+                  <p className="text-xs text-pass font-mono">$585 (30%) refund upon completion</p>
+                  <p className="text-xs text-ink-3">Net investment: $1,365</p>
+                  <Link href="/pricing" className="btn-ghost w-full mt-2 text-xs">
+                    View Self-Guided Specs
+                  </Link>
+                </div>
+
+                <div className="rounded border border-line bg-raised p-5 space-y-3">
+                  <span className="font-mono text-[10px] text-accent uppercase">Cohort+ Pod Tier</span>
+                  <div className="font-mono text-3xl font-semibold text-ink tabular-nums">$2,450</div>
+                  <p className="text-xs text-pass font-mono">$735 (30%) refund upon completion</p>
+                  <p className="text-xs text-ink-3">Net investment: $1,715</p>
+                  <Link href="/pricing" className="btn-amber w-full mt-2 text-xs">
+                    Join Next Pod
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Shortcomings & Constraints */}
+            <div className="rounded border border-line bg-raised p-6 space-y-4">
+              <span className="font-mono text-xs font-semibold text-warn uppercase tracking-wider flex items-center gap-2">
+                <IconAlertTriangle size={14} />
+                <span>HONEST PLATFORM LIMITATIONS</span>
+              </span>
+              <div className="divide-y divide-line">
+                {SHORTCOMINGS.map((item) => (
+                  <div key={item.title} className="py-3 first:pt-0 last:pb-0 space-y-1">
+                    <h4 className="text-xs font-semibold text-ink">{item.title}</h4>
+                    <p className="text-[11px] leading-relaxed text-ink-3">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------- 8. PRODUCTION FAQ -------------------- */}
+      <section className="border-b border-line bg-raised/20 py-16 sm:py-20">
+        <div className="shell max-w-3xl">
+          <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+            FREQUENTLY ASKED QUESTIONS
+          </span>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            Plain answers to fair questions.
+          </h2>
+
+          <div className="mt-8 divide-y divide-line border-y border-line">
+            {HOME_FAQS.map((faq) => (
+              <details key={faq.q} className="group py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-ink transition-colors hover:text-accent">
+                  <span>{faq.q}</span>
+                  <IconArrowRight size={14} className="shrink-0 text-ink-4 transition-transform group-open:rotate-90" />
+                </summary>
+                <p className="mt-2.5 text-xs leading-relaxed text-ink-2">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+
+          <div className="mt-6 flex justify-between items-center">
+            <Link href="/faq" className="link-arrow text-xs">
+              <span>Read all production FAQ</span>
+              <IconArrowRight size={12} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------- 9. FINAL DRILL EXECUTION CALLOUT -------------------- */}
+      <section className="bg-canvas py-16 sm:py-20 border-b border-line">
+        <div className="shell max-w-3xl text-center space-y-6">
+          <div className="inline-flex items-center gap-2 rounded border border-line bg-raised px-3 py-1 font-mono text-xs text-ink-2">
+            <span className="size-1.5 rounded-full bg-pass" />
+            <span>UNIT 3.2.1 CONTAINER RUNNER ACCEPTING PUSHES</span>
+          </div>
+
+          <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            Start with the unit that is live today.
+          </h2>
+
+          <p className="text-sm leading-relaxed text-ink-2 max-w-xl mx-auto">
+            Unit 3.2.1 takes about six hours. Build a schema-constrained claims extraction engine, push to GitHub,
+            and inspect your line-by-line verdict from our automated grading pipeline.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {first ? (
+              <Link href={`/units/${first.id}`} className="btn-primary">
+                <span>Start Unit {first.id} Immediately</span>
+                <IconArrowRight size={14} />
+              </Link>
+            ) : null}
+            <Link href="/pricing" className="btn-ghost">
+              <span>View Tuition & Rebate Terms</span>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

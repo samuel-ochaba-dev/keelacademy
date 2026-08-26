@@ -75,31 +75,36 @@ export default async function SubmissionPage(props: PageProps<"/submissions/[sub
   }
 
   return (
-    <article>
-      <header className="border-b border-line bg-raised/30">
-        <div className="shell pt-8 pb-8">
+    <article className="space-y-0">
+      <header className="border-b border-line bg-canvas pt-8 pb-8">
+        <div className="shell">
           <nav aria-label="Breadcrumb" className="crumbs">
-            <Link href="/me">dashboard</Link>
-            <IconChevronRight size={11} />
-            <Link href={`/units/${submission.unit_id}`}>unit-{submission.unit_id}</Link>
-            <IconChevronRight size={11} />
-            <span className="text-ink-2">submission-{submission.id}</span>
+            <Link href="/me">COCKPIT</Link>
+            <IconChevronRight size={10} />
+            <Link href={`/units/${submission.unit_id}`}>UNIT-{submission.unit_id}</Link>
+            <IconChevronRight size={10} />
+            <span className="text-ink font-semibold">SUBMISSION-{submission.id}</span>
           </nav>
 
-          <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+          <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                Unit {submission.unit_id} grading verdict
+              <div className="flex items-center gap-2">
+                <span className="rounded border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent font-semibold">
+                  AUDIT RECORD #{submission.id}
+                </span>
+              </div>
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                Unit {submission.unit_id} Grading Verdict
               </h1>
-              <p className="mt-2 flex items-center gap-2 font-mono text-[11px] text-ink-3">
-                <span className="size-1 rounded-full bg-accent" aria-hidden />
-                PRIVATE LINK / VISIBLE ONLY TO THE SUBMITTING ACCOUNT
+              <p className="mt-1 flex items-center gap-1.5 font-mono text-[10px] text-ink-3">
+                <span className="size-1.5 rounded-full bg-pass" />
+                <span>CRYPTOGRAPHIC VERDICT LEDGER · VISIBLE ONLY TO SUBMITTING ACCOUNT</span>
               </p>
             </div>
 
-            <Link href={`/units/${submission.unit_id}`} className="btn-ghost shrink-0">
-              Back to unit specs
-              <IconArrowRight size={13} />
+            <Link href={`/units/${submission.unit_id}`} className="btn-ghost shrink-0 font-mono text-xs">
+              <span>BACK TO WORKBENCH</span>
+              <IconArrowRight size={11} />
             </Link>
           </div>
 
@@ -111,7 +116,7 @@ export default async function SubmissionPage(props: PageProps<"/submissions/[sub
       </header>
 
       {/* Results */}
-      <div className="shell space-y-6 py-10">
+      <div className="shell space-y-6 py-8">
         {verdict ? (
           <>
             <Layer1Section layer1={verdict.json?.layer1} />
@@ -119,19 +124,17 @@ export default async function SubmissionPage(props: PageProps<"/submissions/[sub
             <VerdictFacts view={lookup.view} />
           </>
         ) : submission.status === "error" ? (
-          <div className="panel p-6">
-            <h2 className="text-base font-semibold text-ink">Execution failure details</h2>
-            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-ink-2">
-              No verdict could be generated due to a runner execution error or token budget
-              exhaustion. Review the timeline below or retry your push.
+          <div className="rounded border border-fail/40 bg-fail-soft p-5 space-y-2">
+            <h2 className="font-mono text-xs font-semibold text-fail uppercase tracking-wider">RUNNER EXECUTION FAILURE DETAILS</h2>
+            <p className="text-xs leading-relaxed text-ink-2">
+              No verdict could be generated due to a runner execution error or token budget exhaustion. Review the timeline below or retry your git push.
             </p>
           </div>
         ) : (
-          <div className="scanline panel p-6">
-            <h2 className="text-base font-semibold text-ink">Evaluating submission</h2>
-            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-ink-2">
-              Your tests and rubric criteria are executing in a sandboxed Docker runner. When
-              complete, this page displays your Layer 1 and Layer 2 results.
+          <div className="rounded border border-line bg-raised p-5 space-y-2">
+            <h2 className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">EVALUATION IN PROGRESS</h2>
+            <p className="text-xs leading-relaxed text-ink-2">
+              Your tests and rubric criteria are executing in a sandboxed Docker runner. When complete, this page updates with exact line-by-line evidence quotes.
             </p>
           </div>
         )}

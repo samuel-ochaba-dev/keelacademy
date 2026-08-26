@@ -1,9 +1,13 @@
 import { ContentArriving } from "@/components/content-arriving";
 import { SectionHeading } from "@/components/unit/section-heading";
 import { PracticeWorkbench } from "@/components/unit/practice-workbench";
+import { RetrievalDrill } from "@/components/unit/retrieval-drill";
 import type { MarkdownDoc } from "@/lib/content";
-import { IconZap } from "@/components/icons";
-import type { PracticeAttemptSummary, PracticeManifest } from "@/lib/practice";
+import type {
+  PracticeAttemptSummary,
+  PracticeManifest,
+  RetrievalAttemptSummary,
+} from "@/lib/practice";
 
 type PracticeSectionProps = {
   unitId: string;
@@ -12,6 +16,7 @@ type PracticeSectionProps = {
   retrievalSeeds: string[];
   manifest: PracticeManifest | null;
   initialAttempts: PracticeAttemptSummary[];
+  initialRetrievalAttempts?: RetrievalAttemptSummary[];
   isEnrolled: boolean;
   isSignedIn: boolean;
   serviceDown: boolean;
@@ -24,6 +29,7 @@ export function PracticeSection({
   retrievalSeeds,
   manifest,
   initialAttempts,
+  initialRetrievalAttempts = [],
   isEnrolled,
   isSignedIn,
   serviceDown,
@@ -32,19 +38,21 @@ export function PracticeSection({
     <section
       id="practice"
       data-keel-section="practice"
-      className="scroll-mt-20 border-t border-line bg-raised/30"
+      className="scroll-mt-20 border-t border-line bg-raised/20"
     >
-      <div className="shell py-14">
+      <div className="shell py-12">
         <SectionHeading
-          title="Practice"
-          lead="Warm up before the build: study an annotated worked example of a parallel task, then solve the completion problem."
+          stepNumber="02"
+          title="Practice: Interactive Drill Workbench"
+          lead="Warm up before building: study an annotated worked example of a parallel task, solve the completion problem, and run retrieval drills."
         />
 
         {/* 1. Worked example */}
-        <div className="mt-8">
-          <div className="flex items-baseline gap-3">
-            <span className="font-mono text-xs text-accent">1</span>
-            <h3 className="text-base font-semibold text-ink">Annotated worked example</h3>
+        <div className="mt-8 space-y-3">
+          <div className="flex items-center gap-2 border-b border-line pb-2 font-mono text-xs text-accent">
+            <span className="font-semibold">PART 01</span>
+            <span className="text-ink-4">/</span>
+            <h3 className="font-semibold text-ink uppercase tracking-wider">ANNOTATED WORKED EXAMPLE</h3>
           </div>
 
           {workedExample ? (
@@ -60,25 +68,26 @@ export function PracticeSection({
         </div>
 
         {/* 2. Completion problem */}
-        <div className="mt-10">
-          <div className="flex items-baseline gap-3">
-            <span className="font-mono text-xs text-accent">2</span>
-            <h3 className="text-base font-semibold text-ink">Completion problem</h3>
+        <div className="mt-10 space-y-4">
+          <div className="flex items-center gap-2 border-b border-line pb-2 font-mono text-xs text-accent">
+            <span className="font-semibold">PART 02</span>
+            <span className="text-ink-4">/</span>
+            <h3 className="font-semibold text-ink uppercase tracking-wider">COMPLETION PROBLEM WORKBENCH</h3>
           </div>
 
           {completionProblem ? (
             <div
-              className="prose-keel mt-4 max-w-none"
+              className="prose-keel mt-2 max-w-none"
               dangerouslySetInnerHTML={{ __html: completionProblem.html }}
             />
           ) : (
-            <div className="mt-4">
+            <div className="mt-2">
               <ContentArriving what="The completion problem (the worked example with gaps to fill)" />
             </div>
           )}
 
           {/* Interactive practice workbench */}
-          <div className="mt-8">
+          <div className="mt-6">
             <PracticeWorkbench
               unitId={unitId}
               manifest={manifest}
@@ -90,35 +99,32 @@ export function PracticeSection({
           </div>
         </div>
 
-        {/* 3. Retrieval checkpoints */}
-        <div className="mt-10">
-          <div className="flex items-baseline gap-3">
-            <span className="font-mono text-xs text-accent">3</span>
-            <h3 className="text-base font-semibold text-ink">Retrieval checkpoints</h3>
+        {/* 3. Retrieval checkpoints & drills */}
+        <div className="mt-10 space-y-4">
+          <div className="flex items-center gap-2 border-b border-line pb-2 font-mono text-xs text-accent">
+            <span className="font-semibold">PART 03</span>
+            <span className="text-ink-4">/</span>
+            <h3 className="font-semibold text-ink uppercase tracking-wider">RETRIEVAL CHECKPOINTS & DRILLS</h3>
           </div>
 
           {retrievalSeeds.length > 0 ? (
-            <div className="mt-4">
-              <p className="text-sm leading-relaxed text-ink-2">
-                After studying this lesson, you should be able to explain each of these from memory:
+            <div className="space-y-4">
+              <p className="text-xs leading-relaxed text-ink-2">
+                After studying this lesson, explain each concept from memory. Answers are graded against the lesson principles.
               </p>
-              <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                {retrievalSeeds.map((seed) => (
-                  <li
-                    key={seed}
-                    className="flex items-start gap-2.5 rounded-lg border border-line bg-raised px-4 py-3 text-[13px] leading-relaxed text-ink-2"
-                  >
-                    <IconZap size={14} className="mt-0.5 shrink-0 text-accent" />
-                    {seed}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-[13px] leading-relaxed text-ink-3">
-                Automated retrieval checks and spaced reviews test these concepts in future units.
-              </p>
+
+              {/* Interactive retrieval drill */}
+              <RetrievalDrill
+                unitId={unitId}
+                seeds={retrievalSeeds}
+                initialAttempts={initialRetrievalAttempts}
+                isEnrolled={isEnrolled}
+                isSignedIn={isSignedIn}
+                serviceDown={serviceDown}
+              />
             </div>
           ) : (
-            <div className="mt-4">
+            <div className="mt-2">
               <ContentArriving what="Retrieval practice seeds" />
             </div>
           )}

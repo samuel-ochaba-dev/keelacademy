@@ -28,15 +28,16 @@ export const metadata: Metadata = {
     template: "%s · Keel Academy",
   },
   description:
-    "A self-paced engineering school with no videos and no seat-time credit. Build one production-grade AI system across 13 phases, graded by sandboxed tests, a calibrated rubric judge, and a defend-your-work interview.",
+    "Stop getting stuck in tutorial loops. Build a production-grade AI system across 13 phases, get instant feedback on every line of code, and graduate with a defended portfolio that proves you can ship.",
   keywords: [
     "AI Engineering",
-    "LLM Evaluation",
+    "Learn AI by Building",
+    "Production AI Portfolio",
+    "AI Bootcamp",
     "RAG",
     "AI Agents",
-    "Deterministic Grading",
     "LLMOps",
-    "Production AI",
+    "Code Defense",
   ],
 };
 

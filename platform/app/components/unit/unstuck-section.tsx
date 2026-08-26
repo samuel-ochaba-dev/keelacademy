@@ -18,12 +18,13 @@ export function UnstuckSection({ unit, faq }: UnstuckSectionProps) {
     <section
       id="unstuck"
       data-keel-section="unstuck"
-      className="scroll-mt-20 border-t border-line"
+      className="scroll-mt-20 border-t border-line bg-canvas"
     >
-      <div className="shell py-14">
+      <div className="shell py-12">
         <SectionHeading
-          title="Unstuck"
-          lead="Common edge cases and failure modes for this unit, derived from real student attempts, with concrete fixes."
+          stepNumber="05"
+          title="Unstuck: 2AM Curated Diagnostics"
+          lead="Common edge cases and error messages for this unit, curated from real developer attempts, with exact fixes so you never stay stuck."
         />
 
         {unit.unstuck.length > 0 ? (
@@ -36,24 +37,24 @@ export function UnstuckSection({ unit, faq }: UnstuckSectionProps) {
               return (
                 <details
                   key={entry.fix_ref}
-                  className="panel group px-5 py-0 [&_summary::-webkit-details-marker]:hidden"
+                  className="rounded border border-line bg-raised overflow-hidden group [&_summary::-webkit-details-marker]:hidden"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4">
-                    <div className="flex items-start gap-3">
-                      <IconAlertTriangle size={17} className="mt-0.5 shrink-0 text-warn" />
-                      <span className="text-[15px] font-medium text-ink">{entry.symptom}</span>
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 bg-inset/50 hover:bg-raised-2/50 transition-colors">
+                    <div className="flex items-start gap-2.5">
+                      <IconAlertTriangle size={14} className="mt-0.5 shrink-0 text-warn" />
+                      <span className="text-xs font-semibold text-ink">{entry.symptom}</span>
                     </div>
-                    <span className="shrink-0 font-mono text-[11px] text-ink-3">
+                    <span className="shrink-0 font-mono text-[10px] text-ink-4">
                       {entry.fix_ref}
                     </span>
                   </summary>
                   {answer ? (
                     <div
-                      className="prose-keel border-t border-line pt-4 pb-5"
+                      className="prose-keel border-t border-line p-5 bg-raised text-xs leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: answer.html }}
                     />
                   ) : (
-                    <div className="border-t border-line pt-4 pb-5">
+                    <div className="border-t border-line p-5">
                       <ContentArriving
                         what={`The FAQ answer for this symptom (${entry.fix_ref})`}
                       />
@@ -64,16 +65,17 @@ export function UnstuckSection({ unit, faq }: UnstuckSectionProps) {
             })}
           </div>
         ) : (
-          <div className="mt-8">
+          <div className="mt-6">
             <ContentArriving what="Unstuck entries for this unit" />
           </div>
         )}
 
-        <div className="mt-8 rounded-xl border border-line bg-raised px-6 py-5">
-          <p className="text-sm font-medium text-ink">Still stuck after reviewing these symptoms?</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-ink-2">
-            Re-read the lesson layer that corresponds to the failing check, or inspect the worked
-            example in the Practice section above.
+        <div className="mt-6 rounded border border-line bg-raised p-5 space-y-1">
+          <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider font-semibold block">
+            DIAGNOSTIC PROTOCOL
+          </span>
+          <p className="text-xs text-ink-2 leading-relaxed">
+            Still stuck after reviewing these symptoms? Inspect the annotated worked example in the Practice workbench or review the schema validation tests.
           </p>
         </div>
       </div>

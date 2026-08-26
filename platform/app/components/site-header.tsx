@@ -9,44 +9,51 @@ export async function SiteHeader() {
   const user = await getSessionUser();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-ground/85 backdrop-blur-md">
-      <div className="shell-wide flex h-16 items-center justify-between gap-4">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 border-b border-line bg-ground/90 backdrop-blur-md">
+      <div className="shell-wide flex h-14 items-center justify-between gap-4">
+        {/* Brand + telemetry pill */}
+        <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-ink transition-opacity hover:opacity-85"
+            className="flex items-center gap-2.5 text-ink transition-opacity hover:opacity-90"
           >
-            <span className="grid size-9 place-items-center rounded-lg border border-line-strong bg-raised text-accent">
-              <IconKeelLogo size={19} />
+            <span className="grid size-7 place-items-center rounded border border-line-strong bg-raised text-accent">
+              <IconKeelLogo size={15} />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight">Keel Academy</span>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-semibold tracking-tight text-ink">Keel Academy</span>
+            </div>
           </Link>
+          <div className="hidden h-4 w-px bg-line sm:block" />
+          <span className="hidden items-center gap-1.5 font-mono text-[11px] text-ink-3 sm:inline-flex">
+            <span className="size-1.5 rounded-full bg-pass" />
+            <span>GRADING SYSTEM ACTIVE</span>
+          </span>
         </div>
 
         {/* Desktop nav */}
-        <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-0.5 lg:flex">
           <HeaderLink href="/curriculum">Curriculum</HeaderLink>
           {user ? <HeaderLink href="/map">Meridian Map</HeaderLink> : null}
-          <HeaderLink href="/pricing">Pricing</HeaderLink>
-          <HeaderLink href="/submit">Submission Guide</HeaderLink>
+          <HeaderLink href="/pricing">Pricing & Rebates</HeaderLink>
+          <HeaderLink href="/submit">Submission Engine</HeaderLink>
           <HeaderLink href="/faq">FAQ</HeaderLink>
         </nav>
 
         {/* Auth + primary action */}
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
               <Link
                 href="/me"
-                className="flex items-center gap-2 rounded-lg border border-line-strong px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/50 hover:text-ink"
+                className="flex items-center gap-2 rounded border border-line-strong bg-raised px-2.5 py-1 text-xs font-mono text-ink-2 transition-colors hover:border-accent/50 hover:text-ink"
               >
                 <span className="size-1.5 rounded-full bg-accent" aria-hidden />
-                <span className="max-w-[180px] truncate">{user.name ?? user.email}</span>
+                <span className="max-w-[160px] truncate">{user.name ?? user.email}</span>
               </Link>
               <Link
                 href="/sign-out"
-                className="px-2 py-2 text-sm text-ink-3 transition-colors hover:text-ink"
+                className="px-2 py-1 text-xs font-mono text-ink-3 transition-colors hover:text-ink"
               >
                 Sign out
               </Link>
@@ -55,14 +62,14 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/sign-in"
-                className="px-3 py-2 text-sm text-ink-2 transition-colors hover:text-ink"
+                className="px-3 py-1.5 text-xs font-mono text-ink-2 transition-colors hover:text-ink"
               >
                 Sign in
               </Link>
               {first ? (
                 <Link href={`/units/${first.id}`} className="btn-primary">
-                  Start Unit {first.id}
-                  <IconArrowRight size={15} />
+                  <span>Start Unit {first.id}</span>
+                  <IconArrowRight size={13} />
                 </Link>
               ) : null}
             </>
@@ -80,7 +87,7 @@ function HeaderLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="rounded-lg px-3 py-2 text-sm text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+      className="rounded px-2.5 py-1 text-xs font-mono tracking-tight text-ink-2 transition-colors hover:bg-raised hover:text-ink"
     >
       {children}
     </Link>

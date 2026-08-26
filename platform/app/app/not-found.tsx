@@ -3,27 +3,27 @@ import { IconArrowRight, IconKeelLogo } from "@/components/icons";
 
 export default function NotFound() {
   return (
-    <div className="shell flex max-w-lg flex-col items-start py-28">
-      <span className="grid size-12 place-items-center rounded-xl border border-line-strong bg-raised text-accent">
-        <IconKeelLogo size={26} />
-      </span>
+    <div className="shell flex max-w-lg flex-col items-start py-28 space-y-4">
+      <div className="flex items-center gap-2 font-mono text-xs text-fail">
+        <span className="size-1.5 rounded-full bg-fail" />
+        <span>HTTP 404 · ROUTE TARGET NOT FOUND</span>
+      </div>
 
-      <p className="mt-8 font-mono text-xs tracking-[0.1em] text-ink-3 uppercase">404 / not found</p>
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-        The requested page does not exist.
+      <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        We couldn&apos;t find that page.
       </h1>
-      <p className="mt-3 text-sm leading-relaxed text-ink-2">
-        The resource may have moved, or the unit ID in the URL is not in the current curriculum
-        catalog.
+
+      <p className="text-xs leading-relaxed text-ink-2">
+        The link may have moved, or that unit isn&apos;t published yet. Check the curriculum map to explore available units.
       </p>
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 pt-2 font-mono text-xs">
         <Link href="/" className="btn-primary">
-          Return to homepage
-          <IconArrowRight size={15} />
+          <span>RETURN HOME</span>
+          <IconArrowRight size={12} />
         </Link>
         <Link href="/curriculum" className="btn-ghost">
-          Inspect curriculum
+          <span>VIEW CURRICULUM</span>
         </Link>
       </div>
     </div>

@@ -11,8 +11,8 @@ export function ContentArriving({ what }: { what: string }) {
           Content arriving
         </p>
         <p className="mt-1.5 text-sm leading-relaxed text-ink-2">
-          {what} is scheduled in the open curriculum roadmap. When it is published to the content
-          repository, this section populates automatically.
+          {what} is scheduled on our open curriculum roadmap. As new units pass authoring and
+          testing, they unlock here automatically.
         </p>
       </div>
     </div>

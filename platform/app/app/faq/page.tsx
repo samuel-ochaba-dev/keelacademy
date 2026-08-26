@@ -14,123 +14,123 @@ type Faq = { q: string; a: string[] };
 
 const FAQ_GROUPS: { title: string; faqs: Faq[] }[] = [
   {
-    title: "Student fit & expectations",
+    title: "Who this is for & prerequisites",
     faqs: [
       {
         q: "Is Keel Academy right for me?",
         a: [
-          "It is a strong fit if you already write code, have built weekend AI demos that broke under real questions, and want to master the engineering disciplines (evaluation, retrieval, cost controls, security) that separate a toy from a production system.",
-          "It is not for you if you prefer passive video playlists, want a 6-week shortcut, or need a human instructor chasing your homework. Pods and digests provide structure, but nobody will drag you across the finish line.",
+          "It's built for you if you already know how to write code, have built AI demos that felt fragile under real scrutiny, and want to master the engineering disciplines (evaluation, retrieval, cost controls, security) that turn a weekend demo into a reliable production system.",
+          "It is not for you if you want to passively watch video playlists, are searching for a six-week shortcut, or need a teacher to chase you for assignments. Pods and milestones give you structure, but finishing is up to you.",
         ],
       },
       {
-        q: "How much experience do I need before starting?",
+        q: "How much coding experience do I need before starting?",
         a: [
-          "The starting baseline assumes comfortable computer literacy, package installation, and terminal familiarity. Phase 1 covers software engineering foundations from there. If you already program for a living, a 20-minute adaptive diagnostic allows you to place directly into Phase 2.",
+          "You should be comfortable with basic programming, installing packages, and using a terminal. Phase 1 covers software engineering foundations from there. If you already program professionally, a 20-minute adaptive diagnostic allows you to skip ahead directly into Phase 2.",
         ],
       },
       {
-        q: "I already call LLM APIs at work. Will I learn anything new?",
+        q: "I already call LLM APIs in my job. Will I learn anything new?",
         a: [
-          "If you can already construct representative golden evaluation sets, calibrate an LLM judge against human baselines, defend systems against indirect prompt injection, and present a token cost model to a CFO, then no, and you should not enroll. If any of those areas give you pause, that gap is the curriculum.",
-        ],
-      },
-    ],
-  },
-  {
-    title: "How grading & the platform work",
-    faqs: [
-      {
-        q: "Is this self-paced or run as a live cohort?",
-        a: [
-          "Self-paced by design. There are no mandatory live lectures to attend. The Cohort+ tier adds peer pod matching and gallery access, but the pacing is entirely in your hands. The only milestones with deadlines are the 365-day rebate windows, which exist to provide constructive momentum.",
-        ],
-      },
-      {
-        q: "How is Keel different from other AI courses?",
-        a: [
-          "Three structural differences: one client system, so everything you build across 13 phases connects to a single real-world claims triage architecture; real four-layer grading, where your code is verified by sandboxed tests, calibrated rubric judges, and code interrogation interviews; and radical honesty, with no videos, no vanity certificates, and open documentation of platform limits.",
-        ],
-      },
-      {
-        q: "How do I get unblocked when I am stuck?",
-        a: [
-          "Three mechanisms operate without human delays: every unit page includes an Unstuck panel with common failure modes from real attempts; an always-on AI concierge grounded in the codebase answers architectural questions at 2am; and annotated worked examples explain the exact rationale behind parallel implementations.",
-        ],
-      },
-      {
-        q: "Can students game the grading system with AI?",
-        a: [
-          "You are expected to use AI tools, but Layer 3 prevents outsourcing understanding. Gate units require you to defend the specific architectural decisions in your code. Furthermore, your Meridian synthetic data variant is seeded from your student ID, so copying peer solutions fails on your test suite.",
+          "If you already build automated golden test sets, calibrate AI judges with line-by-line evidence, defend systems against indirect prompt injection, and present token cost models to leadership, then no: you don't need this school. If any of those areas make you hesitate, that exact gap is what you'll master here.",
         ],
       },
     ],
   },
   {
-    title: "Content currency & roadmap",
+    title: "How learning & grading work",
     faqs: [
       {
-        q: "How does the curriculum stay up to date as AI tools evolve?",
+        q: "Is this self-paced or a live cohort?",
         a: [
-          "Lessons are split into three layers: the concept core (drifts slowly), applied pipeline context, and fast-moving tool specifics. Tool-specific sections undergo scheduled quarterly audits to ensure syntax and SDK versions match current best practices.",
+          "It is self-paced by design. There are no mandatory live lectures to sit through. If you choose the Cohort+ tier, you're matched with a peer pod for weekly accountability and review, but you set your own build schedule.",
+        ],
+      },
+      {
+        q: "How is Keel different from typical AI courses?",
+        a: [
+          "Three major differences: You build one continuous production system for a real-world anchor client across 13 phases; your code is verified by automated test environments, line-by-line rubric grading, and unscripted code defenses; and there is zero fluff: no passive videos and no vanity participation certificates.",
+        ],
+      },
+      {
+        q: "How do I get unblocked when I get stuck?",
+        a: [
+          "You have three instant support systems: every unit includes an Unstuck guide detailing common failure modes and exact fixes from real developer attempts; an always-on AI assistant grounded in the codebase helps you reason through architectural questions at 2am; and annotated worked examples show you working patterns for parallel problems.",
+        ],
+      },
+      {
+        q: "Can students game the grading system with AI copy-pasting?",
+        a: [
+          "You're encouraged to use AI coding tools as force multipliers, but you can't fake understanding. Milestone gates require you to answer follow-up technical questions explaining the specific decisions in your submitted code. Plus, your dataset is uniquely seeded to your student ID, so copying someone else's code fails on your data.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "Curriculum roadmap & updates",
+    faqs: [
+      {
+        q: "How does the curriculum stay current as AI tools evolve?",
+        a: [
+          "Lessons are structured in layers: core architectural concepts (which rarely change), applied pipeline design, and fast-moving tool specifics. Tool-specific sections undergo scheduled quarterly audits to ensure all code examples and SDKs match current production standards.",
         ],
       },
       {
         q: "How much of the curriculum is live right now?",
         a: [
-          "Unit 3.2.1 is live with full automated sandboxed grading today. The remaining twelve phases are a published, fully specified roadmap being built and released in sequence. We publish this openly so every student knows the current state before paying.",
+          "Unit 3.2.1 is live with full automated grading active today. The remaining twelve phases are published as an open, fully detailed specification that we are building and releasing in sequence. We share this transparently so you know the exact status before enrolling.",
         ],
       },
     ],
   },
   {
-    title: "Pricing, rebates & refunds",
+    title: "Pricing, rebates & guarantees",
     faqs: [
       {
         q: "What does enrollment cost?",
         a: [
-          "We charge a one-time fee with no monthly subscriptions: $1,950 for Self-Guided or $2,450 for Cohort+. Individual units like Unit 3.2.1 can also be enrolled individually during pilot batches.",
+          "We charge a single one-time payment with zero monthly subscriptions: $1,950 for Self-Guided or $2,450 for Cohort+. Individual units can also be enrolled individually during pilot batches.",
         ],
       },
       {
         q: "How does the 30% completion rebate work?",
         a: [
-          "When you pass the Phase 5 integration gate within 365 days of enrollment, 15% of your tuition is automatically refunded. When you pass the final capstone defense within 365 days, another 15% is refunded. You earn back 30% total by shipping verified work on schedule.",
+          "When you pass the Phase 5 milestone within 365 days of enrollment, 15% of your tuition is automatically refunded to your card. When you pass the final capstone defense within 365 days, you receive another 15% refund. You earn back 30% total by shipping your work on schedule.",
         ],
       },
       {
-        q: "What is the refund policy if I withdraw early?",
+        q: "What is your refund policy if I want to withdraw?",
         a: [
-          "We offer a 14-day no-questions-asked refund window from enrollment, provided you have not yet submitted your first graded deliverable. If the text-first, self-driven format is not for you, you can exit cleanly.",
+          "We offer a 14-day no-questions-asked refund window from enrollment, provided you haven't submitted your first graded deliverable. If the text-first, self-driven building format isn't right for you, you can exit with a full refund.",
         ],
       },
       {
-        q: "Do you offer team or enterprise licensing?",
+        q: "Do you offer team or company enrollment?",
         a: [
-          "Yes. Engineering teams of 5 or more can license Keel with shared progress dashboards and private team pod channels. Contact support for team billing.",
+          "Yes. Engineering teams of 5 or more can enroll with shared progress dashboards and private team pod channels. Contact support for team invoices.",
         ],
       },
     ],
   },
   {
-    title: "What you do not get",
+    title: "What you don't get (honest expectations)",
     faqs: [
       {
-        q: "Do I get a completion certificate PDF?",
+        q: "Do I get a PDF certificate of completion?",
         a: [
-          "No. The credential is the verified work itself: git repositories, passing test suites, rubric evaluation logs, and recorded walkthroughs. A PDF saying you watched videos proves nothing to serious engineering employers.",
+          "No. Your proof of skill is the verified work itself: public git repositories, passing test suites, rubric evaluation logs, and recorded walkthroughs. A PDF proving you watched videos means nothing to engineering hiring managers.",
         ],
       },
       {
-        q: "Do you guarantee jobs or client placements?",
+        q: "Do you guarantee a job after graduation?",
         a: [
-          "No, and you should distrust any program that does. What we guarantee is that if you finish, your work is production-grade, independently verified, and you graduate with a priced proposal and one real outreach email already sent.",
+          "No, and you should be wary of any program that does. What we guarantee is that if you finish, your work is production-grade, independently verified, and you graduate with a priced client proposal and a real outreach email already sent.",
         ],
       },
       {
         q: "What is the biggest limitation of Keel Academy today?",
         a: [
-          "Honest answer: the platform is young. Unit 3.2.1 is live, but the full 13-phase catalog is still shipping. Enrolling now gives you founding-cohort pricing and direct access to the team building the grading platform. Waiting means enrolling in a more mature catalog later. Both choices are rational.",
+          "Honest answer: the platform is early. Unit 3.2.1 is live, and the full 13-phase catalog is actively shipping. Enrolling now gives you founding-cohort pricing and direct input into the curriculum. Waiting means enrolling in a more mature catalog later. Both are valid choices.",
         ],
       },
     ],
@@ -142,31 +142,39 @@ export default function FaqPage() {
   const first = units[0];
 
   return (
-    <div>
+    <div className="space-y-0">
       {/* Header */}
-      <section className="border-b border-line">
-        <div className="shell pt-16 pb-14 sm:pt-20">
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+      <section className="border-b border-line bg-canvas pt-12 pb-10">
+        <div className="shell">
+          <div className="flex items-center gap-2 font-mono text-xs text-accent">
+            <span className="size-1.5 rounded-full bg-accent" />
+            <span>PRODUCTION SPECIFICATION FAQ</span>
+          </div>
+
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             Plain answers, including the unflattering ones.
           </h1>
-          <p className="mt-5 max-w-[62ch] text-base leading-relaxed text-ink-2 sm:text-lg">
-            If your question is not answered here, the honest default applies: assume the
-            unglamorous answer is the true one, because it usually is.
+
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+            No marketing evasions. If a constraint or limitation exists on our platform, we state it explicitly below.
           </p>
         </div>
       </section>
 
-      {/* Groups */}
-      <section className="shell section">
-        <div className="grid gap-12 lg:grid-cols-[260px_1fr]">
-          {/* Group index */}
-          <nav aria-label="FAQ groups" className="self-start lg:sticky lg:top-24">
+      {/* FAQ Index & Group Content */}
+      <section className="shell py-14">
+        <div className="grid gap-12 lg:grid-cols-[240px_1fr]">
+          {/* Index rail */}
+          <nav aria-label="FAQ categories" className="self-start lg:sticky lg:top-20">
+            <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider block mb-3">
+              CATEGORIES
+            </span>
             <ul className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {FAQ_GROUPS.map((group) => (
                 <li key={group.title}>
                   <a
                     href={`#${slug(group.title)}`}
-                    className="block shrink-0 rounded-lg px-3 py-2 text-sm text-ink-3 transition-colors hover:bg-raised hover:text-ink lg:shrink"
+                    className="block shrink-0 rounded border border-line bg-raised px-2.5 py-1.5 font-mono text-xs text-ink-3 transition-colors hover:border-accent hover:text-ink lg:shrink"
                   >
                     {group.title}
                   </a>
@@ -175,65 +183,52 @@ export default function FaqPage() {
             </ul>
           </nav>
 
-          {/* Groups body */}
-          <div className="space-y-14">
+          {/* Group questions */}
+          <div className="space-y-12">
             {FAQ_GROUPS.map((group) => (
-              <Reveal key={group.title}>
-                <section id={slug(group.title)} className="scroll-mt-24">
-                  <h2 className="text-2xl font-semibold tracking-tight text-ink">
+              <section key={group.title} id={slug(group.title)} className="scroll-mt-20 space-y-4">
+                <div className="border-b border-line pb-2">
+                  <h2 className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
                     {group.title}
                   </h2>
+                </div>
 
-                  <div className="mt-6 divide-y divide-line border-y border-line">
-                    {group.faqs.map((faq) => (
-                      <details key={faq.q} className="group py-5">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-ink transition-colors hover:text-accent-strong">
-                          {faq.q}
-                          <IconArrowRight
-                            size={15}
-                            className="shrink-0 text-ink-3 transition-transform group-open:rotate-90"
-                          />
-                        </summary>
-                        <div className="mt-3 space-y-3">
-                          {faq.a.map((paragraph, i) => (
-                            <p key={i} className="max-w-[68ch] text-sm leading-relaxed text-ink-2">
-                              {paragraph}
-                            </p>
-                          ))}
-                        </div>
-                      </details>
-                    ))}
-                  </div>
-                </section>
-              </Reveal>
+                <div className="divide-y divide-line border-y border-line">
+                  {group.faqs.map((faq) => (
+                    <details key={faq.q} className="group py-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-xs font-semibold text-ink transition-colors hover:text-accent">
+                        <span>{faq.q}</span>
+                        <IconArrowRight size={13} className="shrink-0 text-ink-4 transition-transform group-open:rotate-90" />
+                      </summary>
+                      <div className="mt-3 space-y-2 text-xs leading-relaxed text-ink-2 pl-2 border-l border-line-strong">
+                        {faq.a.map((paragraph, i) => (
+                          <p key={i}>{paragraph}</p>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Bottom conversion */}
-      <section className="border-t border-line bg-raised/30">
-        <div className="shell flex flex-col items-start gap-6 py-16 sm:flex-row sm:items-center sm:justify-between">
+      {/* Bottom Action Bar */}
+      <section className="border-t border-line bg-canvas py-12">
+        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink">
-              Still reading? That is the filter working.
-            </h2>
-            <p className="mt-2 max-w-[58ch] text-sm leading-relaxed text-ink-2">
-              Engineers who appreciate technical transparency are the exact people Keel is built
-              for. Unit 3.2.1 is the fastest way to test whether the loop works for you.
+            <h2 className="text-lg font-semibold text-ink">Ready to start Unit 3.2.1?</h2>
+            <p className="text-xs text-ink-3">
+              Build the schema extraction pipeline and get line-by-line feedback today.
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-3">
-            {first ? (
-              <Link href={`/units/${first.id}`} className="btn-primary px-5 py-3 text-[15px]">
-                Start Unit {first.id}
-                <IconArrowRight size={16} />
-              </Link>
-            ) : null}
-            <Link href="/pricing" className="btn-ghost px-5 py-3 text-[15px]">
-              View pricing
+          {first ? (
+            <Link href={`/units/${first.id}`} className="btn-primary">
+              <span>Start Unit {first.id} [Live Workbench]</span>
+              <IconArrowRight size={14} />
             </Link>
-          </div>
+          ) : null}
         </div>
       </section>
     </div>

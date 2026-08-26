@@ -13,7 +13,9 @@ import { ensureStudent, fetchProfile } from "@/lib/enroll";
 import {
   fetchPracticeAttempts,
   fetchPracticeManifest,
+  fetchRetrievalAttempts,
   type PracticeAttemptSummary,
+  type RetrievalAttemptSummary,
 } from "@/lib/practice";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +81,7 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   let isEnrolled = false;
   let studentId: number | null = null;
   let practiceAttempts: PracticeAttemptSummary[] = [];
+  let retrievalAttempts: RetrievalAttemptSummary[] = [];
 
   if (user) {
     const studentRes = await ensureStudent(user);
@@ -94,6 +97,10 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
       if (attemptsRes.state === "ok") {
         practiceAttempts = attemptsRes.data.attempts;
       }
+      const retrievalRes = await fetchRetrievalAttempts(studentId, unitId);
+      if (retrievalRes.state === "ok") {
+        retrievalAttempts = retrievalRes.data.attempts;
+      }
     }
   }
 
@@ -102,47 +109,48 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   const practiceServiceDown = manifestRes.state === "unreachable";
 
   return (
-    <article>
+    <article className="space-y-0">
       {/* Header */}
-      <header className="border-b border-line bg-raised/30">
-        <div className="shell pt-8 pb-10">
+      <header className="border-b border-line bg-canvas pt-8 pb-8">
+        <div className="shell">
           <nav aria-label="Breadcrumb" className="crumbs">
-            <Link href="/curriculum">curriculum</Link>
-            <IconChevronRight size={11} />
-            <Link href={`/curriculum#phase-${yaml.phase}`}>phase-{yaml.phase}</Link>
-            <IconChevronRight size={11} />
-            <span className="text-ink-2">unit-{yaml.id}</span>
+            <Link href="/curriculum">CURRICULUM</Link>
+            <IconChevronRight size={10} />
+            <Link href={`/curriculum#phase-${yaml.phase}`}>PHASE-{yaml.phase}</Link>
+            <IconChevronRight size={10} />
+            <span className="text-ink font-semibold">UNIT-{yaml.id}</span>
           </nav>
 
-          <div className="mt-6 flex flex-wrap items-start justify-between gap-6">
+          <div className="mt-5 flex flex-wrap items-start justify-between gap-6">
             <div className="max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="chip-accent font-medium">unit {yaml.id}</span>
-                <span className="chip-accent">
-                  <span className="live-dot" aria-hidden />
-                  live and grading
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent font-semibold">
+                  UNIT {yaml.id} SPECIFICATION
+                </span>
+                <span className="rounded border border-pass/40 bg-pass-soft px-2 py-0.5 font-mono text-[10px] text-pass font-semibold flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-pass" />
+                  GRADING ACTIVE
                 </span>
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
                 {lesson?.title ?? curriculum?.title ?? `Unit ${yaml.id}`}
               </h1>
-              <p className="mt-3 font-mono text-xs text-ink-3">
-                phase {yaml.phase}
-                {yaml.est_hours ? ` / ~${yaml.est_hours} hours estimated` : " / core deliverable"}
+              <p className="mt-2 font-mono text-xs text-ink-3">
+                PHASE {yaml.phase} · {yaml.est_hours ? `~${yaml.est_hours} HOURS` : "CORE DELIVERABLE"} · MERIDIAN MUTUAL CLAIMS CORPUS
               </p>
             </div>
 
-            <dl className="grid w-full max-w-md grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line sm:w-auto">
-              <Spec label="Prerequisites" value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "None (entry point)"} />
-              <Spec label="Unlocks" value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "Next unit"} />
-              <Spec label="Data variant" value={yaml.build.data_variant} />
+            <dl className="grid w-full max-w-md grid-cols-3 gap-px overflow-hidden rounded border border-line bg-line sm:w-auto font-mono">
+              <Spec label="Prerequisites" value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "ENTRY POINT"} />
+              <Spec label="Unlocks" value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "PHASE GATE"} />
+              <Spec label="Corpus Variant" value={yaml.build.data_variant} />
             </dl>
           </div>
 
           {subtitleParts.length > 0 ? (
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-1.5">
               {subtitleParts.map((part) => (
-                <span key={part} className="chip">
+                <span key={part} className="rounded border border-line bg-raised px-2 py-0.5 font-mono text-[10px] text-ink-3">
                   {part}
                 </span>
               ))}
@@ -154,23 +162,23 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
       {/* Sticky section nav */}
       <nav
         aria-label="Unit sections"
-        className="sticky top-16 z-40 border-b border-line bg-ground/90 backdrop-blur-md"
+        className="sticky top-14 z-40 border-b border-line bg-ground/90 backdrop-blur-md"
       >
-        <div className="shell flex items-center justify-between gap-4 overflow-x-auto py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex gap-1.5">
+        <div className="shell flex items-center justify-between gap-4 overflow-x-auto py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-1">
             {SECTION_ANCHORS.map((anchor) => (
               <a
                 key={anchor.id}
                 href={`#${anchor.id}`}
-                className="rounded-full border border-transparent px-3.5 py-1.5 text-[13px] text-ink-3 transition-colors hover:border-line-strong hover:text-ink"
+                className="rounded px-2.5 py-1 font-mono text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink"
               >
-                {anchor.label}
+                {anchor.label.toUpperCase()}
               </a>
             ))}
           </div>
           <Link href="/submit" className="link-arrow shrink-0 text-xs">
-            Submission guide
-            <IconArrowRight size={12} />
+            <span>Submission Guide</span>
+            <IconArrowRight size={11} />
           </Link>
         </div>
       </nav>
@@ -185,6 +193,7 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
           retrievalSeeds={yaml.practice.retrieval_seeds}
           manifest={practiceManifest}
           initialAttempts={practiceAttempts}
+          initialRetrievalAttempts={retrievalAttempts}
           isEnrolled={isEnrolled}
           isSignedIn={isSignedIn}
           serviceDown={practiceServiceDown}
@@ -199,9 +208,9 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-raised px-4 py-3">
-      <dt className="font-mono text-[10px] tracking-[0.1em] text-ink-3 uppercase">{label}</dt>
-      <dd className="mt-1 font-mono text-xs break-words text-ink">{value}</dd>
+    <div className="bg-raised px-3.5 py-2.5">
+      <dt className="font-mono text-[9px] text-ink-4 uppercase tracking-wider">{label}</dt>
+      <dd className="mt-0.5 font-mono text-xs break-words text-ink font-medium">{value}</dd>
     </div>
   );
 }

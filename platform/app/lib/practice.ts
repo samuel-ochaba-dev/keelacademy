@@ -53,6 +53,38 @@ export type PracticeAttemptSummary = {
   created_at: string;
 };
 
+export type RetrievalSeed = {
+  index: number;
+  prompt: string;
+};
+
+export type RetrievalAttemptResult = {
+  ok: boolean;
+  attempt_id: number;
+  student_id: number;
+  unit_id: string;
+  seed_index: number;
+  seed_prompt: string;
+  passed: boolean;
+  feedback: string;
+  evidence: string;
+  tokens_charged: number;
+  created_at: string;
+};
+
+export type RetrievalAttemptSummary = {
+  id: number;
+  student_id: number;
+  unit_id: string;
+  seed_index: number;
+  seed_prompt: string;
+  passed: boolean;
+  feedback: string;
+  evidence: string;
+  tokens_charged: number;
+  created_at: string;
+};
+
 export type PracticeResult<T> =
   | { state: "ok"; data: T }
   | { state: "unreachable"; detail: string }
@@ -127,5 +159,41 @@ export function fetchPracticeAttempts(
 ): Promise<PracticeResult<{ attempts: PracticeAttemptSummary[] }>> {
   return practiceFetch<{ attempts: PracticeAttemptSummary[] }>(
     `/practice/attempts?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
+  );
+}
+
+export function fetchRetrievalSeeds(
+  unitId: string,
+): Promise<PracticeResult<{ unit_id: string; seeds: RetrievalSeed[] }>> {
+  return practiceFetch<{ unit_id: string; seeds: RetrievalSeed[] }>(
+    `/practice/retrieval/seeds?unit=${encodeURIComponent(unitId)}`,
+  );
+}
+
+export function submitRetrievalAttempt(input: {
+  studentId: number;
+  unitId: string;
+  seedIndex: number;
+  seedPrompt: string;
+  answer: string;
+}): Promise<PracticeResult<RetrievalAttemptResult>> {
+  return practiceFetch<RetrievalAttemptResult>("/practice/retrieval/attempt", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      unit_id: input.unitId,
+      seed_index: input.seedIndex,
+      seed_prompt: input.seedPrompt,
+      answer: input.answer,
+    }),
+  });
+}
+
+export function fetchRetrievalAttempts(
+  studentId: number,
+  unitId: string,
+): Promise<PracticeResult<{ attempts: RetrievalAttemptSummary[] }>> {
+  return practiceFetch<{ attempts: RetrievalAttemptSummary[] }>(
+    `/practice/retrieval/attempts?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
   );
 }

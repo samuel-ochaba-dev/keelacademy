@@ -4,8 +4,10 @@ import { getSessionUser } from "@/lib/auth";
 import { ensureStudent } from "@/lib/enroll";
 import {
   submitPracticeAttempt,
+  submitRetrievalAttempt,
   type PracticeAttemptResult,
   type PracticeResult,
+  type RetrievalAttemptResult,
 } from "@/lib/practice";
 
 export async function runPracticeAttemptAction(
@@ -34,4 +36,40 @@ export async function runPracticeAttemptAction(
 
   const studentId = studentRes.data;
   return submitPracticeAttempt({ studentId, unitId, files });
+}
+
+export async function runRetrievalAttemptAction(
+  unitId: string,
+  seedIndex: number,
+  seedPrompt: string,
+  answer: string,
+): Promise<PracticeResult<RetrievalAttemptResult>> {
+  const user = await getSessionUser();
+  if (!user) {
+    return {
+      state: "rejected",
+      status: 401,
+      code: "not_signed_in",
+      message: "Sign in required to run retrieval drills.",
+    };
+  }
+
+  const studentRes = await ensureStudent(user);
+  if (studentRes.state !== "ok") {
+    return {
+      state: "rejected",
+      status: 500,
+      code: "student_bridge_failed",
+      message: "Unable to load student profile.",
+    };
+  }
+
+  const studentId = studentRes.data;
+  return submitRetrievalAttempt({
+    studentId,
+    unitId,
+    seedIndex,
+    seedPrompt,
+    answer,
+  });
 }

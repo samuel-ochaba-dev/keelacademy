@@ -15,30 +15,50 @@
 */
 
 @theme {
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+  --font-sans: var(--font-geist), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-  --color-ground: #0a0d12;
-  --color-raised: #0e1218;
-  --color-raised-2: #121722;
-  --color-inset: #090c11;
-  --color-line: #1d2330;
-  --color-line-strong: #2b3342;
-  --color-ink: #e9ecf2;
-  --color-ink-2: #aab4c2;
-  --color-ink-3: #7d8899;
-  --color-accent: #2dd4bf;
-  --color-accent-strong: #5eead4;
-  --color-accent-ink: #05211c;
-  --color-accent-soft: rgba(45, 212, 191, 0.1);
-  --color-pass: #4ade80;
-  --color-fail: #fb7185;
-  --color-warn: #fbbf24;
+  /* High-craft industrial carbon surface tokens */
+  --color-ground: #07090c;
+  --color-canvas: #07090c;
+  --color-raised: #0d1117;
+  --color-raised-2: #131822;
+  --color-raised-3: #1a202c;
+  --color-inset: #040507;
+  
+  /* Hairline precision borders */
+  --color-line: #1c2331;
+  --color-line-strong: #2a3447;
+  --color-line-bright: #3d4a63;
+
+  /* Crisp, high-contrast ink scale */
+  --color-ink: #f0f4f8;
+  --color-ink-2: #94a3b8;
+  --color-ink-3: #64748b;
+  --color-ink-4: #475569;
+
+  /* Signal Accents: High-visibility terminal amber / signal cyan */
+  --color-accent: #38bdf8;
+  --color-accent-strong: #7dd3fc;
+  --color-accent-ink: #082f49;
+  --color-accent-soft: rgba(56, 189, 248, 0.08);
+
+  --color-amber: #f59e0b;
+  --color-amber-strong: #fbbf24;
+  --color-amber-soft: rgba(245, 158, 11, 0.1);
+
+  /* Semantic status colors */
+  --color-pass: #10b981;
+  --color-pass-soft: rgba(16, 185, 129, 0.1);
+  --color-fail: #f43f5e;
+  --color-fail-soft: rgba(244, 63, 94, 0.1);
+  --color-warn: #eab308;
+  --color-warn-soft: rgba(234, 179, 8, 0.1);
 }
 
 html {
   scroll-behavior: smooth;
-  scrollbar-color: #2b3342 #0a0d12;
+  scrollbar-color: #2a3447 #07090c;
 }
 
 body {
@@ -46,11 +66,16 @@ body {
   color: var(--color-ink-2);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  background-image: 
+    linear-gradient(to right, rgba(28, 35, 49, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(28, 35, 49, 0.25) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center top;
 }
 
 ::selection {
-  background: rgba(45, 212, 191, 0.25);
-  color: #e9ecf2;
+  background: rgba(56, 189, 248, 0.25);
+  color: #f0f4f8;
 }
 
 :focus-visible {
@@ -155,60 +180,73 @@ body {
   }
 
   .shell-wide {
-    @apply mx-auto w-full max-w-[1400px] px-5 sm:px-8;
+    @apply mx-auto w-full max-w-[1440px] px-5 sm:px-8;
   }
 
-  /* Buttons. Primary = accent fill; ghost = hairline border. */
+  /* Industrial flight-control buttons */
   .btn,
   .btn-primary,
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium
-      transition-all duration-200 active:translate-y-px active:scale-[0.99]
-      disabled:pointer-events-none disabled:opacity-60;
+  .btn-ghost,
+  .btn-amber {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-[13px] font-medium tracking-tight
+      transition-all duration-150 active:translate-y-px active:scale-[0.99]
+      disabled:pointer-events-none disabled:opacity-50;
     white-space: nowrap;
   }
+  
   .btn-primary {
-    @apply bg-accent text-accent-ink hover:bg-accent-strong;
-    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35), 0 8px 28px -12px rgba(45, 212, 191, 0.45);
+    @apply bg-accent text-accent-ink hover:bg-accent-strong border border-accent/40 font-semibold;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
-  .btn-primary:hover {
-    box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.5), 0 10px 32px -12px rgba(45, 212, 191, 0.55);
+  
+  .btn-amber {
+    @apply bg-amber text-black hover:bg-amber-strong border border-amber/40 font-semibold;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
+  
   .btn-ghost {
-    @apply border border-line-strong text-ink-2 hover:border-accent/50 hover:text-ink;
+    @apply border border-line-strong bg-raised/80 text-ink-2 hover:border-line-bright hover:bg-raised-2 hover:text-ink;
   }
 
   /* Small text link with arrow affordance. */
   .link-arrow {
-    @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent
+    @apply inline-flex items-center gap-1.5 text-xs font-mono font-medium text-accent
       transition-colors hover:text-accent-strong;
   }
 
-  /* Status chip: mono caps inside a pill. Semantic use only. */
+  /* Precision status chip */
   .chip,
   .chip-accent,
   .chip-pass,
   .chip-fail,
-  .chip-warn {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line-strong px-2.5 py-1
-      font-mono text-[11px] leading-none tracking-[0.08em] text-ink-3;
+  .chip-warn,
+  .chip-amber {
+    @apply inline-flex items-center gap-1.5 rounded border border-line-strong px-2 py-0.5
+      font-mono text-[11px] font-medium leading-none tracking-wider text-ink-3 uppercase;
   }
   .chip-accent {
-    @apply border-accent/40 text-accent;
+    @apply border-accent/30 bg-accent-soft text-accent;
   }
   .chip-pass {
-    @apply border-pass/40 text-pass;
+    @apply border-pass/30 bg-pass-soft text-pass;
   }
   .chip-fail {
-    @apply border-fail/40 text-fail;
+    @apply border-fail/30 bg-fail-soft text-fail;
   }
   .chip-warn {
-    @apply border-warn/40 text-warn;
+    @apply border-warn/30 bg-warn-soft text-warn;
+  }
+  .chip-amber {
+    @apply border-amber/30 bg-amber-soft text-amber;
   }
 
-  /* Panel: the one card surface. 12px radius. */
+  /* Panel: the one card surface. 8px radius, 1px crisp border. */
   .panel {
-    @apply rounded-xl border border-line bg-raised;
+    @apply rounded-lg border border-line bg-raised shadow-sm;
+  }
+
+  .panel-inset {
+    @apply rounded-lg border border-line bg-inset;
   }
 
   /* Section rhythm for marketing pages. */

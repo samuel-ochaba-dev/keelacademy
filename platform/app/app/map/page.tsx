@@ -98,176 +98,181 @@ export default async function MapPage({ searchParams }: Props) {
   );
 
   return (
-    <div className="shell max-w-6xl py-10 sm:py-12">
+    <div className="space-y-0">
       {/* Cockpit header */}
-      <header className="border-b border-line pb-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-lg border border-line-strong bg-raised text-accent">
-                <IconCpu size={18} />
-              </span>
-              <p className="font-mono text-[11px] tracking-[0.1em] text-ink-3 uppercase">
-                Progress Dashboard · Meridian Mutual Pipeline
+      <header className="border-b border-line bg-canvas pt-10 pb-8">
+        <div className="shell max-w-6xl">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded border border-line-strong bg-raised text-accent">
+                  <IconCpu size={14} />
+                </span>
+                <p className="font-mono text-[10px] tracking-wider text-accent uppercase font-semibold">
+                  ACTIVE PIPELINE ARCHITECTURE · MERIDIAN MUTUAL
+                </p>
+              </div>
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                The Meridian Interactive System Map
+              </h1>
+              <p className="mt-2 max-w-2xl text-xs leading-relaxed text-ink-2">
+                Every phase and module in the 13-phase claims triage architecture. Each card shows where your code plugs into the running Meridian engine, joined with live sandbox telemetry, gate barriers, and completion rebates.
               </p>
             </div>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              The Meridian Progress Map
-            </h1>
-            <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-ink-2">
-              Every phase and unit in the 13-phase claims triage architecture. Each card shows where
-              your code plugs into the running Meridian system, joined with your real grading
-              verdicts, gate unlock state, and completion rebates.
-            </p>
+
+            <div className="flex flex-col items-end gap-2 font-mono text-xs">
+              <span className="rounded border border-accent/30 bg-accent-soft px-2.5 py-1 text-accent font-semibold">
+                STUDENT #{studentId}
+              </span>
+              <Link href="/me" className="link-arrow text-xs">
+                <span>Open Cockpit</span>
+                <IconArrowRight size={11} />
+              </Link>
+            </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <span className="chip-accent">Student #{studentId}</span>
-            <Link href="/me" className="link-arrow text-xs">
-              Account cockpit & billing
-              <IconArrowRight size={11} />
-            </Link>
-          </div>
-        </div>
+          {checkout ? (
+            <div
+              role="alert"
+              className="mt-6 flex items-start gap-3 rounded border border-fail/40 bg-fail-soft p-4"
+            >
+              <IconAlertTriangle size={15} className="mt-0.5 shrink-0 text-fail" />
+              <p className="text-xs leading-relaxed text-ink-2">
+                <span className="font-semibold text-fail font-mono">CHECKOUT ERROR:</span>{" "}
+                {CHECKOUT_ERRORS[checkout] ?? "Checkout could not start. Nothing was charged."}
+              </p>
+            </div>
+          ) : null}
 
-        {checkout ? (
-          <div
-            role="alert"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-fail/40 bg-fail/5 px-5 py-4"
+          {/* Metrics Strip */}
+          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+            <MetricCard
+              label="Phase tracks"
+              value={`${mapState.stats.unlockedPhases} / ${mapState.stats.totalPhases}`}
+              detail={`${mapState.stats.unlockedPhases} tracks unlocked`}
+              icon={<IconCpu size={14} />}
+            />
+            <MetricCard
+              label="Live units"
+              value={`${mapState.stats.passedUnits} / ${mapState.stats.authoredUnits}`}
+              detail={
+                mapState.stats.passedUnits > 0
+                  ? `${mapState.stats.passedUnits} verified passing`
+                  : "Unit 3.2.1 live"
+              }
+              icon={<IconFileText size={14} />}
+            />
+            <MetricCard
+              label="Gates cleared"
+              value={`${mapState.stats.clearedGates} / ${mapState.stats.totalGates}`}
+              detail={
+                mapState.stats.clearedGates === 0
+                  ? "Phase 5 & Capstone"
+                  : `${mapState.stats.clearedGates} gate cleared`
+              }
+              icon={<IconUnlock size={14} />}
+            />
+            <MetricCard
+              label="Rebates earned"
+              value={formatPrice(mapState.stats.earnedRebatesCents, "usd")}
+              detail={
+                mapState.stats.earnedRebatesCents > 0
+                  ? "Credited to payment method"
+                  : "15% per gate pass"
+              }
+              icon={<IconAward size={14} />}
+            />
+            <MetricCard
+              label="Token budget"
+              value={
+                mapState.stats.tokensCap > 0
+                  ? `${Math.round((mapState.stats.tokensUsed / mapState.stats.tokensCap) * 100)}%`
+                  : "Active"
+              }
+              detail={
+                mapState.stats.tokensCap > 0
+                  ? `${mapState.stats.tokensUsed.toLocaleString("en-US")} / ${mapState.stats.tokensCap.toLocaleString("en-US")}`
+                  : "Active budget"
+              }
+              icon={<IconZap size={14} />}
+            />
+          </div>
+
+          {/* Phase Jump Rail */}
+          <nav
+            aria-label="Jump to phase"
+            className="mt-6 flex gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <IconAlertTriangle size={16} className="mt-0.5 shrink-0 text-fail" />
-            <p className="text-sm leading-relaxed text-ink-2">
-              <span className="font-semibold text-ink">Checkout error:</span>{" "}
-              {CHECKOUT_ERRORS[checkout] ?? "Checkout could not start. Nothing was charged."}
-            </p>
-          </div>
-        ) : null}
-
-        {/* Metrics Strip */}
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <MetricCard
-            label="Phase tracks"
-            value={`${mapState.stats.unlockedPhases} / ${mapState.stats.totalPhases}`}
-            detail={`${mapState.stats.unlockedPhases} tracks unlocked`}
-            icon={<IconCpu size={16} />}
-          />
-          <MetricCard
-            label="Live units"
-            value={`${mapState.stats.passedUnits} / ${mapState.stats.authoredUnits}`}
-            detail={
-              mapState.stats.passedUnits > 0
-                ? `${mapState.stats.passedUnits} verified passing`
-                : "Unit 3.2.1 live"
-            }
-            icon={<IconFileText size={16} />}
-          />
-          <MetricCard
-            label="Gates cleared"
-            value={`${mapState.stats.clearedGates} / ${mapState.stats.totalGates}`}
-            detail={
-              mapState.stats.clearedGates === 0
-                ? "Phase 5 & Capstone gates"
-                : `${mapState.stats.clearedGates} gate cleared`
-            }
-            icon={<IconUnlock size={16} />}
-          />
-          <MetricCard
-            label="Rebates earned"
-            value={formatPrice(mapState.stats.earnedRebatesCents, "usd")}
-            detail={
-              mapState.stats.earnedRebatesCents > 0
-                ? "Credited on gate passage"
-                : "15% per verified gate"
-            }
-            icon={<IconAward size={16} />}
-          />
-          <MetricCard
-            label="Token budget"
-            value={
-              mapState.stats.tokensCap > 0
-                ? `${Math.round((mapState.stats.tokensUsed / mapState.stats.tokensCap) * 100)}%`
-                : "Active"
-            }
-            detail={
-              mapState.stats.tokensCap > 0
-                ? `${mapState.stats.tokensUsed.toLocaleString("en-US")} / ${mapState.stats.tokensCap.toLocaleString("en-US")} tokens`
-                : "Provisioned on enrollment"
-            }
-            icon={<IconZap size={16} />}
-          />
+            {mapState.phases.map((p) => {
+              const isCleared = p.gateCleared !== null;
+              const isLocked = !p.isTrackUnlocked;
+              return (
+                <a
+                  key={p.phase.id}
+                  href={`#${p.phase.id}`}
+                  className={`shrink-0 rounded border px-2.5 py-0.5 font-mono text-xs transition-colors ${
+                    isCleared
+                      ? "border-pass/40 bg-pass-soft text-pass"
+                      : isLocked
+                        ? "border-line bg-inset text-ink-4 hover:border-line-strong hover:text-ink-2"
+                        : "border-line-strong bg-raised text-ink-2 hover:border-accent hover:text-accent"
+                  }`}
+                >
+                  P{p.phase.phase}
+                </a>
+              );
+            })}
+            <a
+              href="#capstone-bar"
+              className="shrink-0 rounded border border-amber/40 bg-amber-soft px-2.5 py-0.5 font-mono text-xs text-amber transition-colors hover:bg-amber/20"
+            >
+              SECTION 14 SPEC
+            </a>
+          </nav>
         </div>
-
-        {/* Phase Jump Rail */}
-        <nav
-          aria-label="Jump to phase"
-          className="mt-6 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {mapState.phases.map((p) => {
-            const isCleared = p.gateCleared !== null;
-            const isLocked = !p.isTrackUnlocked;
-            return (
-              <a
-                key={p.phase.id}
-                href={`#${p.phase.id}`}
-                className={`shrink-0 rounded-full border px-3 py-1 font-mono text-xs transition-colors ${
-                  isCleared
-                    ? "border-pass/40 bg-pass-soft text-pass"
-                    : isLocked
-                      ? "border-line bg-inset text-ink-3 hover:border-line-strong hover:text-ink-2"
-                      : "border-line-strong bg-raised text-ink-2 hover:border-accent/50 hover:text-accent"
-                }`}
-              >
-                P{p.phase.phase}
-              </a>
-            );
-          })}
-          <a
-            href="#capstone-bar"
-            className="shrink-0 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
-          >
-            Graduation Bar
-          </a>
-        </nav>
       </header>
 
+      <div className="shell max-w-6xl py-10 space-y-10">
       {/* Meridian Pipeline Architecture Overview */}
-      <section className="mt-10">
-        <div className="panel p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+      <section>
+        <div className="rounded-lg border border-line bg-raised p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
             <div>
-              <h2 className="text-base font-semibold text-ink">
-                Meridian Mutual Claims Triage Architecture
+              <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+                MERIDIAN CLAIMS TRIAGE ARCHITECTURE PIPELINE
               </h2>
-              <p className="text-[13px] text-ink-3">
+              <p className="text-xs text-ink-3">
                 How all thirteen phases connect into one production-grade automated pipeline.
               </p>
             </div>
-            <span className="chip-accent">Single Anchor Client</span>
+            <span className="rounded border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent font-semibold">
+              ANCHOR CORPUS: MERIDIAN MUTUAL
+            </span>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 font-mono">
             <PipelineTrack
               title="1. Intake & Foundation"
-              phases="Phases 0 to 1"
+              phases="PHASES 00 TO 01"
               role="Docker runtime, pytest harnesses, async HTTP intake endpoint."
               status="unlocked"
             />
             <PipelineTrack
               title="2. Extraction & Grounding"
-              phases="Phases 2 to 4"
+              phases="PHASES 02 TO 04"
               role="Model physics, strict Pydantic extraction (Unit 3.2.1), and RAG policy search."
               status="active"
             />
             <PipelineTrack
               title="3. Multi-Tool Agents"
-              phases="Phases 5 to 6"
+              phases="PHASES 05 TO 06"
               role="ReAct triage routing agent, stop conditions, and LoRA domain adaptation."
               status={mapState.stats.clearedGates > 0 ? "unlocked" : "gated"}
               gateBadge="15% Rebate Gate"
             />
             <PipelineTrack
               title="4. Eval, Ops & Capstone"
-              phases="Phases 7 to 12"
+              phases="PHASES 07 TO 12"
               role="Calibrated judge CI, dynamic cost router, audit spine, and production deployment."
               status={mapState.stats.clearedGates > 0 ? "unlocked" : "locked"}
               gateBadge="15% Rebate Gate"
@@ -277,7 +282,7 @@ export default async function MapPage({ searchParams }: Props) {
       </section>
 
       {/* Main Map: 13 Phases */}
-      <main className="mt-10 space-y-12">
+      <main className="space-y-8">
         {mapState.phases.map((phase) => (
           <PhaseSection
             key={phase.phase.id}
@@ -288,62 +293,62 @@ export default async function MapPage({ searchParams }: Props) {
       </main>
 
       {/* Section 14 Graduation Bar */}
-      <section id="capstone-bar" className="mt-16 rounded-xl border border-line bg-raised/40 p-8">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
-            <IconAward size={20} />
+      <section id="capstone-bar" className="rounded-lg border border-line bg-raised p-6 space-y-6">
+        <div className="flex items-center gap-3 border-b border-line pb-4">
+          <span className="grid size-9 place-items-center rounded border border-amber/40 bg-amber-soft text-amber">
+            <IconAward size={18} />
           </span>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink">
-              The Section 14 Graduation Standard
+            <h2 className="font-mono text-sm font-semibold text-ink uppercase tracking-wider">
+              SECTION 14 GRADUATION SPECIFICATION
             </h2>
-            <p className="text-sm text-ink-3">
+            <p className="text-xs text-ink-3">
               Delivery-Ready credential verified by five automated and simulation checks.
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <GradCheck
-            num="1"
+            num="01"
             title="Golden set accuracy"
             description="Verified precision and recall on held-out adversarial claim test cases."
           />
           <GradCheck
-            num="2"
+            num="02"
             title="Defend-your-work"
             description="Short unscripted questions generated directly from your submitted code."
           />
           <GradCheck
-            num="3"
+            num="03"
             title="CTO persona defense"
             description="Simulated technical evaluation requiring telemetry, cost caps, and audit logs."
           />
           <GradCheck
-            num="4"
+            num="04"
             title="CFO persona defense"
             description="Simulated business owner defense on unit economics and scope exclusions."
           />
           <GradCheck
-            num="5"
+            num="05"
             title="Real-world outreach"
             description="One verified outreach email sent to a real business with a priced SOW."
           />
-          <div className="flex flex-col justify-between rounded-xl border border-accent/25 bg-accent-soft p-5">
-            <p className="text-xs font-semibold tracking-wider text-accent uppercase">
-              The Verified Credential
+          <div className="flex flex-col justify-between rounded border border-accent/30 bg-accent-soft p-4 space-y-2">
+            <span className="font-mono text-[10px] font-semibold tracking-wider text-accent uppercase">
+              IMMUTABLE CREDENTIAL LEDGER
+            </span>
+            <p className="text-[11px] leading-relaxed text-ink-2">
+              Clearing all five checks binds your public cryptographic profile with permanent git commit hashes and judge verdicts.
             </p>
-            <p className="mt-2 text-xs leading-relaxed text-ink-2">
-              Clearing all five checks updates your public profile with immutable references to your
-              git commits and judge verdicts.
-            </p>
-            <Link href="/submit" className="link-arrow mt-3 text-xs">
-              Review submission contract
+            <Link href="/submit" className="link-arrow text-xs inline-flex pt-1">
+              <span>Review submission protocol</span>
               <IconArrowRight size={11} />
             </Link>
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }
@@ -360,13 +365,13 @@ function MetricCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="panel p-4">
-      <div className="flex items-center justify-between text-ink-3">
-        <span className="font-mono text-[11px] uppercase tracking-wider">{label}</span>
+    <div className="rounded border border-line bg-raised p-3.5 space-y-1">
+      <div className="flex items-center justify-between text-ink-4">
+        <span className="font-mono text-[9px] uppercase tracking-wider">{label}</span>
         <span className="text-accent">{icon}</span>
       </div>
-      <p className="mt-1 font-mono text-xl font-semibold text-ink">{value}</p>
-      <p className="mt-0.5 truncate text-[11px] text-ink-3">{detail}</p>
+      <p className="font-mono text-lg font-semibold text-ink tabular-nums">{value}</p>
+      <p className="truncate font-mono text-[10px] text-ink-3">{detail}</p>
     </div>
   );
 }
@@ -386,7 +391,7 @@ function PipelineTrack({
 }) {
   return (
     <div
-      className={`rounded-xl border p-4 transition-colors ${
+      className={`rounded border p-3.5 transition-colors space-y-1.5 ${
         status === "active"
           ? "border-accent/50 bg-accent-soft/30"
           : status === "unlocked"
@@ -394,12 +399,12 @@ function PipelineTrack({
             : "border-line bg-inset opacity-80"
       }`}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1">
         <span className="font-mono text-xs font-semibold text-ink">{title}</span>
-        {gateBadge ? <span className="chip-accent text-[10px]">{gateBadge}</span> : null}
+        {gateBadge ? <span className="rounded border border-amber/40 bg-amber-soft px-1.5 py-0.2 font-mono text-[9px] text-amber">{gateBadge}</span> : null}
       </div>
-      <p className="mt-1 font-mono text-[11px] text-accent">{phases}</p>
-      <p className="mt-2 text-xs leading-relaxed text-ink-2">{role}</p>
+      <p className="font-mono text-[10px] text-accent font-semibold">{phases}</p>
+      <p className="text-[11px] leading-relaxed text-ink-3 font-sans">{role}</p>
     </div>
   );
 }
@@ -416,55 +421,57 @@ function PhaseSection({
 
   return (
     <section id={p.id} className="scroll-mt-20">
-      <div className="panel overflow-hidden">
+      <div className="rounded-lg border border-line bg-raised overflow-hidden">
         {/* Phase Header */}
-        <div className="border-b border-line bg-inset p-6">
+        <div className="border-b border-line bg-inset p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="grid size-7 place-items-center rounded-lg border border-line-strong bg-raised font-mono text-xs font-semibold text-accent">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="grid size-6 place-items-center rounded border border-line-strong bg-raised font-mono text-xs font-semibold text-accent">
                   P{p.phase}
                 </span>
-                <h2 className="text-xl font-semibold tracking-tight text-ink">{p.title}</h2>
-                <span className="font-mono text-xs text-ink-3">~{p.est_hours} hours</span>
-                {p.badge ? <span className="chip-accent">{p.badge}</span> : null}
+                <h2 className="text-base font-semibold tracking-tight text-ink">{p.title}</h2>
+                <span className="font-mono text-xs text-ink-3">~{p.est_hours} HOURS</span>
+                {p.badge ? <span className="rounded border border-accent/30 bg-accent-soft px-1.5 py-0.2 font-mono text-[10px] text-accent font-semibold">{p.badge}</span> : null}
               </div>
-              <p className="mt-2 text-sm text-ink-2">
-                <span className="font-medium text-ink">Meridian component:</span> {p.meridian_role}
+              <p className="text-xs text-ink-2">
+                <span className="font-mono text-ink-4 uppercase">Role:</span> {p.meridian_role}
               </p>
             </div>
 
             <div>
               {phase.gateCleared ? (
-                <span className="chip-pass">
-                  <IconCheck size={12} className="mr-1 inline" />
-                  Gate cleared
+                <span className="rounded border border-pass/30 bg-pass-soft px-2 py-0.5 font-mono text-[10px] text-pass font-semibold inline-flex items-center gap-1">
+                  <IconCheck size={11} />
+                  GATE CLEARED
                 </span>
               ) : isLocked ? (
-                <span className="chip">
-                  <IconLock size={11} className="mr-1 inline align-[-1px]" />
-                  Track locked
+                <span className="rounded border border-line bg-inset px-2 py-0.5 font-mono text-[10px] text-ink-4 font-semibold inline-flex items-center gap-1">
+                  <IconLock size={10} />
+                  TRACK LOCKED
                 </span>
               ) : (
-                <span className="chip-accent">Track available</span>
+                <span className="rounded border border-accent/30 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent font-semibold">
+                  TRACK ACTIVE
+                </span>
               )}
             </div>
           </div>
 
-          <div className="mt-4 grid gap-4 text-xs text-ink-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-3 text-xs text-ink-3 md:grid-cols-2">
             <div>
-              <span className="font-mono uppercase tracking-wider text-ink-3">Why it exists:</span>
-              <p className="mt-1 leading-relaxed text-ink-2">{p.why}</p>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-ink-4">Why it exists:</span>
+              <p className="mt-0.5 leading-relaxed text-ink-2 text-[11px]">{p.why}</p>
             </div>
             <div>
-              <span className="font-mono uppercase tracking-wider text-ink-3">Concrete outcome:</span>
-              <p className="mt-1 leading-relaxed text-ink-2">{p.outcome}</p>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-ink-4">Concrete outcome:</span>
+              <p className="mt-0.5 leading-relaxed text-ink-2 text-[11px]">{p.outcome}</p>
             </div>
           </div>
 
           {phase.lockReason ? (
-            <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-line bg-raised px-4 py-3 text-xs text-ink-3">
-              <IconLock size={14} className="mt-0.5 shrink-0 text-ink-3" />
+            <div className="mt-3 flex items-start gap-2 rounded border border-line bg-raised px-3 py-2 text-[11px] text-ink-3 font-mono">
+              <IconLock size={12} className="mt-0.5 shrink-0 text-ink-4" />
               <p>{phase.lockReason}</p>
             </div>
           ) : null}
@@ -472,44 +479,38 @@ function PhaseSection({
 
         {/* Phase Gate Callout (if gate sits in this phase) */}
         {phase.gateRule ? (
-          <div className="border-b border-line bg-raised/70 px-6 py-4">
+          <div className="border-b border-line bg-raised-2/40 px-5 py-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <span
-                  className={`grid size-9 place-items-center rounded-lg border ${
+                  className={`grid size-7 place-items-center rounded border ${
                     phase.gateCleared
                       ? "border-pass/40 bg-pass-soft text-pass"
                       : "border-line bg-inset text-accent"
                   }`}
                 >
-                  {phase.gateCleared ? <IconCheck size={18} /> : <IconLock size={16} />}
+                  {phase.gateCleared ? <IconCheck size={14} /> : <IconLock size={13} />}
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-ink">{phase.gateRule.title}</h3>
+                    <h3 className="font-mono text-xs font-semibold text-ink">{phase.gateRule.title}</h3>
                     {phase.gateRule.rebate ? (
-                      <span className="chip-accent text-[10px]">15% Completion Rebate</span>
+                      <span className="rounded border border-amber/40 bg-amber-soft px-1.5 py-0.2 font-mono text-[9px] text-amber font-semibold">15% REBATE</span>
                     ) : null}
                   </div>
-                  <p className="text-xs text-ink-3">
+                  <p className="text-[11px] text-ink-3">
                     {phase.gateCleared
-                      ? `Cleared on ${formatUtc(phase.gateCleared.passed_at)}. ${
-                          phase.gateRule.unlocks.length > 0
-                            ? `Units ${phase.gateRule.unlocks.join(", ")} are now unlocked.`
-                            : "Final technical milestone completed."
-                        }`
-                      : `${phase.gateRule.summary} ${
-                          phase.gateRule.unlocks.length > 0
-                            ? `Clearing it unlocks units ${phase.gateRule.unlocks.join(", ")}.`
-                            : "This is the final capstone gate."
-                        }`}
+                      ? `Cleared on ${formatUtc(phase.gateCleared.passed_at)}.`
+                      : phase.gateRule.summary}
                   </p>
                 </div>
               </div>
 
               <div>
-                <span className={phase.gateCleared ? "chip-pass" : "chip"}>
-                  {phase.gateCleared ? "cleared" : "locked"}
+                <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase font-semibold ${
+                  phase.gateCleared ? "border border-pass/30 bg-pass-soft text-pass" : "border border-line bg-inset text-ink-4"
+                }`}>
+                  {phase.gateCleared ? "CLEARED" : "LOCKED"}
                 </span>
               </div>
             </div>
@@ -517,7 +518,7 @@ function PhaseSection({
         ) : null}
 
         {/* Module Cards Grid */}
-        <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3">
           {phase.modules.map((card) => (
             <ModuleCard
               key={card.module.id}
@@ -545,42 +546,42 @@ function ModuleCard({
 
   return (
     <div
-      className={`flex flex-col justify-between rounded-xl border p-5 transition-colors ${
+      className={`flex flex-col justify-between rounded border p-4 transition-colors space-y-3 ${
         card.status === "passed"
-          ? "border-pass/40 bg-pass-soft/20 hover:border-pass/60"
+          ? "border-pass/40 bg-pass-soft/20"
           : card.status === "failed"
-            ? "border-fail/40 bg-fail-soft/20 hover:border-fail/60"
+            ? "border-fail/40 bg-fail-soft/20"
             : card.status === "grading" || card.status === "queued"
               ? "border-accent/40 bg-accent-soft/20"
               : isEnrolled
                 ? "border-line-strong bg-raised hover:border-accent/40"
                 : isAuthored
                   ? "border-line bg-raised hover:border-line-strong"
-                  : "border-line/60 bg-inset/60"
+                  : "border-line/60 bg-inset/40"
       }`}
     >
-      <div>
+      <div className="space-y-1.5">
         {/* Top row: id and status chip */}
         <div className="flex items-center justify-between gap-2">
           <span className="font-mono text-xs font-semibold text-accent">
-            Unit {m.id}
+            UNIT {m.id}
           </span>
           <StatusChip status={card.status} />
         </div>
 
         {/* Title */}
-        <h4 className="mt-2.5 text-[15px] font-semibold tracking-tight text-ink">
+        <h4 className="text-xs font-semibold tracking-tight text-ink">
           {m.title}
         </h4>
 
         {/* Description */}
-        <p className="mt-1.5 text-xs leading-relaxed text-ink-2">
+        <p className="text-[11px] leading-relaxed text-ink-3">
           {m.description}
         </p>
 
         {/* Lock or unauthored note */}
         {card.lockReason && !isAuthored ? (
-          <p className="mt-2.5 text-[11px] leading-relaxed text-ink-3">
+          <p className="text-[10px] leading-relaxed text-ink-4 font-mono">
             <IconLock size={10} className="mr-1 inline align-[-1px]" />
             {card.lockReason}
           </p>
@@ -588,16 +589,16 @@ function ModuleCard({
 
         {/* Submission verdict snippet */}
         {sub ? (
-          <div className="mt-3 rounded-lg border border-line bg-inset p-2.5 font-mono text-[11px]">
+          <div className="rounded border border-line bg-inset p-2 font-mono text-[10px] space-y-1">
             <div className="flex items-center justify-between text-ink-3">
               <Link href={`/submissions/${sub.id}`} className="text-accent hover:underline">
-                Submission #{sub.id}
+                SHA #{sub.id}
               </Link>
               <span className={sub.overall === "pass" ? "text-pass font-semibold" : sub.overall === "fail" ? "text-fail font-semibold" : "text-accent"}>
-                {sub.overall ?? sub.status}
+                {sub.overall?.toUpperCase() ?? sub.status.toUpperCase()}
               </span>
             </div>
-            <p className="mt-1 text-[10px] text-ink-3 truncate">
+            <p className="text-[9px] text-ink-4 truncate">
               {formatUtc(sub.created_at)}
             </p>
           </div>
@@ -605,37 +606,33 @@ function ModuleCard({
       </div>
 
       {/* Card action footer */}
-      <div className="mt-5 border-t border-line/60 pt-3">
+      <div className="pt-2 border-t border-line/60">
         {isAuthored ? (
           isEnrolled ? (
-            <div className="flex items-center justify-between gap-2">
-              <Link
-                href={`/units/${m.id}`}
-                className="btn-primary w-full py-2 text-xs text-center"
-              >
-                Open workbench
-                <IconArrowRight size={12} />
-              </Link>
-            </div>
+            <Link
+              href={`/units/${m.id}`}
+              className="btn-primary w-full py-1.5 text-xs text-center justify-center font-mono"
+            >
+              <span>OPEN BENCH</span>
+              <IconArrowRight size={11} />
+            </Link>
           ) : (
-            <div className="flex items-center justify-between gap-2">
-              <form action={startCheckoutAction} className="w-full">
-                <input type="hidden" name="unit_id" value={m.id} />
-                <button
-                  type="submit"
-                  className="btn-ghost w-full py-2 text-xs text-center"
-                >
-                  {price?.state === "ok"
-                    ? `Enroll (${formatPrice(price.data.amount_cents, price.data.currency)})`
-                    : `Enroll unit ${m.id}`}
-                </button>
-              </form>
-            </div>
+            <form action={startCheckoutAction} className="w-full">
+              <input type="hidden" name="unit_id" value={m.id} />
+              <button
+                type="submit"
+                className="btn-ghost w-full py-1.5 text-xs text-center justify-center font-mono"
+              >
+                {price?.state === "ok"
+                  ? `ENROLL (${formatPrice(price.data.amount_cents, price.data.currency)})`
+                  : `ENROLL UNIT ${m.id}`}
+              </button>
+            </form>
           )
         ) : (
-          <div className="flex items-center justify-between text-[11px] text-ink-3">
-            <span>Curriculum spec complete</span>
-            <span className="font-mono text-[10px]">Content arriving</span>
+          <div className="flex items-center justify-between font-mono text-[10px] text-ink-4">
+            <span>SPEC FINAL</span>
+            <span>PLANNED</span>
           </div>
         )}
       </div>
@@ -646,36 +643,36 @@ function ModuleCard({
 function StatusChip({ status }: { status: string }) {
   switch (status) {
     case "passed":
-      return <span className="chip-pass">pass</span>;
+      return <span className="rounded border border-pass/30 bg-pass-soft px-1.5 py-0.2 font-mono text-[9px] text-pass font-semibold">PASS</span>;
     case "failed":
-      return <span className="chip-fail">retry needed</span>;
+      return <span className="rounded border border-fail/30 bg-fail-soft px-1.5 py-0.2 font-mono text-[9px] text-fail font-semibold">RETRY</span>;
     case "grading":
-      return <span className="chip-accent">grading...</span>;
+      return <span className="rounded border border-accent/30 bg-accent-soft px-1.5 py-0.2 font-mono text-[9px] text-accent font-semibold">GRADING</span>;
     case "queued":
-      return <span className="chip-warn">queued</span>;
+      return <span className="rounded border border-warn/30 bg-warn-soft px-1.5 py-0.2 font-mono text-[9px] text-warn font-semibold">QUEUED</span>;
     case "enrolled":
-      return <span className="chip-pass">enrolled</span>;
+      return <span className="rounded border border-pass/30 bg-pass-soft px-1.5 py-0.2 font-mono text-[9px] text-pass font-semibold">ENROLLED</span>;
     case "available":
-      return <span className="chip">open</span>;
+      return <span className="rounded border border-line bg-inset px-1.5 py-0.2 font-mono text-[9px] text-ink-3">OPEN</span>;
     case "locked":
       return (
-        <span className="chip">
-          <IconLock size={10} className="mr-1 inline align-[-1px]" />
-          locked
+        <span className="rounded border border-line bg-inset px-1.5 py-0.2 font-mono text-[9px] text-ink-4 inline-flex items-center gap-1">
+          <IconLock size={9} />
+          LOCKED
         </span>
       );
     case "not_authored_unlocked":
-      return <span className="chip-accent">unlocked</span>;
+      return <span className="rounded border border-accent/30 bg-accent-soft px-1.5 py-0.2 font-mono text-[9px] text-accent">UNLOCKED</span>;
     case "not_authored_locked":
       return (
-        <span className="chip">
-          <IconLock size={10} className="mr-1 inline align-[-1px]" />
-          locked
+        <span className="rounded border border-line bg-inset px-1.5 py-0.2 font-mono text-[9px] text-ink-4 inline-flex items-center gap-1">
+          <IconLock size={9} />
+          LOCKED
         </span>
       );
     case "not_authored":
     default:
-      return <span className="chip">planned</span>;
+      return <span className="rounded border border-line bg-inset px-1.5 py-0.2 font-mono text-[9px] text-ink-4">PLANNED</span>;
   }
 }
 
@@ -689,14 +686,14 @@ function GradCheck({
   description: string;
 }) {
   return (
-    <div className="rounded-xl border border-line bg-raised p-5">
+    <div className="rounded border border-line bg-raised p-4 space-y-1">
       <div className="flex items-center gap-2">
-        <span className="grid size-6 place-items-center rounded bg-inset font-mono text-xs font-semibold text-accent">
+        <span className="grid size-5 place-items-center rounded bg-inset font-mono text-[10px] font-semibold text-accent">
           {num}
         </span>
-        <h3 className="text-sm font-semibold text-ink">{title}</h3>
+        <h3 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">{title}</h3>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-ink-2">{description}</p>
+      <p className="text-xs leading-relaxed text-ink-3">{description}</p>
     </div>
   );
 }

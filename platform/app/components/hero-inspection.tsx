@@ -98,19 +98,19 @@ function highlightLine(line: string): ReactNode {
 
 const COMPARISON = [
   {
-    label: "On hostile input",
-    a: "Silently wrong or an unhandled JSON error.",
-    b: "Logged error with the record ID and the exact validation failure.",
+    label: "On messy / hostile input",
+    a: "Fails silently, drops data, or crashes with an unhandled JSON error.",
+    b: "Logs every failure with the record ID and exact error, with zero dropped claims.",
   },
   {
-    label: "Auditable evidence",
-    a: "None. Hope and vibes.",
-    b: "Quoted log lines and a schema validation trace attached to the verdict.",
+    label: "Feedback & proof",
+    a: "None. You hope the prompt keeps working when real users show up.",
+    b: "Line-by-line grading with exact quoted evidence from your code.",
   },
   {
-    label: "What you learned",
-    a: "How to copy a brittle demo.",
-    b: "How to engineer deterministic systems on non-deterministic models.",
+    label: "What you walk away with",
+    a: "A fragile demo you can't confidently explain in an interview.",
+    b: "Production code you understand and can defend in front of a client.",
   },
 ];
 
@@ -133,31 +133,36 @@ export function HeroInspection() {
     timer.current = setTimeout(() => {
       setIsRunning(false);
       setShowResult(true);
-    }, 650);
+    }, 550);
   };
 
   const code = a ? CODE_A : CODE_B;
 
   return (
-    <div className="panel overflow-hidden bg-raised">
-      {/* Terminal chrome */}
-      <div className="flex items-center justify-between gap-4 border-b border-line bg-inset px-5 py-3">
+    <div className="rounded-lg border border-line bg-raised shadow-xl">
+      {/* Flight control header bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <span className="flex gap-1.5" aria-hidden>
-            <span className="size-2.5 rounded-full bg-fail/60" />
-            <span className="size-2.5 rounded-full bg-warn/60" />
-            <span className="size-2.5 rounded-full bg-pass/60" />
+          <span className="flex gap-1" aria-hidden>
+            <span className="size-2 rounded-full bg-line-strong" />
+            <span className="size-2 rounded-full bg-line-strong" />
+            <span className="size-2 rounded-full bg-line-strong" />
           </span>
-          <span className="hidden font-mono text-xs text-ink-3 sm:inline">
-            keel-runner / sandbox / unit-3.2.1
+          <span className="font-mono text-xs font-medium text-ink-2">
+            UNIT 3.2.1 / EXTRACTION_BENCH.PY
           </span>
         </div>
-        <span className="font-mono text-[11px] text-ink-3">PYTHON 3.12</span>
+        <div className="flex items-center gap-2 font-mono text-[11px]">
+          <span className="text-ink-4">ENVIRONMENT:</span>
+          <span className="rounded border border-line bg-raised px-1.5 py-0.5 text-accent">
+            CONTAINER_PY312_SANDBOX
+          </span>
+        </div>
       </div>
 
-      {/* Approach tabs */}
+      {/* Mode selection strip */}
       <div
-        className="flex flex-wrap gap-2 border-b border-line px-5 py-3.5"
+        className="grid grid-cols-2 border-b border-line bg-raised-2/50"
         role="tablist"
         aria-label="Extraction approach"
       >
@@ -166,44 +171,38 @@ export function HeroInspection() {
           role="tab"
           aria-selected={a}
           onClick={() => setTab("a")}
-          className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-[13px] font-medium transition-colors ${
+          className={`flex items-center justify-center gap-2 border-b-2 py-3 text-xs font-mono tracking-tight transition-colors ${
             a
-              ? "border-fail/40 bg-fail/10 text-fail"
-              : "border-line text-ink-3 hover:border-line-strong hover:text-ink-2"
+              ? "border-fail bg-fail-soft/50 text-fail font-semibold"
+              : "border-transparent text-ink-3 hover:text-ink-2"
           }`}
         >
-          <IconXCircle size={15} />
-          The tutorial way
+          <IconXCircle size={14} />
+          <span>APPROACH A: NAIVE STRING PROMPTING</span>
         </button>
         <button
           type="button"
           role="tab"
           aria-selected={!a}
           onClick={() => setTab("b")}
-          className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-[13px] font-medium transition-colors ${
+          className={`flex items-center justify-center gap-2 border-b-2 py-3 text-xs font-mono tracking-tight transition-colors ${
             !a
-              ? "border-pass/40 bg-pass/10 text-pass"
-              : "border-line text-ink-3 hover:border-line-strong hover:text-ink-2"
+              ? "border-pass bg-pass-soft/50 text-pass font-semibold"
+              : "border-transparent text-ink-3 hover:text-ink-2"
           }`}
         >
-          <IconCheckCircle size={15} />
-          The engineered way
+          <IconCheckCircle size={14} />
+          <span>APPROACH B: PYDANTIC SCHEMA ENGINE</span>
         </button>
       </div>
 
-      {/* Code */}
-      <div className="border-b border-line">
-        <div className="flex items-center justify-between px-5 pt-3.5">
-          <span className="inline-flex items-center gap-2 font-mono text-xs text-ink-3">
-            <IconCode size={14} />
-            {a ? "naive_extractor.py" : "extract_claims.py"}
-          </span>
-        </div>
-        <pre className="code-block rounded-none border-0 px-5 py-4">
+      {/* Code viewer */}
+      <div className="border-b border-line bg-inset">
+        <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed text-ink-2">
           <code>
             {code.split("\n").map((line, i) => (
-              <span key={i} className="grid grid-cols-[3ch_1fr] gap-4">
-                <span className="text-right text-ink-3/50 select-none">{i + 1}</span>
+              <span key={i} className="grid grid-cols-[3.5ch_1fr] gap-4">
+                <span className="text-right font-mono text-ink-4 select-none">{i + 1}</span>
                 <span>{highlightLine(line) || " "}</span>
               </span>
             ))}
@@ -211,70 +210,72 @@ export function HeroInspection() {
         </pre>
       </div>
 
-      {/* Action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+      {/* Execution telemetry bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-raised px-4 py-3">
         <button
           type="button"
           onClick={handleRun}
           disabled={isRunning}
-          className="btn-ghost px-3.5 py-2 text-[13px]"
+          className={a ? "btn-ghost text-xs" : "btn-primary text-xs"}
         >
-          <IconPlay size={13} />
-          {isRunning ? "Executing in sandbox..." : "Run against 20 messy claim notes"}
+          <IconPlay size={12} />
+          <span>{isRunning ? "Running Sandbox Pipeline..." : "Execute 20-Claim Adversarial Harness"}</span>
         </button>
-        <span className="font-mono text-[11px] text-ink-3">
-          {a
-            ? "8 checks / expected failure on adversarial notes"
-            : "8 checks / schema enforcement / full trace"}
-        </span>
+        <div className="flex items-center gap-4 font-mono text-[11px] text-ink-3">
+          <span>CORPUS: 20 RECORDS</span>
+          <span className="h-3 w-px bg-line" />
+          <span>TIMEOUT: 1200ms</span>
+        </div>
       </div>
 
-      {/* Result strip */}
+      {/* Diagnostic verification report */}
       {showResult && (
         <div
-          className={`flex items-start gap-4 border-t px-5 py-5 ${
-            a ? "border-fail/30 bg-fail/5" : "border-pass/30 bg-pass/5"
+          className={`flex items-start gap-4 border-b px-5 py-4 ${
+            a ? "border-fail/30 bg-fail-soft" : "border-pass/30 bg-pass-soft"
           }`}
         >
           {a ? (
-            <IconAlertTriangle size={22} className="mt-0.5 shrink-0 text-fail" />
+            <IconAlertTriangle size={18} className="mt-0.5 shrink-0 text-fail" />
           ) : (
-            <IconShieldCheck size={22} className="mt-0.5 shrink-0 text-pass" />
+            <IconShieldCheck size={18} className="mt-0.5 shrink-0 text-pass" />
           )}
-          <div>
-            <p className={`font-mono text-sm font-medium ${a ? "text-fail" : "text-pass"}`}>
+          <div className="space-y-1">
+            <p className={`font-mono text-xs font-semibold ${a ? "text-fail" : "text-pass"}`}>
               {a
-                ? "17 of 20 parsed / silent failures detected"
-                : "20 of 20 accounted for / 100% schema validated"}
+                ? "FAIL: 3 UNHANDLED EXCEPTIONS / SILENT DATA LOSS DETECTED"
+                : "PASS: 20/20 VALIDATED / STRUCTURED LOGS RECORDED / 0 DROPPED"}
             </p>
-            <p className="mt-1.5 max-w-[72ch] text-sm leading-relaxed text-ink-2">
+            <p className="text-xs leading-relaxed text-ink-2">
               {a
-                ? "Three responses came back with markdown fences, unstructured prose, and an apology. Nothing was logged. The system dropped customer records silently."
-                : "All 20 outputs validated strictly against ClaimExtraction. The two edge-case failures are logged with exact record IDs and validation errors, which satisfies rubric criterion 1."}
+                ? "The LLM responded with polite apologies and markdown fences on 3 hostile notes. json.loads crashed; records dropped without retry logs."
+                : "All 20 claim payloads validated strictly against ClaimExtraction. Adversarial schemas were intercepted and logged with explicit error codes."}
             </p>
           </div>
         </div>
       )}
 
-      {/* Comparison */}
-      <dl className="divide-y divide-line border-t border-line">
-        {COMPARISON.map((row) => (
-          <div
-            key={row.label}
-            className="grid gap-1 px-5 py-4 sm:grid-cols-[180px_1fr_1fr] sm:gap-4"
-          >
-            <dt className="font-mono text-[11px] tracking-[0.08em] text-ink-3 uppercase">
-              {row.label}
-            </dt>
-            <dd className={`text-[13px] leading-relaxed ${a ? "text-fail/90" : "text-ink-3"}`}>
-              {a ? row.a : row.b}
-            </dd>
-            <dd className={`text-[13px] leading-relaxed ${a ? "text-ink-3" : "text-pass/90"}`}>
-              {a ? row.b : row.a}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {/* Structured comparison table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-line bg-inset font-mono text-[10px] text-ink-4 uppercase">
+              <th className="py-2.5 px-4 font-medium">Evaluation Criterion</th>
+              <th className="py-2.5 px-4 font-medium text-fail/80">Naive Approach</th>
+              <th className="py-2.5 px-4 font-medium text-pass/80">Engineered Standard</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {COMPARISON.map((row) => (
+              <tr key={row.label} className="transition-colors hover:bg-raised-2/40">
+                <td className="py-2.5 px-4 font-mono font-medium text-ink-3">{row.label}</td>
+                <td className="py-2.5 px-4 text-ink-3">{row.a}</td>
+                <td className="py-2.5 px-4 text-ink font-medium">{row.b}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
