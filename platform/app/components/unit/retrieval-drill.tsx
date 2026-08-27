@@ -22,6 +22,7 @@ type RetrievalDrillProps = {
   unitId: string;
   seeds: string[];
   initialAttempts: RetrievalAttemptSummary[];
+  dueSeedIndices?: number[];
   isEnrolled: boolean;
   isSignedIn: boolean;
   serviceDown: boolean;
@@ -31,11 +32,14 @@ export function RetrievalDrill({
   unitId,
   seeds,
   initialAttempts,
+  dueSeedIndices = [],
   isEnrolled,
   isSignedIn,
   serviceDown,
 }: RetrievalDrillProps) {
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(() =>
+    dueSeedIndices.length > 0 ? Math.min(...dueSeedIndices) : 0,
+  );
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isPending, startTransition] = useTransition();
   const [latestResult, setLatestResult] = useState<RetrievalAttemptResult | null>(
@@ -45,6 +49,7 @@ export function RetrievalDrill({
     initialAttempts,
   );
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [dueSet, setDueSet] = useState<Set<number>>(() => new Set(dueSeedIndices));
 
   const currentSeed = seeds[currentIndex] ?? "";
   const currentAnswer = answers[currentIndex] ?? "";
@@ -84,6 +89,15 @@ export function RetrievalDrill({
       );
       if (res.state === "ok") {
         setLatestResult(res.data);
+        if (res.data.passed) {
+          // A passing attempt on a due seed is the re-check: clear it locally.
+          setDueSet((prev) => {
+            if (!prev.has(res.data.seed_index)) return prev;
+            const next = new Set(prev);
+            next.delete(res.data.seed_index);
+            return next;
+          });
+        }
         const newSummary: RetrievalAttemptSummary = {
           id: res.data.attempt_id,
           student_id: res.data.student_id,
@@ -163,12 +177,25 @@ export function RetrievalDrill({
               }`}
             >
               Question {idx + 1}
+              {dueSet.has(idx) ? (
+                <span className="rounded border border-warn/40 bg-warn-soft px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-warn">
+                  Re-check due
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
 
         {/* Prompt & Answer area */}
         <div className="p-6">
+          {dueSet.has(currentIndex) ? (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-warn/40 bg-warn-soft px-3 py-2">
+              <IconClock size={13} className="shrink-0 text-warn" />
+              <p className="font-mono text-[11px] uppercase tracking-wider text-warn">
+                Re-check due. A passing answer here clears it.
+              </p>
+            </div>
+          ) : null}
           <div className="rounded-lg border border-line bg-inset p-4">
             <span className="font-mono text-[11px] uppercase tracking-wider text-accent">
               Recall Prompt

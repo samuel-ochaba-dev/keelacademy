@@ -22,10 +22,16 @@ import {
   type PassedGate,
 } from "@/lib/gates";
 import {
+  fetchRecheckSchedule,
+  type PracticeResult,
+  type RecheckSchedule,
+} from "@/lib/practice";
+import {
   IconArrowRight,
   IconAward,
   IconZap,
   IconAlertTriangle,
+  IconClock,
   IconCpu,
   IconLock,
   IconUnlock,
@@ -116,10 +122,11 @@ export default async function MePage({ searchParams }: Props) {
 }
 
 async function EnrolledSections({ studentId }: { studentId: number }) {
-  const [profileResult, submissionsResult, gatesLookup] = await Promise.all([
+  const [profileResult, submissionsResult, gatesLookup, recheckResult] = await Promise.all([
     fetchProfile(studentId),
     fetchOwnSubmissions(studentId),
     fetchStudentGates(studentId),
+    fetchRecheckSchedule(studentId),
   ]);
   const gateRules = loadGateRules();
   const units = listUnits();
@@ -169,6 +176,9 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
           </p>
         </section>
       ) : null}
+
+      {/* Spaced re-checks (S3.3) */}
+      <RecheckSection result={recheckResult} />
 
       {/* Curriculum units */}
       <section className="rounded-lg border border-line bg-raised overflow-hidden">
@@ -431,6 +441,80 @@ function RebateSection({ rebates }: { rebates: Rebate[] }) {
             })}
           </tbody>
         </table>
+      </div>
+    </section>
+  );
+}
+
+function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> }) {
+  const schedule = result.state === "ok" ? result.data : null;
+  const dueSeeds = schedule ? schedule.seeds.filter((s) => s.status === "due") : [];
+  const upcomingSeeds = schedule ? schedule.seeds.filter((s) => s.status === "upcoming") : [];
+  const nextDueAt =
+    upcomingSeeds
+      .map((s) => s.due_at)
+      .filter((d): d is string => !!d)
+      .sort()[0] ?? null;
+
+  return (
+    <section
+      className="rounded-lg border border-line bg-raised overflow-hidden"
+      data-keel-section="spaced-rechecks"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-5 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-7 place-items-center rounded border border-line bg-raised text-accent">
+            <IconClock size={14} />
+          </span>
+          <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+            SPACED RE-CHECKS
+          </h2>
+        </div>
+        <span
+          className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase font-semibold ${
+            dueSeeds.length > 0
+              ? "border-warn/30 bg-warn-soft text-warn"
+              : "border-line bg-raised text-ink-3"
+          }`}
+        >
+          {`${dueSeeds.length} DUE`}
+        </span>
+      </div>
+
+      <div className="px-5 py-4">
+        {!schedule ? (
+          <p className="text-xs text-ink-3">
+            Re-check schedule is temporarily unavailable. Refresh in a moment.
+          </p>
+        ) : dueSeeds.length === 0 ? (
+          <p className="text-xs text-ink-3">
+            No re-checks due. Passed drills come back here after 3 days, then 7 days.
+            {nextDueAt ? ` Next scheduled: ${formatUtc(nextDueAt)}.` : ""}
+          </p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {dueSeeds.map((s) => (
+              <li
+                key={`${s.unit_id}-${s.seed_index}`}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink-4">
+                    UNIT {s.unit_id} · QUESTION {s.seed_index + 1}
+                  </span>
+                  <p className="mt-0.5 truncate text-xs text-ink-2">{s.seed_prompt}</p>
+                </div>
+                <Link
+                  href={`/units/${s.unit_id}#practice`}
+                  className="link-arrow shrink-0 text-xs"
+                >
+                  <span>Open drill</span>
+                  <IconArrowRight size={11} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

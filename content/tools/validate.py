@@ -47,7 +47,9 @@ FIXTURE_CASES = [
     ("variant.schema.json", "content/examples/variant.example.yaml", True),
     ("persona.schema.json", "content/examples/persona.example.yaml", True),
     ("map.schema.json", "content/examples/map.example.yaml", True),
+    ("routing.schema.json", "content/examples/routing.example.yaml", True),
     ("unit.schema.json", "content/examples/unit.invalid.yaml", False),
+    ("routing.schema.json", "content/examples/routing.invalid.yaml", False),
 ]
 
 # (schema, glob relative to content/, may_be_empty)

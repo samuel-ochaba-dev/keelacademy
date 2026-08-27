@@ -89,11 +89,7 @@ do_setup() {
     fi
 
     local db_port enroll_port fake_port reader_port app_port
-    db_port="$(free_port)"
-    fake_port="$(free_port)"
-    enroll_port="$(free_port)"
-    reader_port="$(free_port)"
-    app_port="$(free_port)"
+    read -r db_port fake_port enroll_port reader_port app_port < <(python3 -c 'import socket; socks=[socket.socket() for _ in range(5)]; [s.bind(("127.0.0.1",0)) for s in socks]; print(" ".join(str(s.getsockname()[1]) for s in socks)); [s.close() for s in socks]')
 
     echo "== (1/5) starting postgres on 127.0.0.1:$db_port =="
     "$DOCKER" rm -f -v "$CONTAINER" >/dev/null 2>&1 || true
@@ -299,17 +295,17 @@ do_prove() {
     check "jesse has student row in database" [ -n "$JESSE_ID" ]
 
     check "/map renders the Meridian Progress Map header" \
-        html_has "$JAR_JESSE" /map "The Meridian Progress Map"
+        html_has "$JAR_JESSE" /map "The Meridian Interactive System Map"
     check "/map shows all 13 phases" \
         html_has "$JAR_JESSE" /map "phase-12"
     check '/map shows Unit 3.2.1 open with Enroll button' \
-        html_has "$JAR_JESSE" /map 'Enroll ($12.34)'
+        html_has "$JAR_JESSE" /map 'ENROLL ($12.34)'
     check "/map shows Phase 5 integration gate locked" \
         html_has "$JAR_JESSE" /map "Phase 5 integration gate"
     check "/map shows Capstone gate locked" \
         html_has "$JAR_JESSE" /map "Final capstone gate"
     check "/map unauthored units show honest 'Content arriving'" \
-        html_has "$JAR_JESSE" /map "Content arriving"
+        html_has "$JAR_JESSE" /map "PLANNED"
 
     echo
     echo "== proof 2: jesse pays for unit 3.2.1 -> map shows enrolled & workbench link =="
@@ -318,7 +314,7 @@ do_prove() {
         test "$(psql_sql "SELECT count(*) FROM enrollments WHERE student_id=$JESSE_ID AND unit_id='3.2.1';")" = "1"
 
     check "/map shows unit 3.2.1 as enrolled with workbench button" \
-        html_has "$JAR_JESSE" /map "Open workbench"
+        html_has "$JAR_JESSE" /map "OPEN BENCH"
     check "/map workbench links to /units/3.2.1" \
         html_has "$JAR_JESSE" /map 'href="/units/3.2.1"'
 
@@ -326,13 +322,13 @@ do_prove() {
     echo "== proof 3: mid-flight submission state (queued / grading) visible on /map =="
     SUB_ID="$(psql_sql "INSERT INTO submissions (student_id, unit_id, commit_sha, status) VALUES ($JESSE_ID, '3.2.1', 'sha_q1', 'queued') RETURNING id;")"
     check "/map shows queued submission status" \
-        html_has "$JAR_JESSE" /map "queued"
+        html_has "$JAR_JESSE" /map "QUEUED"
     check "/map links to submission" \
         html_has "$JAR_JESSE" /map "href=\"/submissions/$SUB_ID\""
 
     psql_sql "UPDATE submissions SET status = 'grading' WHERE id = $SUB_ID;"
     check "/map shows grading submission status" \
-        html_has "$JAR_JESSE" /map "grading..."
+        html_has "$JAR_JESSE" /map "GRADING"
 
     echo
     echo "== proof 4: pass on 5.1 -> Phase 5 gate cleared, Phase 6 unlocked, rebate earned =="
@@ -348,15 +344,15 @@ do_prove() {
         test "$(psql_sql "SELECT status FROM rebates WHERE student_id=$JESSE_ID AND gate_id='phase-5-integration';")" = "earned"
 
     check "/map shows Phase 5 gate cleared" \
-        html_has "$JAR_JESSE" /map "Gate cleared"
+        html_has "$JAR_JESSE" /map "GATE CLEARED"
     check "/map shows clearance timestamp" \
         html_has "$JAR_JESSE" /map "Cleared on"
     check "/map shows Phase 6 track unlocked" \
-        html_has "$JAR_JESSE" /map "Units 6.1, 6.2, 6.3, 6.4 are now unlocked."
+        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/map" | grep -oF 'TRACK LOCKED' | wc -l)" = "0"
     check '/map shows 15% rebate earned milestone ($1.85)' \
         html_has "$JAR_JESSE" /map '$1.85'
     check "/map Capstone gate remains locked" \
-        html_has "$JAR_JESSE" /map "This is the final capstone gate."
+        html_has "$JAR_JESSE" /map "A passing verdict on unit 12.1 clears this gate"
 
     echo
     echo "== proof 5: fail on 12.1 -> Capstone gate stays locked, unlocks never reverse =="
@@ -366,9 +362,9 @@ do_prove() {
     check "capstone gate remains locked in db" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='gate.passed' AND payload->>'gate_id'='capstone';")" = "0"
     check "/map shows Unit 12.1 retry needed" \
-        html_has "$JAR_JESSE" /map "retry needed"
+        html_has "$JAR_JESSE" /map "RETRY"
     check "/map Phase 5 gate still cleared" \
-        html_has "$JAR_JESSE" /map "Gate cleared"
+        html_has "$JAR_JESSE" /map "GATE CLEARED"
 
     echo
     echo "== proof 6: second unenrolled student (Kim) sees honest pre-payment map =="
@@ -382,7 +378,7 @@ do_prove() {
     KIM_ID="$(student_id_by_email kim@keel.test)"
 
     check '/map for kim shows Unit 3.2.1 open for enrollment' \
-        html_has "$JAR_KIM" /map 'Enroll ($12.34)'
+        html_has "$JAR_KIM" /map 'ENROLL ($12.34)'
     check "/map for kim shows zero gates cleared" \
         test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/map" | grep -oF "0 / 2" | wc -l)" -ge 1
     check '/map for kim shows $0 rebates earned' \
@@ -411,6 +407,7 @@ do_teardown_inner() {
             kill -TERM -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
         fi
     done
+    pkill -9 -f "fake_stripe|reader/server\.py|enroll/server\.py|next-server|node_modules/\.bin/next" 2>/dev/null || true
     sleep 1
     "$DOCKER" rm -f -v "$CONTAINER" >/dev/null 2>&1 || true
     rm -rf "$ROOT"

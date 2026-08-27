@@ -13,8 +13,11 @@ import { ensureStudent, fetchProfile } from "@/lib/enroll";
 import {
   fetchPracticeAttempts,
   fetchPracticeManifest,
+  fetchPracticeRoute,
+  fetchRecheckSchedule,
   fetchRetrievalAttempts,
   type PracticeAttemptSummary,
+  type PracticeRouteData,
   type RetrievalAttemptSummary,
 } from "@/lib/practice";
 
@@ -82,6 +85,8 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   let studentId: number | null = null;
   let practiceAttempts: PracticeAttemptSummary[] = [];
   let retrievalAttempts: RetrievalAttemptSummary[] = [];
+  let dueSeedIndices: number[] = [];
+  let routeData: PracticeRouteData | null = null;
 
   if (user) {
     const studentRes = await ensureStudent(user);
@@ -100,6 +105,18 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
       const retrievalRes = await fetchRetrievalAttempts(studentId, unitId);
       if (retrievalRes.state === "ok") {
         retrievalAttempts = retrievalRes.data.attempts;
+      }
+      const scheduleRes = await fetchRecheckSchedule(studentId, unitId);
+      if (scheduleRes.state === "ok") {
+        dueSeedIndices = scheduleRes.data.seeds
+          .filter((s) => s.status === "due")
+          .map((s) => s.seed_index);
+      }
+      if (isEnrolled) {
+        const routeRes = await fetchPracticeRoute(studentId, unitId);
+        if (routeRes.state === "ok") {
+          routeData = routeRes.data;
+        }
       }
     }
   }
@@ -194,6 +211,8 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
           manifest={practiceManifest}
           initialAttempts={practiceAttempts}
           initialRetrievalAttempts={retrievalAttempts}
+          dueSeedIndices={dueSeedIndices}
+          routeData={routeData}
           isEnrolled={isEnrolled}
           isSignedIn={isSignedIn}
           serviceDown={practiceServiceDown}

@@ -85,6 +85,70 @@ export type RetrievalAttemptSummary = {
   created_at: string;
 };
 
+export type RecheckSeedStatus = "upcoming" | "due" | "retired";
+
+export type RecheckSeed = {
+  unit_id: string;
+  seed_index: number;
+  seed_prompt: string;
+  stage: number;
+  status: RecheckSeedStatus;
+  last_pass_at: string | null;
+  due_at: string | null;
+};
+
+export type RecheckSchedule = {
+  student_id: number;
+  now: string;
+  due_count: number;
+  seeds: RecheckSeed[];
+};
+
+export type PracticeRouteStep = {
+  id: "lesson" | "retrieval" | "worked_example" | "completion";
+  title: string;
+  type: "concept" | "drill" | "scaffold" | "workbench";
+  status: "done" | "current" | "upcoming" | "optional" | "scaffold" | "retry";
+  passed_count?: number;
+  total_count?: number;
+  summary: string;
+};
+
+export type ScaffoldCallout = {
+  type: "drill_retry" | "completion_retry";
+  seed_index?: number;
+  seed_prompt?: string;
+  target_file: string;
+  target_section: string;
+  anchor: string;
+  url: string;
+  summary: string;
+  action_label: string;
+};
+
+export type PracticeRouteData = {
+  student_id: number;
+  unit_id: string;
+  enrolled: boolean;
+  status: "in_progress" | "fast_pass" | "scaffold_active" | "standard" | "completed" | "unenrolled";
+  recommended_step: "lesson" | "retrieval" | "worked_example" | "completion" | "build" | null;
+  fast_pass_eligible: boolean;
+  fast_pass_active: boolean;
+  scaffold_active: boolean;
+  summary: string;
+  steps: PracticeRouteStep[];
+  scaffold_callout: ScaffoldCallout | null;
+  scaffold_mapping?: {
+    seed_index: number;
+    seed_prompt: string;
+    target_file: string;
+    target_section: string;
+    anchor: string;
+    url: string;
+    summary: string;
+  }[];
+};
+
 export type PracticeResult<T> =
   | { state: "ok"; data: T }
   | { state: "unreachable"; detail: string }
@@ -195,5 +259,24 @@ export function fetchRetrievalAttempts(
 ): Promise<PracticeResult<{ attempts: RetrievalAttemptSummary[] }>> {
   return practiceFetch<{ attempts: RetrievalAttemptSummary[] }>(
     `/practice/retrieval/attempts?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
+  );
+}
+
+export function fetchRecheckSchedule(
+  studentId: number,
+  unitId?: string,
+): Promise<PracticeResult<RecheckSchedule>> {
+  const unitParam = unitId ? `&unit=${encodeURIComponent(unitId)}` : "";
+  return practiceFetch<RecheckSchedule>(
+    `/practice/retrieval/schedule?student_id=${studentId}${unitParam}`,
+  );
+}
+
+export function fetchPracticeRoute(
+  studentId: number,
+  unitId: string,
+): Promise<PracticeResult<PracticeRouteData>> {
+  return practiceFetch<PracticeRouteData>(
+    `/practice/route?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
   );
 }

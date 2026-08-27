@@ -321,16 +321,16 @@ do_prove() {
     check "rebate machine pledged 2 pending rows from engine events" \
         test "$(psql_sql "SELECT count(*) || ':' || min(amount_cents) FROM rebates WHERE student_id=$JESSE_ID AND status='pending';")" = "2:185"
     check "/me shows the Gates section with both gates locked" \
-        html_has "$JAR_JESSE" /me "Gates" \
-        && test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>locked<' | wc -l)" = "2"
+        html_has "$JAR_JESSE" /me "CRYPTOGRAPHIC GATE BARRIERS" \
+        && test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>LOCKED<' | wc -l)" = "2"
     check "/me locked copy names what clears the gate (content-as-data)" \
         html_has "$JAR_JESSE" /me "A passing verdict on unit 5.1 clears this gate"
     check "/me locked copy names the capstone unit" \
         html_has "$JAR_JESSE" /me "A passing verdict on unit 12.1 clears this gate"
     check "/me locked copy says what the phase gate unlocks" \
-        html_has "$JAR_JESSE" /me "Clearing it unlocks units 6.1, 6.2, 6.3, 6.4."
+        html_has "$JAR_JESSE" /me "Passing unlocks units 6.1, 6.2, 6.3, 6.4."
     check "/me rebate section shows two pending rows" \
-        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>pending<' | wc -l)" = "2"
+        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>PENDING<' | wc -l)" = "2"
 
     echo
     echo "== proof 3: worker-shaped passing verdict -> engine unlocks + gate.passed -> machine earns =="
@@ -352,13 +352,13 @@ do_prove() {
     check "reader serves the student gate state" \
         bash -c "curl -sf http://127.0.0.1:$READER_PORT/students/$JESSE_ID/gates | grep -qF '\"gates_passed\"' && curl -sf http://127.0.0.1:$READER_PORT/students/$JESSE_ID/gates | grep -qF 'phase-5-integration'"
     check "/me phase-5 gate now shows cleared with a date" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF '>cleared<' && curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF 'Cleared on'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF '>CLEARED<' && curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF 'Cleared on'"
     check "/me names the unlocked units after the clear" \
-        html_has "$JAR_JESSE" /me "Units 6.1, 6.2, 6.3, 6.4 are now unlocked."
+        html_has "$JAR_JESSE" /me "Units 6.1, 6.2, 6.3, 6.4 unlocked."
     check "/me capstone gate still locked" \
-        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>locked<' | wc -l)" = "1"
+        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>LOCKED<' | wc -l)" = "1"
     check "/me rebate section shows the earned phase-5 row" \
-        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>earned<' | wc -l)" = "1"
+        test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>EARNED<' | wc -l)" = "1"
 
     echo
     echo "== proof 4: engine cursor reset + replay changes nothing =="
@@ -387,8 +387,8 @@ do_prove() {
         test "$(psql_sql "SELECT count(*) FROM events WHERE payload->>'student_id'='$KIM_ID' AND type IN ('gate.pledged','gate.passed','unit.unlocked');")" = "0" \
         && test "$(psql_sql "SELECT count(*) FROM unlocked_units WHERE student_id=$KIM_ID;")" = "0"
     check "/me for kim shows both gates locked and no rebate ledger" \
-        test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF '>locked<' | wc -l)" = "2" \
-        && test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF 'Rebates' | wc -l)" = "0"
+        test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF '>LOCKED<' | wc -l)" = "2" \
+        && test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF 'REBATE LEDGER' | wc -l)" = "0"
 
     echo
     echo "== proof 6: a later fail verdict never reverses the unlock =="
@@ -397,7 +397,7 @@ do_prove() {
     check "jesse's unlock rows untouched by the fail" \
         test "$(psql_sql "SELECT count(*) FROM unlocked_units WHERE student_id=$JESSE_ID;")" = "4"
     check "capstone still locked on /me; phase-5 still cleared" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF '>cleared<' && test \"\$(curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -cF '>locked<')\" = 1"
+        bash -c "curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -qF '>CLEARED<' && test \"\$(curl -sf --max-time 30 -b '$JAR_JESSE' '$APP/me' | grep -cF '>LOCKED<')\" = 1"
     check "no fail verdict ever produced a gate event" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='gate.passed' AND payload->>'unit_id'='12.1';")" = "0"
 

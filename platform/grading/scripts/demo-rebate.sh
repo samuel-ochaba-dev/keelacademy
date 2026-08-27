@@ -270,7 +270,7 @@ do_prove() {
     check "riley pays via the fake checkout" pay_enrollment "$JAR_RILEY"
     RILEY_ID="$(student_id_by_email riley@keel.test)"
     check "/me shows no rebate section before any pledge" \
-        test "$(curl -sf --max-time 30 -b "$JAR_PAT" "$APP/me" | grep -cF 'Completion rebate ledger')" = "0"
+        test "$(curl -sf --max-time 30 -b "$JAR_PAT" "$APP/me" | grep -cF '30% COMPLETION REBATE LEDGER')" = "0"
 
     echo
     echo "== proof 2: gate.pledged -> pending on /me =="
@@ -282,10 +282,10 @@ do_prove() {
     check "/me renders the rebate section with the gate name" \
         html_has "$JAR_PAT" /me "Phase 5 integration gate"
     check "/me shows the pending chip and the window" \
-        html_has "$JAR_PAT" /me ">pending<"
+        html_has "$JAR_PAT" /me ">PENDING<"
     check "/me names the window end" html_has "$JAR_PAT" /me "Target window open until"
     check "/me says the credit needs a verified passage" \
-        html_has "$JAR_PAT" /me "Credited automatically on a verified gate pass"
+        html_has "$JAR_PAT" /me "Credited automatically on verified gate pass"
 
     echo
     echo "== proof 3: verified gate.passed inside the window -> earned on /me =="
@@ -297,9 +297,9 @@ do_prove() {
     check "exactly one rebate.earned event on the spine" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='rebate.earned';")" = "1"
     check "/me shows the earned chip and the amount" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>earned<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '\$1.85'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>EARNED<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '\$1.85'"
     check "/me is honest that a person issues the refund" \
-        html_has "$JAR_PAT" /me "Payout is initiated to your card via Stripe"
+        html_has "$JAR_PAT" /me "Payout initiated to card via Stripe"
 
     echo
     echo "== proof 4: replayed gate event changes nothing (earn-once) =="
@@ -324,7 +324,7 @@ do_prove() {
     check "expiry is event-sourced" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='rebate.expired';")" = "1"
     check "/me shows the expired chip and the honest copy" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>expired<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF 'without a verified pass'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>EXPIRED<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF 'without verified pass'"
 
     echo
     echo "== proof 6: runbook payout mark -> paid on /me (ledger only) =="
@@ -338,9 +338,9 @@ do_prove() {
     check "transition carries who/what/when" \
         test "$(psql_sql "SELECT actor || ':' || reason FROM rebate_transitions WHERE to_status='paid';")" = "founder:stripe refund re_demo_001"
     check "/me shows the paid chip and the refunded amount" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>paid<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF 'issued to your payment method'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>PAID<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF 'issued to payment method'"
     check "/me is the final state: pat paid, riley expired" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>paid<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>expired<'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>PAID<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>EXPIRED<'"
 
     echo
     echo "== proof 7: the profile API carries the ledger (auditability) =="
