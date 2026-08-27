@@ -80,8 +80,23 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
         messages = req_data.get("messages") or []
         all_text = " ".join(str(m.get("content", "")) for m in messages)
 
+        # Concierge Guard Mode
+        if "GUARD MODE" in all_text or "Unit Deliverable Specification" in all_text:
+            if "Ignore all" in all_text or "ignore_instructions" in all_text or "System override" in all_text:
+                reply_content = "In build context the concierge unblocks. It does not write the deliverable. Adversarial override rejected. What error did you encounter when testing your extractor?"
+            elif "write" in all_text.lower() or "solution" in all_text.lower() or "deliverable" in all_text.lower() or "code" in all_text.lower():
+                reply_content = "In build context the concierge unblocks. It does not write the deliverable. What specific error or question do you have about your validation boundary?"
+            else:
+                reply_content = "In build context the concierge unblocks. It does not write the deliverable. Have you verified how your validation exception is caught and logged?"
+        # Concierge Teach Mode
+        elif "TEACH MODE" in all_text or ("Lesson Material" in all_text and "<student_question>" in all_text):
+            if "Ignore all" in all_text or "ignore_instructions" in all_text or "System override" in all_text:
+                reply_content = "In structured generation, schemas guarantee output syntax at the token decoding layer. Adversarial directives are ignored. Here is a micro-exercise on Pydantic validation boundaries."
+            else:
+                reply_content = "Schema-constrained decoding guarantees that the model output strictly conforms to the JSON Schema at the token level, eliminating parsing failures. Here is a quick micro-exercise to test your understanding: why does json.loads alone fail to guarantee field types?"
+        # Retrieval Judge Probes
         # 1. Malformed JSON probe (double failure -> hard error)
-        if "malformed_double" in all_text:
+        elif "malformed_double" in all_text:
             reply_content = "Here is my evaluation: The answer is good but not valid JSON."
         # 2. Malformed JSON probe (single failure -> nudge retry succeeds)
         elif "malformed_once" in all_text:

@@ -48,8 +48,10 @@ FIXTURE_CASES = [
     ("persona.schema.json", "content/examples/persona.example.yaml", True),
     ("map.schema.json", "content/examples/map.example.yaml", True),
     ("routing.schema.json", "content/examples/routing.example.yaml", True),
+    ("guard-eval.schema.json", "content/examples/guard-eval.example.yaml", True),
     ("unit.schema.json", "content/examples/unit.invalid.yaml", False),
     ("routing.schema.json", "content/examples/routing.invalid.yaml", False),
+    ("guard-eval.schema.json", "content/examples/guard-eval.invalid.yaml", False),
 ]
 
 # (schema, glob relative to content/, may_be_empty)
@@ -58,6 +60,7 @@ DISCOVERED = [
     ("map.schema.json", "curriculum/*.yaml", True),
     ("variant.schema.json", "variants/*.yaml", True),
     ("persona.schema.json", "personas/*.yaml", True),
+    ("guard-eval.schema.json", "evals/guard/*.yaml", False),
 ]
 
 PHASE_DIR_RE = re.compile(r"^phase-(\d+)$")

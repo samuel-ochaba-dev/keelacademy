@@ -3,15 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { runPracticeAttemptAction } from "@/app/units/[unitId]/practice-actions";
-import {
-  IconCheckCircle,
-  IconClock,
-  IconCode,
-  IconPlay,
-  IconRefreshCw,
-  IconTerminal,
-  IconXCircle,
-} from "@/components/icons";
 import type {
   PracticeAttemptResult,
   PracticeAttemptSummary,
@@ -109,10 +100,9 @@ export function PracticeWorkbench({
 
   if (serviceDown || !manifest) {
     return (
-      <div className="rounded-xl border border-line bg-raised p-6">
-        <div className="flex items-center gap-3 text-ink-3">
-          <IconTerminal size={20} className="text-ink-3" />
-          <p className="text-sm">
+      <div>
+        <div>
+          <p>
             Practice grading service is currently unreachable.
           </p>
         </div>
@@ -121,61 +111,51 @@ export function PracticeWorkbench({
   }
 
   return (
-    <div className="space-y-8" data-keel-practice-workbench>
+    <div data-keel-practice-workbench>
       {/* Workbench panel */}
-      <div className="overflow-hidden rounded-xl border border-line bg-raised">
+      <div>
         {/* Header bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-raised-2 px-5 py-3">
-          <div className="flex items-center gap-2">
-            <IconTerminal size={16} className="text-accent" />
-            <span className="font-mono text-xs font-medium text-ink">
+        <div>
+          <div>
+            <span>
               practice-workbench
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div>
             <button
               type="button"
               onClick={handleResetAll}
               disabled={isPending}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs text-ink-3 hover:text-ink"
             >
-              <IconRefreshCw size={12} />
               Reset all files
             </button>
           </div>
         </div>
 
         {/* File tabs */}
-        <div className="flex border-b border-line bg-inset px-4 pt-2">
+        <div>
           {editableFiles.map((fname) => (
             <button
               key={fname}
               type="button"
               onClick={() => setActiveFile(fname)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-xs transition-colors ${
-                activeFile === fname
-                  ? "border-accent text-accent"
-                  : "border-transparent text-ink-3 hover:text-ink"
-              }`}
             >
-              <IconCode size={14} />
               {fname}
             </button>
           ))}
         </div>
 
         {/* Code editor area */}
-        <div className="p-4">
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-mono text-[11px] text-ink-3">
+        <div>
+          <div>
+            <span>
               Editing: {activeFile}
             </span>
             <button
               type="button"
               onClick={() => handleResetFile(activeFile)}
               disabled={isPending}
-              className="font-mono text-[11px] text-ink-3 hover:text-accent"
             >
               Reset this file
             </button>
@@ -187,58 +167,53 @@ export function PracticeWorkbench({
             onChange={(e) => handleFileChange(activeFile, e.target.value)}
             disabled={isPending || !isEnrolled}
             rows={18}
-            className="w-full resize-y rounded-lg border border-line bg-inset p-4 font-mono text-xs leading-relaxed text-ink outline-none focus:border-accent"
             spellCheck={false}
           />
         </div>
 
         {/* Submit action strip */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-raised-2 px-5 py-4">
+        <div>
           <div>
             {!isSignedIn ? (
-              <p className="text-xs text-ink-3">
+              <p>
                 <Link
                   href={`/sign-in?next=/units/${unitId}#practice`}
-                  className="text-accent underline hover:text-accent-strong"
                 >
                   Sign in
                 </Link>{" "}
                 and enroll to run checks in the sandbox.
               </p>
             ) : !isEnrolled ? (
-              <p className="text-xs text-ink-3">
+              <p>
                 Active enrollment required to run checks.{" "}
                 <Link
                   href={`/map`}
-                  className="text-accent underline hover:text-accent-strong"
                 >
                   Enroll via the Progress Map
                 </Link>
                 .
               </p>
             ) : (
-              <p className="text-xs text-ink-3">
+              <p>
                 Deterministic Layer-1 checks run in an isolated sandbox. Fast,
                 free, retryable.
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !isEnrolled}
-              className="btn btn-primary"
             >
               {isPending ? (
                 <>
-                  <span className="live-dot" aria-hidden />
+                  <span aria-hidden />
                   Grading in sandbox...
                 </>
               ) : (
                 <>
-                  <IconPlay size={14} />
                   Run practice checks
                 </>
               )}
@@ -249,33 +224,30 @@ export function PracticeWorkbench({
 
       {/* Error banner */}
       {errorBanner ? (
-        <div className="rounded-xl border border-fail/30 bg-fail/10 p-4 text-sm text-fail">
+        <div>
           {errorBanner}
         </div>
       ) : null}
 
       {/* Latest attempt results */}
       {latestResult ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
+        <div>
+          <div>
+            <div>
               <span
-                className={
-                  latestResult.passed ? "chip-pass font-medium" : "chip-fail font-medium"
-                }
               >
                 {latestResult.passed ? "All checks passed" : "Checks failed"}
               </span>
-              <span className="font-mono text-xs text-ink-3">
+              <span>
                 {`${latestResult.pass_count} / ${latestResult.total_checks} checks passing`}
               </span>
             </div>
-            <span className="font-mono text-xs text-ink-3">
+            <span>
               {`Attempt #${latestResult.attempt_id}`}
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div>
             {latestResult.checks.map((check) => (
               <CheckCard key={check.id} check={check} />
             ))}
@@ -285,30 +257,28 @@ export function PracticeWorkbench({
 
       {/* Attempt history */}
       {attempts.length > 0 ? (
-        <div className="mt-8 space-y-3">
-          <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <IconClock size={16} className="text-accent" />
+        <div>
+          <h4>
             {`Practice attempt history (${attempts.length})`}
           </h4>
 
-          <div className="panel divide-y divide-line overflow-hidden">
+          <div>
             {attempts.map((att) => (
               <div
                 key={att.id}
-                className="flex flex-wrap items-center justify-between gap-4 p-4 text-xs"
               >
-                <div className="flex items-center gap-3">
-                  <span className={att.passed ? "chip-pass" : "chip-fail"}>
+                <div>
+                  <span>
                     {att.passed ? "PASS" : "FAIL"}
                   </span>
-                  <span className="font-mono text-ink">
+                  <span>
                     {`${att.pass_count} / ${att.total_checks} passing`}
                   </span>
-                  <span className="font-mono text-ink-3">
+                  <span>
                     {`attempt #${att.id}`}
                   </span>
                 </div>
-                <span className="font-mono text-ink-3">
+                <span>
                   {formatUtc(att.created_at)}
                 </span>
               </div>
@@ -321,47 +291,35 @@ export function PracticeWorkbench({
 }
 
 function CheckCard({ check }: { check: PracticeCheckResult }) {
-  const isPass = check.status === "pass";
-
   return (
     <div
-      className={`rounded-xl border p-4 transition-colors ${
-        isPass
-          ? "border-pass/30 bg-pass/5"
-          : "border-fail/30 bg-fail/5"
-      }`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          {isPass ? (
-            <IconCheckCircle size={18} className="text-pass" />
-          ) : (
-            <IconXCircle size={18} className="text-fail" />
-          )}
-          <code className="text-xs font-semibold text-ink">{check.id}</code>
-          <span className="chip text-[10px]">{check.type}</span>
+      <div>
+        <div>
+          <code>{check.id}</code>
+          <span>{check.type}</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div>
           {check.wall_s !== null ? (
-            <span className="font-mono text-[11px] text-ink-3">
+            <span>
               {check.wall_s.toFixed(2)}s
             </span>
           ) : null}
-          <span className={isPass ? "chip-pass" : "chip-fail"}>
+          <span>
             {check.status.toUpperCase()}
           </span>
         </div>
       </div>
 
-      <p className="mt-2 font-mono text-xs text-ink-2">{check.note}</p>
+      <p>{check.note}</p>
 
       {check.output_tail ? (
-        <details className="mt-3 text-xs">
-          <summary className="cursor-pointer font-mono text-[11px] text-ink-3 hover:text-accent">
+        <details>
+          <summary>
             View sandbox output
           </summary>
-          <pre className="code-block mt-2 max-h-64 overflow-y-auto text-xs text-ink-2 whitespace-pre-wrap">
+          <pre>
             {check.output_tail}
           </pre>
         </details>

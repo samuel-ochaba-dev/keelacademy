@@ -46,6 +46,14 @@ if ! "$PY" content/tools/validate-routing.py; then
     echo "[keel-content-gate] BLOCKED: content/tools/validate-routing.py failed — offending file(s) named in the FAIL lines above" >&2
     fail=1
 fi
+if ! "$PY" content/tools/validate-guard-evals.py; then
+    echo "[keel-content-gate] BLOCKED: content/tools/validate-guard-evals.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
+if ! "$PY" platform/grading/scripts/check-concierge-structural.py; then
+    echo "[keel-content-gate] BLOCKED: platform/grading/scripts/check-concierge-structural.py failed — offending file(s) named in the FAIL lines above" >&2
+    fail=1
+fi
 if [ $fail = 0 ]; then
     echo "[keel-content-gate] OK — content validates, push allowed."
 fi

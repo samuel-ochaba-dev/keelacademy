@@ -3,15 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { runRetrievalAttemptAction } from "@/app/units/[unitId]/practice-actions";
-import {
-  IconArrowRight,
-  IconCheckCircle,
-  IconClock,
-  IconPlay,
-  IconRefreshCw,
-  IconZap,
-  IconXCircle,
-} from "@/components/icons";
 import type {
   RetrievalAttemptResult,
   RetrievalAttemptSummary,
@@ -131,10 +122,9 @@ export function RetrievalDrill({
 
   if (serviceDown) {
     return (
-      <div className="rounded-xl border border-line bg-raised p-6">
-        <div className="flex items-center gap-3 text-ink-3">
-          <IconZap size={20} className="text-ink-3" />
-          <p className="text-sm">
+      <div>
+        <div>
+          <p>
             Practice grading service is currently unreachable.
           </p>
         </div>
@@ -147,38 +137,32 @@ export function RetrievalDrill({
   }
 
   return (
-    <div className="space-y-8" data-keel-retrieval-drill>
+    <div data-keel-retrieval-drill>
       {/* Question tabs */}
-      <div className="overflow-hidden rounded-xl border border-line bg-raised">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-raised-2 px-5 py-3">
-          <div className="flex items-center gap-2">
-            <IconZap size={16} className="text-accent" />
-            <span className="font-mono text-xs font-medium text-ink">
+      <div>
+        <div>
+          <div>
+            <span>
               retrieval-drill
             </span>
           </div>
 
-          <span className="font-mono text-xs text-ink-3">
+          <span>
             Question {currentIndex + 1} of {seeds.length}
           </span>
         </div>
 
         {/* Question selector tabs */}
-        <div className="flex overflow-x-auto border-b border-line bg-inset px-4 pt-2">
+        <div>
           {seeds.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleSelectQuestion(idx)}
-              className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-2 font-mono text-xs transition-colors ${
-                currentIndex === idx
-                  ? "border-accent text-accent"
-                  : "border-transparent text-ink-3 hover:text-ink"
-              }`}
             >
               Question {idx + 1}
               {dueSet.has(idx) ? (
-                <span className="rounded border border-warn/40 bg-warn-soft px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-warn">
+                <span>
                   Re-check due
                 </span>
               ) : null}
@@ -187,29 +171,27 @@ export function RetrievalDrill({
         </div>
 
         {/* Prompt & Answer area */}
-        <div className="p-6">
+        <div>
           {dueSet.has(currentIndex) ? (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-warn/40 bg-warn-soft px-3 py-2">
-              <IconClock size={13} className="shrink-0 text-warn" />
-              <p className="font-mono text-[11px] uppercase tracking-wider text-warn">
+            <div>
+              <p>
                 Re-check due. A passing answer here clears it.
               </p>
             </div>
           ) : null}
-          <div className="rounded-lg border border-line bg-inset p-4">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-accent">
+          <div>
+            <span>
               Recall Prompt
             </span>
-            <p className="mt-2 text-sm leading-relaxed font-medium text-ink">
+            <p>
               {currentSeed}
             </p>
           </div>
 
-          <div className="mt-5">
-            <div className="flex items-center justify-between pb-2">
+          <div>
+            <div>
               <label
                 htmlFor={`retrieval-answer-${currentIndex}`}
-                className="font-mono text-[11px] text-ink-3"
               >
                 Your explanation from memory:
               </label>
@@ -218,7 +200,6 @@ export function RetrievalDrill({
                   type="button"
                   onClick={handleClearAnswer}
                   disabled={isPending}
-                  className="font-mono text-[11px] text-ink-3 hover:text-accent"
                 >
                   Clear
                 </button>
@@ -233,58 +214,53 @@ export function RetrievalDrill({
               disabled={isPending || !isEnrolled}
               rows={6}
               placeholder="Explain the core technical principle in your own words. Focus on the mechanism rather than keyword matching."
-              className="w-full resize-y rounded-lg border border-line bg-inset p-4 font-mono text-xs leading-relaxed text-ink outline-none placeholder:text-ink-3/50 focus:border-accent"
               spellCheck={false}
             />
           </div>
         </div>
 
         {/* Action bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-raised-2 px-5 py-4">
+        <div>
           <div>
             {!isSignedIn ? (
-              <p className="text-xs text-ink-3">
+              <p>
                 <Link
                   href={`/sign-in?next=/units/${unitId}#practice`}
-                  className="text-accent underline hover:text-accent-strong"
                 >
                   Sign in
                 </Link>{" "}
                 and enroll to run retrieval drills.
               </p>
             ) : !isEnrolled ? (
-              <p className="text-xs text-ink-3">
+              <p>
                 Active enrollment required to run retrieval drills.{" "}
                 <Link
                   href={`/map`}
-                  className="text-accent underline hover:text-accent-strong"
                 >
                   Enroll via the Progress Map
                 </Link>
                 .
               </p>
             ) : (
-              <p className="text-xs text-ink-3">
+              <p>
                 Free-recall evaluation via Layer-2 judge. Graded against the lesson.
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !isEnrolled || !currentAnswer.trim()}
-              className="btn btn-primary"
             >
               {isPending ? (
                 <>
-                  <span className="live-dot" aria-hidden />
+                  <span aria-hidden />
                   Evaluating answer...
                 </>
               ) : (
                 <>
-                  <IconPlay size={14} />
                   Grade retrieval answer
                 </>
               )}
@@ -295,73 +271,69 @@ export function RetrievalDrill({
 
       {/* Error banner */}
       {errorBanner ? (
-        <div className="rounded-xl border border-fail/30 bg-fail/10 p-4 text-sm text-fail">
+        <div>
           {errorBanner}
         </div>
       ) : null}
 
       {/* Latest verdict display */}
       {latestResult ? (
-        <div className="rounded-xl border border-line bg-raised p-6 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
+        <div>
+          <div>
+            <div>
               {latestResult.passed ? (
-                <span className="chip-pass font-medium">
-                  <IconCheckCircle size={14} className="inline mr-1" />
+                <span>
                   PASS
                 </span>
               ) : (
-                <span className="chip-fail font-medium">
-                  <IconXCircle size={14} className="inline mr-1" />
+                <span>
                   FAIL
                 </span>
               )}
-              <span className="font-mono text-xs text-ink-2">
+              <span>
                 {latestResult.passed
                   ? "Concept demonstrated"
                   : "Concept not yet demonstrated"}
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-xs text-ink-3">
+            <div>
+              <span>
                 {latestResult.tokens_charged} tokens charged
               </span>
-              <span className="font-mono text-xs text-ink-3">
+              <span>
                 Attempt #{latestResult.attempt_id}
               </span>
             </div>
           </div>
 
-          <div className="border-t border-line pt-4 space-y-3">
+          <div>
             <div>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-3">
+              <span>
                 Judge Feedback
               </span>
-              <p className="mt-1 text-sm leading-relaxed text-ink">
+              <p>
                 {latestResult.feedback}
               </p>
             </div>
 
             {latestResult.evidence ? (
-              <div className="rounded-lg border border-line bg-inset p-3">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-ink-3">
+              <div>
+                <span>
                   Supporting Evidence
                 </span>
-                <p className="mt-1 font-mono text-xs italic text-ink-2">
+                <p>
                   &ldquo;{latestResult.evidence}&rdquo;
                 </p>
               </div>
             ) : null}
           </div>
 
-          <div className="flex items-center justify-between border-t border-line pt-4">
+          <div>
             <button
               type="button"
               onClick={handleClearAnswer}
-              className="inline-flex items-center gap-1.5 font-mono text-xs text-ink-3 hover:text-ink"
             >
-              <IconRefreshCw size={12} />
               Try again
             </button>
 
@@ -369,10 +341,8 @@ export function RetrievalDrill({
               <button
                 type="button"
                 onClick={handleNextQuestion}
-                className="btn btn-secondary text-xs"
               >
                 Next question
-                <IconArrowRight size={12} />
               </button>
             ) : null}
           </div>
@@ -381,33 +351,31 @@ export function RetrievalDrill({
 
       {/* Retrieval Attempt history */}
       {attempts.length > 0 ? (
-        <div className="mt-8 space-y-3">
-          <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <IconClock size={16} className="text-accent" />
+        <div>
+          <h4>
             {`Retrieval attempt history (${attempts.length})`}
           </h4>
 
-          <div className="panel divide-y divide-line overflow-hidden">
+          <div>
             {attempts.map((att) => (
               <div
                 key={att.id}
-                className="flex flex-wrap items-center justify-between gap-4 p-4 text-xs"
               >
-                <div className="flex items-center gap-3">
-                  <span className={att.passed ? "chip-pass" : "chip-fail"}>
+                <div>
+                  <span>
                     {att.passed ? "PASS" : "FAIL"}
                   </span>
-                  <span className="font-mono text-ink">
+                  <span>
                     Question {att.seed_index + 1}
                   </span>
-                  <span className="font-mono text-ink-3">
+                  <span>
                     {att.tokens_charged} tokens
                   </span>
-                  <span className="font-mono text-ink-3">
+                  <span>
                     attempt #{att.id}
                   </span>
                 </div>
-                <span className="font-mono text-ink-3">
+                <span>
                   {formatUtc(att.created_at)}
                 </span>
               </div>

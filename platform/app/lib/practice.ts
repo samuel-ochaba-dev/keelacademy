@@ -280,3 +280,53 @@ export function fetchPracticeRoute(
     `/practice/route?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
   );
 }
+
+export type ConciergeMode = "teach" | "guard";
+
+export type ConciergeTurn = {
+  id: number;
+  student_id: number;
+  unit_id: string;
+  mode: ConciergeMode;
+  question: string;
+  answer: string;
+  tokens_charged: number;
+  created_at: string;
+};
+
+export type ConciergeAskResult = {
+  ok: boolean;
+  turn_id: number;
+  student_id: number;
+  unit_id: string;
+  mode: ConciergeMode;
+  mode_reason: string;
+  answer: string;
+  tokens_charged: number;
+  created_at: string;
+};
+
+export function fetchConciergeTurns(
+  studentId: number,
+  unitId: string,
+): Promise<PracticeResult<{ turns: ConciergeTurn[] }>> {
+  return practiceFetch<{ turns: ConciergeTurn[] }>(
+    `/concierge/turns?student_id=${studentId}&unit=${encodeURIComponent(unitId)}`,
+  );
+}
+
+export function askConcierge(input: {
+  studentId: number;
+  unitId: string;
+  question: string;
+}): Promise<PracticeResult<ConciergeAskResult>> {
+  return practiceFetch<ConciergeAskResult>("/concierge/ask", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      unit_id: input.unitId,
+      question: input.question,
+    }),
+  });
+}
+

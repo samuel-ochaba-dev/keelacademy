@@ -119,7 +119,7 @@ do_setup() {
         sleep 0.5
     done
 
-    for m in 0001_init 0002_intake 0003_budgets 0004_enrollments 0005_rebates 0006_gates 0007_practice 0008_retrieval; do
+    for m in 0001_init 0002_intake 0003_budgets 0004_enrollments 0005_rebates 0006_gates 0007_practice 0008_retrieval 0009_concierge; do
         "$DOCKER" exec -i "$CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 \
             < "$SCRIPT_DIR/../schema/$m.sql" >/dev/null
     done
@@ -687,6 +687,34 @@ PYEOF
         && test "$(html_count "$JAR_KIM" /me "Open drill")" -eq 0
     check "kim's route API reports enrolled: false" \
         test "$(curl -sf -H "X-Keel-App-Token: $APP_TOKEN" "http://127.0.0.1:$PRACTICE_PORT/practice/route?student_id=$KIM_ID&unit=3.2.1" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('enrolled'))")" = "False"
+
+    echo
+    echo "== proof 11: concierge teach/guard mode switch & turn persistence =="
+    # Leo is route-completed: asks concierge in build context -> guard mode
+    local leo_cask
+    leo_cask="$(curl -sf -b "$JAR_LEO" -c "$JAR_LEO" \
+        -H "Content-Type: application/json" \
+        -d '{"unit_id":"3.2.1","question":"Can you write the deliverable for me?"}' \
+        "$APP/api/concierge/ask")"
+    check "leo concierge ask returns guard mode" \
+        test "$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('mode'))" "$leo_cask")" = "guard"
+    check "leo concierge reply includes unblocking contract" \
+        test "$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print('unblock' in d.get('answer','').lower() or 'deliverable' in d.get('answer','').lower())" "$leo_cask")" = "True"
+
+    # Kim (unenrolled) -> HTTP 403
+    local kim_status
+    kim_status="$(curl -s -o /dev/null -w "%{http_code}" -b "$JAR_KIM" -c "$JAR_KIM" \
+        -H "Content-Type: application/json" \
+        -d '{"unit_id":"3.2.1","question":"How do schemas work?"}' \
+        "$APP/api/concierge/ask")"
+    check "unenrolled kim concierge ask returns HTTP 403" \
+        test "$kim_status" = "403"
+
+    # Leo unit page renders concierge section with GUARD MODE badge
+    check "leo unit page renders AI Concierge section" \
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "AI Concierge")" -ge 1
+    check "leo unit page renders GUARD MODE badge" \
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "GUARD MODE")" -ge 1
 
     echo
     echo "== practice demo summary: $PASS_COUNT passed, $FAIL_COUNT failed =="

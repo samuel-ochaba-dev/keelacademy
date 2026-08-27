@@ -37,6 +37,10 @@ jobs:
         run: python content/tools/validate-map.py
       - name: Validate routing rules
         run: python content/tools/validate-routing.py
+      - name: Validate guard evals
+        run: python content/tools/validate-guard-evals.py
+      - name: Concierge structural contract and spoof-immunity checks (keyless)
+        run: python platform/grading/scripts/check-concierge-structural.py
       - name: Dry-run unit 3.2.1 checks against the reference solution
         # Needs docker (present on ubuntu-latest) + the keel-runner:0.1 image
         # (S0.3 definition: python:3.12-slim + pydantic 2.13.4 + pytest 9.1.1;

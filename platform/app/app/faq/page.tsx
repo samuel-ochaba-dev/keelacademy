@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUnits } from "@/lib/content";
-import { Reveal } from "@/components/reveal";
-import { IconArrowRight } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Questions",
@@ -142,39 +140,38 @@ export default function FaqPage() {
   const first = units[0];
 
   return (
-    <div className="space-y-0">
+    <div>
       {/* Header */}
-      <section className="border-b border-line bg-canvas pt-12 pb-10">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent">
-            <span className="size-1.5 rounded-full bg-accent" />
+      <section>
+        <div>
+          <div>
+            
             <span>PRODUCTION SPECIFICATION FAQ</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1>
             Plain answers, including the unflattering ones.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             No marketing evasions. If a constraint or limitation exists on our platform, we state it explicitly below.
           </p>
         </div>
       </section>
 
       {/* FAQ Index & Group Content */}
-      <section className="shell py-14">
-        <div className="grid gap-12 lg:grid-cols-[240px_1fr]">
+      <section>
+        <div>
           {/* Index rail */}
-          <nav aria-label="FAQ categories" className="self-start lg:sticky lg:top-20">
-            <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider block mb-3">
+          <nav aria-label="FAQ categories">
+            <span>
               CATEGORIES
             </span>
-            <ul className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ul>
               {FAQ_GROUPS.map((group) => (
                 <li key={group.title}>
                   <a
                     href={`#${slug(group.title)}`}
-                    className="block shrink-0 rounded border border-line bg-raised px-2.5 py-1.5 font-mono text-xs text-ink-3 transition-colors hover:border-accent hover:text-ink lg:shrink"
                   >
                     {group.title}
                   </a>
@@ -184,23 +181,22 @@ export default function FaqPage() {
           </nav>
 
           {/* Group questions */}
-          <div className="space-y-12">
+          <div>
             {FAQ_GROUPS.map((group) => (
-              <section key={group.title} id={slug(group.title)} className="scroll-mt-20 space-y-4">
-                <div className="border-b border-line pb-2">
-                  <h2 className="font-mono text-xs font-semibold text-accent uppercase tracking-wider">
+              <section key={group.title} id={slug(group.title)}>
+                <div>
+                  <h2>
                     {group.title}
                   </h2>
                 </div>
 
-                <div className="divide-y divide-line border-y border-line">
+                <div>
                   {group.faqs.map((faq) => (
-                    <details key={faq.q} className="group py-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-xs font-semibold text-ink transition-colors hover:text-accent">
+                    <details key={faq.q}>
+                      <summary>
                         <span>{faq.q}</span>
-                        <IconArrowRight size={13} className="shrink-0 text-ink-4 transition-transform group-open:rotate-90" />
                       </summary>
-                      <div className="mt-3 space-y-2 text-xs leading-relaxed text-ink-2 pl-2 border-l border-line-strong">
+                      <div>
                         {faq.a.map((paragraph, i) => (
                           <p key={i}>{paragraph}</p>
                         ))}
@@ -215,18 +211,17 @@ export default function FaqPage() {
       </section>
 
       {/* Bottom Action Bar */}
-      <section className="border-t border-line bg-canvas py-12">
-        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <section>
+        <div>
           <div>
-            <h2 className="text-lg font-semibold text-ink">Ready to start Unit 3.2.1?</h2>
-            <p className="text-xs text-ink-3">
+            <h2>Ready to start Unit 3.2.1?</h2>
+            <p>
               Build the schema extraction pipeline and get line-by-line feedback today.
             </p>
           </div>
           {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary">
+            <Link href={`/units/${first.id}`}>
               <span>Start Unit {first.id} [Live Workbench]</span>
-              <IconArrowRight size={14} />
             </Link>
           ) : null}
         </div>

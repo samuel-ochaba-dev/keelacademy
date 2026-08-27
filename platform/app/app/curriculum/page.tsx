@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUnits } from "@/lib/content";
-import { Reveal } from "@/components/reveal";
-import { IconCheck, IconAward, IconArrowRight } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "13-Phase Curriculum & Capstone Standard",
@@ -244,38 +242,36 @@ export default function CurriculumPage() {
   const first = units[0];
 
   return (
-    <div className="space-y-0">
+    <div>
       {/* Header */}
-      <section className="border-b border-line bg-canvas pt-12 pb-10">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent">
-            <span className="size-1.5 rounded-full bg-accent" />
+      <section>
+        <div>
+          <div>
+            
             <span>FULL 13-PHASE PRODUCTION BLUEPRINT</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1>
             Thirteen phases. One enterprise client. No electives.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             Every module builds directly upon the previous phase to engineer a production claims pipeline for
             Meridian Mutual. 700 to 950 hours of structured, graded engineering.
           </p>
 
           {/* Phase jump rail */}
-          <div className="mt-8 flex gap-1.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div>
             {PHASES.map((p) => (
               <a
                 key={p.id}
                 href={`#${p.id}`}
-                className="shrink-0 rounded border border-line bg-raised px-2.5 py-1 font-mono text-xs text-ink-3 transition-colors hover:border-accent hover:text-accent"
               >
                 P{p.phaseNum}
               </a>
             ))}
             <a
               href="#capstone"
-              className="shrink-0 rounded border border-amber/40 bg-amber-soft px-2.5 py-1 font-mono text-xs text-amber transition-colors hover:bg-amber/20"
             >
               SECTION 14 SPEC
             </a>
@@ -284,8 +280,8 @@ export default function CurriculumPage() {
       </section>
 
       {/* Phase Timeline & Specification Grid */}
-      <section className="shell py-14">
-        <div className="space-y-8">
+      <section>
+        <div>
           {PHASES.map((phase) => (
             <PhaseBlock key={phase.id} phase={phase} firstUnitId={first?.id ?? null} />
           ))}
@@ -293,53 +289,51 @@ export default function CurriculumPage() {
       </section>
 
       {/* Section 14: Graduation Bar */}
-      <section id="capstone" className="border-t border-line bg-raised/30 py-16">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent">
-            <IconAward size={14} />
+      <section id="capstone">
+        <div>
+          <div>
             <span>SECTION 14 QUALIFICATION CRITERIA</span>
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2>
             What completion and delivery readiness actually mean.
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             Graduation requires clearing all five mandatory criteria. No multiple-choice tests.
             Your credential is an immutable cryptographic ledger of your git commits, passing test runner logs, and recorded technical defenses.
           </p>
 
-          <div className="mt-8 divide-y divide-line border-y border-line">
+          <div>
             {SECTION_14_CRITERIA.map((criterion, index) => (
-              <div key={criterion.title} className="grid gap-2 py-4 sm:grid-cols-[220px_1fr] sm:gap-6">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-accent font-semibold">CHECK 0{index + 1}</span>
-                  <h3 className="text-xs font-semibold text-ink">{criterion.title}</h3>
+              <div key={criterion.title}>
+                <div>
+                  <span>CHECK 0{index + 1}</span>
+                  <h3>{criterion.title}</h3>
                 </div>
-                <p className="text-xs leading-relaxed text-ink-2">{criterion.description}</p>
+                <p>{criterion.description}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded border border-accent/30 bg-accent-soft p-4 font-mono text-xs text-ink-2">
-            <span className="text-ink font-semibold">DELIVERY-READY CREDENTIAL:</span> Clearing all 5 checks certifies your production code with public git signatures and full evaluation telemetry.
+          <div>
+            <span>DELIVERY-READY CREDENTIAL:</span> Clearing all 5 checks certifies your production code with public git signatures and full evaluation telemetry.
           </div>
         </div>
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-line bg-canvas py-12">
-        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <section>
+        <div>
           <div>
-            <h2 className="text-lg font-semibold text-ink">Ready to start Phase 3?</h2>
-            <p className="text-xs text-ink-3">
+            <h2>Ready to start Phase 3?</h2>
+            <p>
               Unit 3.2.1 is open for enrollment with active sandbox evaluation.
             </p>
           </div>
           {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary">
+            <Link href={`/units/${first.id}`}>
               <span>Start Unit {first.id} [Live Workbench]</span>
-              <IconArrowRight size={14} />
             </Link>
           ) : null}
         </div>
@@ -350,50 +344,49 @@ export default function CurriculumPage() {
 
 function PhaseBlock({ phase, firstUnitId }: { phase: Phase; firstUnitId: string | null }) {
   return (
-    <article id={phase.id} className="rounded-lg border border-line bg-raised overflow-hidden scroll-mt-20">
+    <article id={phase.id}>
       {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-5 py-3">
-        <div className="flex items-center gap-3">
-          <span className="rounded border border-line bg-raised px-2 py-0.5 font-mono text-xs font-semibold text-accent">
+      <div>
+        <div>
+          <span>
             PHASE 0{phase.phaseNum}
           </span>
-          <h2 className="text-sm font-semibold tracking-tight text-ink">{phase.name}</h2>
+          <h2>{phase.name}</h2>
         </div>
-        <div className="flex items-center gap-3 font-mono text-xs">
+        <div>
           {phase.badge ? (
-            <span className="rounded border border-amber/40 bg-amber-soft px-2 py-0.5 text-amber">
+            <span>
               {phase.badge}
             </span>
           ) : null}
-          <span className="text-ink-3 tabular-nums">{phase.estHours}</span>
+          <span>{phase.estHours}</span>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-1">
-            <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider">
+      <div>
+        <div>
+          <div>
+            <span>
               ENGINEERING RATIONALE
             </span>
-            <p className="text-xs leading-relaxed text-ink-2">{phase.why}</p>
+            <p>{phase.why}</p>
           </div>
-          <div className="space-y-1">
-            <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider">
+          <div>
+            <span>
               CONCRETE OUTCOME
             </span>
-            <p className="text-xs leading-relaxed text-ink-2">{phase.outcome}</p>
+            <p>{phase.outcome}</p>
           </div>
         </div>
 
         {/* Modules */}
-        <div className="pt-3 border-t border-line">
-          <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider">
+        <div>
+          <span>
             CORE DELIVERABLES & MODULES
           </span>
-          <ul className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+          <ul>
             {phase.modules.map((m) => (
-              <li key={m} className="flex items-start gap-2 text-xs text-ink-2">
-                <IconCheck size={12} className="mt-0.5 shrink-0 text-accent" />
+              <li key={m}>
                 <span>{m}</span>
               </li>
             ))}
@@ -401,14 +394,13 @@ function PhaseBlock({ phase, firstUnitId }: { phase: Phase; firstUnitId: string 
         </div>
 
         {phase.note ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-line bg-inset px-4 py-2.5">
-            <p className="text-xs text-ink-3">
-              <span className="text-ink-2 font-mono font-medium">SPEC NOTE:</span> {phase.note}
+          <div>
+            <p>
+              <span>SPEC NOTE:</span> {phase.note}
             </p>
             {phase.phaseNum === 3 && firstUnitId ? (
-              <Link href={`/units/${firstUnitId}`} className="link-arrow shrink-0 text-xs">
+              <Link href={`/units/${firstUnitId}`}>
                 <span>Start Unit {firstUnitId}</span>
-                <IconArrowRight size={12} />
               </Link>
             ) : null}
           </div>

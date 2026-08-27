@@ -31,17 +31,19 @@ Routes:
     GET  /practice/retrieval/attempts?student_id=<id>&unit=<id> -> student retrieval attempt history
     GET  /practice/retrieval/schedule?student_id=<id>[&unit=<id>] -> derived spaced re-check schedule (S3.3)
     GET  /practice/route?student_id=<id>&unit=<id>        -> derived adaptive practice route (S3.4)
+    POST /concierge/ask                                   -> derive mode -> call proxy -> persist -> return {mode, mode_reason, answer, tokens_charged} (S3.5)
+    GET  /concierge/turns?student_id=<id>&unit=<id>       -> student concierge turn history (S3.5)
 
 Security & Boundaries:
     - Auth: X-Keel-App-Token header matched to env KEEL_ENROLL_SECRET.
-    - Enrollment Gate: Only students with an ACTIVE enrollment for the unit may attempt.
+    - Enrollment Gate: Only students with an ACTIVE enrollment for the unit may attempt / ask.
     - Whitelisting (completion): Only files in the unit's editable_files whitelist are accepted.
-    - Budget Gate (retrieval): Grader routes through the platform proxy; 429 budget_exceeded
-      declines the drill BEFORE any model call and writes zero attempt rows.
+    - Budget Gate (retrieval & concierge): Grader routes through the platform proxy; 429 budget_exceeded
+      declines the request BEFORE any model call and writes zero attempt/turn rows.
     - Untrusted code execution: Sandbox only (Docker via platform/grading/layer1.py).
-    - Untrusted answers: Quoted as data, anti-injection prompt defense applied.
-    - DB Access: Env KEEL_DB_CMD via shared db.py; attempt rows + spine events
-      (practice.attempt_graded, practice.retrieval_graded) commit in atomic transactions.
+    - Untrusted answers & questions: Quoted as data, anti-injection prompt defense applied.
+    - DB Access: Env KEEL_DB_CMD via shared db.py; attempt/turn rows + spine events
+      (practice.attempt_graded, practice.retrieval_graded, concierge.answered) commit in atomic transactions.
 """
 
 from __future__ import annotations
@@ -234,6 +236,91 @@ def get_retrieval_prompt_text(unit_id: str) -> str:
     if general_prompt.is_file():
         return general_prompt.read_text(encoding="utf-8")
     raise RuntimeError(f"retrieval judge prompt not found in {prompts_dir}")
+
+
+def get_concierge_teach_prompt(unit_id: str) -> str:
+    """Read concierge teach prompt template from content/prompts/ (S3.5)."""
+    root = content_root()
+    prompts_dir = root / "prompts"
+    unit_prompt = prompts_dir / f"concierge-teach-{unit_id}.md"
+    general_prompt = prompts_dir / "concierge-teach.md"
+    if unit_prompt.is_file():
+        return unit_prompt.read_text(encoding="utf-8")
+    if general_prompt.is_file():
+        return general_prompt.read_text(encoding="utf-8")
+    raise RuntimeError(f"concierge teach prompt not found in {prompts_dir}")
+
+
+def get_concierge_guard_prompt(unit_id: str) -> str:
+    """Read concierge guard prompt template from content/prompts/ (S3.5)."""
+    root = content_root()
+    prompts_dir = root / "prompts"
+    unit_prompt = prompts_dir / f"concierge-guard-{unit_id}.md"
+    general_prompt = prompts_dir / "concierge-guard.md"
+    if unit_prompt.is_file():
+        return unit_prompt.read_text(encoding="utf-8")
+    if general_prompt.is_file():
+        return general_prompt.read_text(encoding="utf-8")
+    raise RuntimeError(f"concierge guard prompt not found in {prompts_dir}")
+
+
+def get_unit_faq_text(unit_id: str) -> str:
+    """Read unit FAQ markdown from content repo if available."""
+    root = content_root()
+    faq_path = root / "faq" / f"{unit_id}.md"
+    if faq_path.is_file():
+        try:
+            return faq_path.read_text(encoding="utf-8")
+        except Exception:
+            return ""
+    matches = sorted(root.glob(f"units/*/{unit_id}/unit.yaml"))
+    if matches:
+        try:
+            unit_data = yaml.safe_load(matches[0].read_text(encoding="utf-8"))
+            unstuck = unit_data.get("unstuck") or []
+            if unstuck:
+                lines = ["## Unstuck Guidelines\n"]
+                for item in unstuck:
+                    symptom = item.get("symptom", "")
+                    fix_ref = item.get("fix_ref", "")
+                    lines.append(f"- Symptom: {symptom} (Ref: {fix_ref})")
+                return "\n".join(lines)
+        except Exception:
+            pass
+    return ""
+
+
+def get_unit_guard_context(unit_id: str) -> tuple[str, str]:
+    """Read deliverable text and rubric criteria summary for unit_id."""
+    root = content_root()
+    matches = sorted(root.glob(f"units/*/{unit_id}/unit.yaml"))
+    if not matches:
+        raise RuntimeError(f"unit {unit_id} not found in content repository")
+    try:
+        unit_data = yaml.safe_load(matches[0].read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RuntimeError(f"failed to parse unit.yaml for {unit_id}: {exc}") from exc
+
+    deliverable = (unit_data.get("build") or {}).get("deliverable", "")
+    if not deliverable:
+        deliverable = f"Deliverable for unit {unit_id}"
+
+    # Load rubric criteria summary
+    rubric_rel = (unit_data.get("verify") or {}).get("rubric")
+    criteria_lines = []
+    if rubric_rel:
+        rubric_path = root / rubric_rel
+        if rubric_path.is_file():
+            try:
+                rdata = yaml.safe_load(rubric_path.read_text(encoding="utf-8"))
+                for crit in rdata.get("criteria", []):
+                    cid = crit.get("id", "")
+                    desc = crit.get("description", "")
+                    criteria_lines.append(f"- {cid}: {desc}")
+            except Exception:
+                pass
+    rubric_summary = "\n".join(criteria_lines) if criteria_lines else "Standard unit rubric criteria apply."
+    return deliverable, rubric_summary
 
 
 # --------------------------------------------------------------------------
@@ -833,10 +920,11 @@ def _log_trace_call(
     completion_tokens: int = 0,
     response: str | None = None,
     error: str | None = None,
+    caller: str = "retrieval",
 ) -> None:
     record = {
         "ts": datetime.now(timezone.utc).isoformat(),
-        "caller": "retrieval",
+        "caller": caller,
         "model": model,
         "tier": "low",
         "attempt": attempt,
@@ -1028,6 +1116,220 @@ def grade_retrieval_answer(
     raise MalformedJudgeError("unreachable")
 
 
+# --------------------------------------------------------------------------
+# S3.5 — concierge v1: server-side teach/guard mode switch & proxy routing
+# --------------------------------------------------------------------------
+
+def derive_concierge_mode(route_status: str | None, recommended_step: str | None = None) -> tuple[str, str]:
+    """Derive concierge mode and reason from route status and step (S3.5).
+
+    Rule: completed -> guard, otherwise teach.
+    """
+    if route_status == "completed":
+        return "guard", "Practice route completed (build context): Socratic unblocking active; deliverable generation refused."
+    step = recommended_step or "practice"
+    return "teach", f"Practice route in progress ({step} context): free explanation and micro-exercises active."
+
+
+def compose_concierge_messages(unit_id: str, question: str, mode: str = "guard") -> list[dict[str, str]]:
+    """Compose the exact system and user messages for a concierge query (S3.5, S3.6)."""
+    if mode == "teach":
+        prompt_instructions = get_concierge_teach_prompt(unit_id)
+        learn_text = get_unit_learn_text(unit_id)
+        budget = excerpt_char_budget()
+        if budget > 0 and len(learn_text) > budget:
+            excerpt_body, excerpt_sections = select_lesson_excerpt(learn_text, question, budget)
+        else:
+            excerpt_body, excerpt_sections = learn_text, []
+        if excerpt_sections:
+            lesson_header = (
+                f"Lesson Material (excerpt: {len(excerpt_body)} of {len(learn_text)} chars; "
+                f"sections: {' | '.join(excerpt_sections)}):"
+            )
+        else:
+            lesson_header = f"Lesson Material (full lesson: {len(learn_text)} chars):"
+
+        parts = [f"{lesson_header}\n{excerpt_body}"]
+        faq_text = get_unit_faq_text(unit_id)
+        if faq_text:
+            parts.append(f"Unit FAQ and Unstuck Context:\n{faq_text}")
+        parts.append(f"Student Question:\n<student_question>\n{question.strip()}\n</student_question>")
+        user_content = "\n\n".join(parts)
+    else:
+        prompt_instructions = get_concierge_guard_prompt(unit_id)
+        deliverable_text, rubric_summary = get_unit_guard_context(unit_id)
+        parts = [
+            f"Unit Deliverable Specification:\n{deliverable_text}",
+            f"Grading Rubric Criteria (What is Graded):\n{rubric_summary}",
+            f"Student Question:\n<student_question>\n{question.strip()}\n</student_question>",
+        ]
+        user_content = "\n\n".join(parts)
+
+    return [
+        {"role": "system", "content": prompt_instructions},
+        {"role": "user", "content": user_content},
+    ]
+
+
+def ask_concierge(
+    student_id: int,
+    unit_id: str,
+    question: str,
+) -> tuple[str, str, str, int]:
+    """Derive mode from student route state, compose prompt, call proxy, and return
+    (mode, mode_reason, answer, tokens_charged).
+    """
+    # 1. Query attempt history (read-only, wrapped in BEGIN/ROLLBACK)
+    attempts_sql = """BEGIN;
+SELECT 'retrieval' AS kind, id, seed_index, (passed = 't')::text, 0 AS pass_count, 0 AS total_checks, created_at::text
+FROM retrieval_attempts
+WHERE student_id = %d AND unit_id = %s
+UNION ALL
+SELECT 'practice' AS kind, id, -1 AS seed_index, (passed = 't')::text, pass_count, total_checks, created_at::text
+FROM practice_attempts
+WHERE student_id = %d AND unit_id = %s
+ORDER BY 1, 2 ASC;
+ROLLBACK;
+""" % (student_id, sql_str(unit_id), student_id, sql_str(unit_id))
+    try:
+        rows = db_sql(attempts_sql)
+    except Exception as exc:
+        raise RuntimeError(f"failed to query attempt history: {exc}") from exc
+
+    retrieval_attempts: list[dict[str, Any]] = []
+    practice_attempts: list[dict[str, Any]] = []
+    for r in rows:
+        kind, att_id, s_idx, passed_str, p_count, tot_checks, created_at = r
+        passed = (passed_str == "true" or passed_str == "t" or passed_str is True)
+        if kind == "retrieval":
+            retrieval_attempts.append({
+                "id": int(att_id),
+                "seed_index": int(s_idx),
+                "passed": passed,
+                "created_at": created_at,
+            })
+        else:
+            practice_attempts.append({
+                "id": int(att_id),
+                "passed": passed,
+                "pass_count": int(p_count),
+                "total_checks": int(tot_checks),
+                "created_at": created_at,
+            })
+
+    seeds = get_unit_retrieval_seeds(unit_id)
+    rules = get_unit_routing_rules(unit_id) or {}
+    route_data = derive_unit_practice_route(
+        student_id=student_id,
+        unit_id=unit_id,
+        is_enrolled=True,
+        retrieval_attempts=retrieval_attempts,
+        practice_attempts=practice_attempts,
+        seeds=seeds,
+        rules=rules,
+    )
+
+    # 2. Derive mode structurally from route state (v1 rule: completed -> guard, otherwise teach)
+    mode, mode_reason = derive_concierge_mode(
+        route_data.get("status"),
+        route_data.get("recommended_step"),
+    )
+
+    # 3. Context composition
+    messages = compose_concierge_messages(unit_id, question, mode=mode)
+
+    # 4. Call LLM Proxy
+    proxy_url = os.environ.get("KEEL_PROXY_URL") or os.environ.get("KEEL_LLM_BASE_URL")
+    if proxy_url:
+        if not proxy_url.endswith("/v1"):
+            proxy_url = proxy_url.rstrip("/") + "/v1"
+        endpoint = proxy_url.rstrip("/") + "/chat/completions"
+    else:
+        endpoint = "http://127.0.0.1:8788/v1/chat/completions"
+
+    model = os.environ.get("KEEL_CONCIERGE_MODEL", "gpt-4o-mini")
+    call_id = f"concierge-{student_id}-{uuid.uuid4().hex[:8]}"
+
+    req_body = json.dumps({
+        "model": model,
+        "messages": messages,
+        "temperature": 0.2 if mode == "teach" else 0.0,
+    }).encode("utf-8")
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Keel-Student-Id": str(student_id),
+    }
+    key = os.environ.get("OPENAI_API_KEY")
+    if key and "api.openai.com" in endpoint:
+        headers["Authorization"] = f"Bearer {key}"
+
+    req = urllib.request.Request(endpoint, data=req_body, headers=headers, method="POST")
+    start = time.monotonic()
+
+    try:
+        with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT_S) as resp:
+            resp_raw = resp.read()
+    except urllib.error.HTTPError as exc:
+        latency = time.monotonic() - start
+        err_body = exc.read().decode(errors="replace")
+        _log_trace_call(
+            call_id=call_id,
+            attempt=1,
+            model=model,
+            messages=messages,
+            latency_s=latency,
+            error=f"API HTTP {exc.code}: {err_body[:500]}",
+            caller="concierge",
+        )
+        if exc.code == 429:
+            raise BudgetExceeded("token budget exceeded") from exc
+        raise UpstreamError(f"proxy returned HTTP {exc.code}: {err_body[:500]}") from exc
+    except Exception as exc:
+        latency = time.monotonic() - start
+        _log_trace_call(
+            call_id=call_id,
+            attempt=1,
+            model=model,
+            messages=messages,
+            latency_s=latency,
+            error=f"API connection error: {exc}",
+            caller="concierge",
+        )
+        raise UpstreamError(f"proxy connection failed: {exc}") from exc
+
+    latency = time.monotonic() - start
+    try:
+        resp_data = json.loads(resp_raw.decode("utf-8"))
+    except Exception as exc:
+        raise UpstreamError(f"bad upstream JSON response: {exc}") from exc
+
+    usage = resp_data.get("usage") or {}
+    prompt_tokens = int(usage.get("prompt_tokens") or 0)
+    completion_tokens = int(usage.get("completion_tokens") or 0)
+    total_tokens_charged = prompt_tokens + completion_tokens
+
+    choices = resp_data.get("choices") or []
+    if not choices or "message" not in choices[0]:
+        raise UpstreamError("no message choices in upstream response")
+
+    answer_text = choices[0]["message"].get("content", "")
+
+    _log_trace_call(
+        call_id=call_id,
+        attempt=1,
+        model=resp_data.get("model", model),
+        messages=messages,
+        latency_s=latency,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        response=answer_text,
+        caller="concierge",
+    )
+
+    return mode, mode_reason, answer_text, total_tokens_charged
+
+
 class PracticeHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -1162,6 +1464,25 @@ class PracticeHandler(BaseHTTPRequestHandler):
             self._handle_get_manifest(unit_id)
             return
 
+        # GET /concierge/turns?student_id=<id>&unit=<id> OR /students/<id>/concierge/turns (S3.5)
+        if parsed.path == "/concierge/turns":
+            sid_str = (query.get("student_id") or [""])[0]
+            uid = (query.get("unit") or [""])[0]
+            if not sid_str.isdigit() or not UNIT_RE.match(uid):
+                self._respond(400, {"error": "student_id (int) and unit (x.y.z) required"})
+                return
+            self._handle_get_concierge_turns(int(sid_str), uid)
+            return
+        m_cturns = re.match(r"^/students/(\d{1,15})/concierge/turns$", parsed.path)
+        if m_cturns:
+            sid = int(m_cturns.group(1))
+            uid = (query.get("unit") or [""])[0]
+            if not UNIT_RE.match(uid):
+                self._respond(400, {"error": "unit query parameter required"})
+                return
+            self._handle_get_concierge_turns(sid, uid)
+            return
+
         # GET /practice/attempts?student_id=<id>&unit=<id> OR /students/<id>/practice/attempts
         if parsed.path == "/practice/attempts":
             sid_str = (query.get("student_id") or [""])[0]
@@ -1183,6 +1504,35 @@ class PracticeHandler(BaseHTTPRequestHandler):
             return
 
         self._respond(404, {"error": "not found"})
+
+    def _handle_get_concierge_turns(self, student_id: int, unit_id: str) -> None:
+        sql = """BEGIN;
+SELECT id, student_id, unit_id, mode, question, answer, tokens_charged, created_at::text
+FROM concierge_turns
+WHERE student_id = %d AND unit_id = %s
+ORDER BY id ASC
+LIMIT 100;
+ROLLBACK;
+""" % (student_id, sql_str(unit_id))
+        try:
+            rows = db_sql(sql)
+        except Exception:
+            self._respond(500, {"error": "database error"})
+            return
+
+        turns = []
+        for r in rows:
+            turns.append({
+                "id": int(r[0]),
+                "student_id": int(r[1]),
+                "unit_id": r[2],
+                "mode": r[3],
+                "question": r[4],
+                "answer": r[5],
+                "tokens_charged": int(r[6]),
+                "created_at": str(r[7]),
+            })
+        self._respond(200, {"turns": turns})
 
     def _handle_get_manifest(self, unit_id: str) -> None:
         if not UNIT_RE.match(unit_id):
@@ -1474,6 +1824,15 @@ ROLLBACK;
             return
 
         parsed = urllib.parse.urlsplit(self.path)
+
+        # Concierge ask (S3.5)
+        if parsed.path in ("/concierge/ask", "/concierge/submit"):
+            self._handle_concierge_ask()
+            return
+        m_cask = re.match(r"^/units/(\d+\.\d+\.\d+)/concierge/ask$", parsed.path)
+        if m_cask:
+            self._handle_concierge_ask(unit_id_override=m_cask.group(1))
+            return
 
         # Retrieval drill attempt
         if parsed.path in ("/practice/retrieval/attempt", "/practice/retrieval/submit"):
@@ -1848,6 +2207,148 @@ COMMIT;
             "tokens_charged": tokens_charged,
             "created_at": created_at_val,
             "excerpt": excerpt_meta,
+        })
+
+    def _handle_concierge_ask(self, unit_id_override: str | None = None) -> None:
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        unit_id = unit_id_override or payload.get("unit_id")
+        question = payload.get("question")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(unit_id, str) or not UNIT_RE.match(unit_id):
+            self._respond(422, {"error": "unit_id (x.y.z) is required"})
+            return
+        if not isinstance(question, str) or not question.strip():
+            self._respond(422, {"error": "question (non-empty string) is required"})
+            return
+        if len(question.encode("utf-8")) > MAX_FILE_BYTES:
+            self._respond(400, {"error": "question_too_large"})
+            return
+        if "\0" in question:
+            self._respond(400, {"error": "binary_content_rejected"})
+            return
+
+        # 1. Check student existence and active enrollment
+        gate_sql = """BEGIN;
+SELECT EXISTS (
+    SELECT 1 FROM enrollments
+    WHERE student_id = %d AND unit_id = %s AND status = 'active'
+), EXISTS (
+    SELECT 1 FROM students WHERE id = %d
+);
+ROLLBACK;
+""" % (student_id, sql_str(unit_id), student_id)
+        try:
+            gate_rows = db_sql(gate_sql)
+        except Exception:
+            self._respond(500, {"error": "database error"})
+            return
+
+        is_enrolled = gate_rows[0][0] == "t" or gate_rows[0][0] is True
+        student_exists = gate_rows[0][1] == "t" or gate_rows[0][1] is True
+
+        if not student_exists:
+            self._respond(404, {"error": "student_not_found"})
+            return
+        if not is_enrolled:
+            self._respond(403, {"error": "not_enrolled", "message": f"Active enrollment required for unit {unit_id}"})
+            return
+
+        # 2. Call concierge engine (derive mode, compose prompt, call proxy)
+        try:
+            mode, mode_reason, answer, tokens_charged = ask_concierge(
+                student_id=student_id,
+                unit_id=unit_id,
+                question=question.strip(),
+            )
+        except BudgetExceeded as exc:
+            self._respond(429, {"error": "budget_exceeded", "message": str(exc)})
+            return
+        except UpstreamError as exc:
+            self._respond(502, {"error": "upstream_failure", "detail": str(exc)})
+            return
+        except RuntimeError as exc:
+            sys.stderr.write(f"practice: concierge configuration/content error: {exc}\n")
+            self._respond(502, {"error": "concierge_prompt_not_found", "detail": str(exc)})
+            return
+        except Exception as exc:
+            sys.stderr.write(f"practice: concierge processing failure: {exc}\n")
+            self._respond(500, {"error": "concierge_error", "detail": str(exc)})
+            return
+
+        # 3. Atomic persistence: concierge_turns + concierge.answered spine event
+        now_override = practice_now_override()
+        if now_override is not None:
+            created_at_sql = sql_str(now_override.isoformat())
+        else:
+            created_at_sql = "now()"
+
+        persist_sql = """BEGIN;
+WITH turn AS (
+    INSERT INTO concierge_turns (
+        student_id, unit_id, mode, question, answer, tokens_charged, created_at
+    ) VALUES (
+        %d, %s, %s, %s, %s, %d, %s
+    )
+    RETURNING id, student_id, unit_id, mode, question, answer, tokens_charged, created_at
+), ev AS (
+    INSERT INTO events (type, payload)
+    SELECT 'concierge.answered',
+           jsonb_build_object(
+               'turn_id', id,
+               'student_id', student_id,
+               'unit_id', unit_id::text,
+               'mode', mode,
+               'tokens_charged', tokens_charged
+           )
+    FROM turn
+    RETURNING id
+)
+SELECT id, created_at FROM turn;
+COMMIT;
+""" % (
+            student_id,
+            sql_str(unit_id),
+            sql_str(mode),
+            sql_str(question.strip()),
+            sql_str(answer),
+            tokens_charged,
+            created_at_sql,
+        )
+
+        try:
+            persist_rows = db_sql(persist_sql)
+        except Exception as exc:
+            sys.stderr.write(f"practice: concierge DB persistence failed: {exc}\n")
+            self._respond(500, {"error": "database persistence error"})
+            return
+
+        turn_id = int(persist_rows[0][0])
+        created_at_val = str(persist_rows[0][1])
+
+        self._respond(200, {
+            "ok": True,
+            "turn_id": turn_id,
+            "student_id": student_id,
+            "unit_id": unit_id,
+            "mode": mode,
+            "mode_reason": mode_reason,
+            "answer": answer,
+            "tokens_charged": tokens_charged,
+            "created_at": created_at_val,
         })
 
 

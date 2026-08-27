@@ -8,16 +8,16 @@ export function SectionHeading({
   stepNumber?: string;
 }) {
   return (
-    <div className="max-w-3xl space-y-1.5">
+    <div>
       {stepNumber ? (
-        <span className="font-mono text-xs font-semibold text-accent uppercase tracking-wider block">
+        <span>
           STAGE {stepNumber}
         </span>
       ) : null}
-      <h2 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+      <h2>
         {title}
       </h2>
-      <p className="text-xs leading-relaxed text-ink-2 sm:text-sm">{lead}</p>
+      <p>{lead}</p>
     </div>
   );
 }

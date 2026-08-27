@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUnits } from "@/lib/content";
-import { Reveal } from "@/components/reveal";
-import { IconGitBranch, IconArrowRight, IconTerminal } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -75,20 +73,20 @@ export default function SubmitPage() {
   const unitId = first ? first.id : "3.2.1";
 
   return (
-    <div className="space-y-0">
+    <div>
       {/* Header */}
-      <section className="border-b border-line bg-canvas pt-12 pb-10">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent">
-            <span className="size-1.5 rounded-full bg-accent" />
+      <section>
+        <div>
+          <div>
+            
             <span>GIT INGESTION & RUNNER ARCHITECTURE PROTOCOL</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1>
             How to push and verify your work.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             No messy zip file uploads or browser code sandboxes. Write code in your local IDE, commit and push to
             GitHub, and let our isolated Linux containers execute test harnesses and evidence rubrics in seconds.
           </p>
@@ -96,41 +94,39 @@ export default function SubmitPage() {
       </section>
 
       {/* Repository Contract & Naming */}
-      <section className="shell py-14">
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="space-y-3">
-            <span className="font-mono text-[10px] text-accent uppercase tracking-wider">
+      <section>
+        <div>
+          <div>
+            <span>
               01 · REPOSITORY NAMING CONTRACT
             </span>
-            <h2 className="text-xl font-semibold text-ink">Deterministic Repository Binding</h2>
-            <p className="text-xs leading-relaxed text-ink-2">
+            <h2>Deterministic Repository Binding</h2>
+            <p>
               Each unit deliverable lives in a separate GitHub repository named with your unit ID and project suffix.
               Our intake daemon listens for push webhooks, resolves the target unit from the repository name, and binds your commit SHA.
             </p>
-            <p className="text-xs leading-relaxed text-ink-2">
+            <p>
               Your repository must expose the exact entrypoint specified in the unit&apos;s build contract. For Unit 3.2.1,
               the test harness imports <code>extract_claims.py</code> exposing <code>extract_claim(text: str) -&gt; ClaimExtraction</code>.
             </p>
             {first ? (
-              <Link href={`/units/${first.id}#build`} className="link-arrow text-xs pt-2 inline-flex">
+              <Link href={`/units/${first.id}#build`}>
                 <span>Inspect Unit {first.id} Contract Specification</span>
-                <IconArrowRight size={12} />
               </Link>
             ) : null}
           </div>
 
-          <div className="rounded-lg border border-line bg-raised p-6 flex flex-col justify-center space-y-4">
-            <div className="flex items-center justify-between font-mono text-xs text-ink-3">
-              <span className="flex items-center gap-2">
-                <IconGitBranch size={14} className="text-accent" />
+          <div>
+            <div>
+              <span>
                 <span>REPO BINDING PATTERN</span>
               </span>
-              <span className="text-pass">MATCH RULE ACTIVE</span>
+              <span>MATCH RULE ACTIVE</span>
             </div>
-            <code className="block rounded border border-line bg-inset p-3 font-mono text-xs text-accent">
+            <code>
               keel-{unitId}-claims-extractor
             </code>
-            <p className="text-[11px] font-mono text-ink-3 leading-relaxed">
+            <p>
               Push to main. Webhook signature validated via HMAC-SHA256. Ephemeral Docker sandbox spawns within 800ms.
             </p>
           </div>
@@ -138,28 +134,27 @@ export default function SubmitPage() {
       </section>
 
       {/* 4-Stage Lifecycle Stepper */}
-      <section className="border-t border-line bg-raised/30 py-14">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-accent">
-            <IconTerminal size={14} />
+      <section>
+        <div>
+          <div>
             <span>02 · RUNNER PIPELINE EXECUTION</span>
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2>
             The four-stage automated grading lifecycle.
           </h2>
 
-          <div className="mt-8 space-y-6">
+          <div>
             {LIFECYCLE_STEPS.map((step, index) => (
-              <div key={step.name} className="rounded border border-line bg-raised p-5 grid gap-4 lg:grid-cols-[220px_1fr] items-start">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-accent">
+              <div key={step.name}>
+                <div>
+                  <div>
                     <span>STAGE 0{index + 1}</span>
                   </div>
-                  <h3 className="text-xs font-semibold text-ink">{step.name}</h3>
-                  <p className="text-[11px] leading-relaxed text-ink-3">{step.detail}</p>
+                  <h3>{step.name}</h3>
+                  <p>{step.detail}</p>
                 </div>
-                <div className="rounded border border-line bg-inset p-3 overflow-x-auto font-mono text-[11px] text-ink-2">
+                <div>
                   <pre><code>{step.code}</code></pre>
                 </div>
               </div>
@@ -169,24 +164,24 @@ export default function SubmitPage() {
       </section>
 
       {/* Status Taxonomy Grid */}
-      <section className="border-t border-line bg-canvas py-14">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-ink-3">
+      <section>
+        <div>
+          <div>
             <span>03 · STATUS TAXONOMY</span>
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2>
             Submission status dictionary.
           </h2>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div>
             {STATUS_TAXONOMY.map((item) => (
-              <div key={item.status} className="rounded border border-line bg-raised p-5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className={item.tone}>{item.status}</span>
+              <div key={item.status}>
+                <div>
+                  <span>{item.status}</span>
                 </div>
-                <h3 className="text-xs font-semibold text-ink">{item.summary}</h3>
-                <p className="text-xs text-ink-3 leading-relaxed">{item.detail}</p>
+                <h3>{item.summary}</h3>
+                <p>{item.detail}</p>
               </div>
             ))}
           </div>
@@ -194,17 +189,16 @@ export default function SubmitPage() {
       </section>
 
       {/* Cockpit link callout */}
-      <section className="border-t border-line bg-raised/40 py-12">
-        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <section>
+        <div>
           <div>
-            <h3 className="text-base font-semibold text-ink">Link your GitHub repository in the Cockpit</h3>
-            <p className="text-xs text-ink-3">
+            <h3>Link your GitHub repository in the Cockpit</h3>
+            <p>
               Track active unit submissions, view raw runner logs, and inspect rubric proof quotes.
             </p>
           </div>
-          <Link href="/me" className="btn-ghost">
+          <Link href="/me">
             <span>Open Learner Cockpit</span>
-            <IconArrowRight size={13} />
           </Link>
         </div>
       </section>

@@ -26,16 +26,6 @@ import {
   type PracticeResult,
   type RecheckSchedule,
 } from "@/lib/practice";
-import {
-  IconArrowRight,
-  IconAward,
-  IconZap,
-  IconAlertTriangle,
-  IconClock,
-  IconCpu,
-  IconLock,
-  IconUnlock,
-} from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -62,28 +52,26 @@ export default async function MePage({ searchParams }: Props) {
   const bridged = await ensureStudent(user);
 
   return (
-    <div className="space-y-0">
+    <div>
       {/* Flight deck header */}
-      <header className="border-b border-line bg-canvas pt-10 pb-8">
-        <div className="shell max-w-5xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <span className="grid size-10 place-items-center rounded border border-line-strong bg-raised text-accent">
-                <IconCpu size={18} />
-              </span>
+      <header>
+        <div>
+          <div>
+            <div>
+              
               <div>
-                <span className="font-mono text-[10px] text-accent uppercase tracking-wider font-semibold block">
+                <span>
                   LEARNER FLIGHT COCKPIT
                 </span>
-                <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+                <h1>
                   {user.name ?? user.email}
                 </h1>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="inline-flex items-center gap-1.5 rounded border border-line bg-raised px-2.5 py-1 text-ink-3">
-                <span className="size-1.5 rounded-full bg-pass" />
+            <div>
+              <span>
+                
                 <span>{bridged.state === "ok" ? `STUDENT ID #${bridged.data}` : "GUEST SESSION"}</span>
               </span>
             </div>
@@ -92,11 +80,9 @@ export default async function MePage({ searchParams }: Props) {
           {checkout ? (
             <div
               role="alert"
-              className="mt-6 flex items-start gap-3 rounded border border-fail/40 bg-fail-soft p-4"
             >
-              <IconAlertTriangle size={15} className="mt-0.5 shrink-0 text-fail" />
-              <p className="text-xs leading-relaxed text-ink-2">
-                <span className="font-semibold text-fail font-mono">CHECKOUT ERROR:</span>{" "}
+              <p>
+                <span>CHECKOUT ERROR:</span>{" "}
                 {CHECKOUT_ERRORS[checkout] ?? "Checkout could not start. Nothing was charged."}
               </p>
             </div>
@@ -104,13 +90,13 @@ export default async function MePage({ searchParams }: Props) {
         </div>
       </header>
 
-      <div className="shell max-w-5xl py-8">
+      <div>
         {bridged.state === "ok" ? (
           <EnrolledSections studentId={bridged.data} />
         ) : (
-          <div className="rounded border border-line bg-raised p-6 space-y-2">
-            <h2 className="text-sm font-semibold text-ink">Enrollment Service Suspended</h2>
-            <p className="text-xs leading-relaxed text-ink-3">
+          <div>
+            <h2>Enrollment Service Suspended</h2>
+            <p>
               The enrollment service is temporarily unavailable. Your signed-in session is active;
               refresh in a moment to reload your grading profile.
             </p>
@@ -147,31 +133,28 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
   const pctUsed = Math.min(100, Math.round((usedTokens / capTokens) * 100));
 
   return (
-    <div className="space-y-8">
+    <div>
       {/* Token budget meter */}
       {budget ? (
-        <section className="rounded-lg border border-line bg-raised p-5 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="grid size-7 place-items-center rounded border border-line bg-inset text-accent">
-                <IconZap size={14} />
-              </span>
-              <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+        <section>
+          <div>
+            <div>
+              
+              <h2>
                 GRADING TOKEN CONSUMPTION BUDGET
               </h2>
             </div>
-            <span className="font-mono text-xs text-ink-3 tabular-nums">
+            <span>
               {usedTokens.toLocaleString("en-US")} / {capTokens.toLocaleString("en-US")} TOKENS ({pctUsed}%)
             </span>
           </div>
 
-          <div className="h-1.5 w-full overflow-hidden rounded bg-inset border border-line">
+          <div>
             <div
-              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${pctUsed}%` }}
             />
           </div>
-          <p className="font-mono text-[11px] text-ink-4">
+          <p>
             Tokens are consumed exclusively when the Layer 2 calibrated rubric judge evaluates your git commits.
           </p>
         </section>
@@ -181,49 +164,46 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
       <RecheckSection result={recheckResult} />
 
       {/* Curriculum units */}
-      <section className="rounded-lg border border-line bg-raised overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-5 py-3">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+      <section>
+        <div>
+          <div>
+            <span>
               CURRICULUM UNITS & BENCH ACCESS
             </span>
           </div>
-          <Link href="/map" className="link-arrow text-xs">
+          <Link href="/map">
             <span>View Meridian map</span>
-            <IconArrowRight size={11} />
           </Link>
         </div>
 
         {profileResult.state !== "ok" ? (
-          <p className="px-5 py-4 text-xs text-ink-3">
+          <p>
             Unable to load unit enrollments right now. Please refresh.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div>
+            <table>
               <thead>
-                <tr className="border-b border-line bg-inset/40 font-mono text-[10px] text-ink-4 uppercase">
-                  <th className="py-2.5 px-4 font-semibold">Unit Spec</th>
-                  <th className="py-2.5 px-4 font-semibold">Phase</th>
-                  <th className="py-2.5 px-4 font-semibold">Status</th>
-                  <th className="py-2.5 px-4 font-semibold text-right">Access</th>
+                <tr>
+                  <th>Unit Spec</th>
+                  <th>Phase</th>
+                  <th>Status</th>
+                  <th>Access</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody>
                 {units.map((unit) => {
                   const isEnrolled = enrolledUnits.has(unit.id);
                   return (
-                    <tr key={unit.id} className="hover:bg-raised-2/40 transition-colors">
-                      <td className="py-2.5 px-4 font-mono font-medium text-ink">Unit {unit.id}</td>
-                      <td className="py-2.5 px-4 font-mono text-ink-3">PHASE 0{unit.phase}</td>
-                      <td className="py-2.5 px-4">
-                        <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase font-semibold ${
-                          isEnrolled ? "border border-pass/30 bg-pass-soft text-pass" : "border border-line bg-inset text-ink-4"
-                        }`}>
+                    <tr key={unit.id}>
+                      <td>Unit {unit.id}</td>
+                      <td>PHASE 0{unit.phase}</td>
+                      <td>
+                        <span>
                           {isEnrolled ? "ENROLLED" : "AVAILABLE"}
                         </span>
                       </td>
-                      <td className="py-2.5 px-4 text-right">
+                      <td>
                         <UnitRowAction
                           unitId={unit.id}
                           enrolled={isEnrolled}
@@ -246,16 +226,15 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
       {rebates.length > 0 ? <RebateSection rebates={rebates} /> : null}
 
       {/* Submission history */}
-      <section className="rounded-lg border border-line bg-raised overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-5 py-3">
+      <section>
+        <div>
           <div>
-            <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+            <h2>
               IMMUTABLE SUBMISSION AUDIT LEDGER
             </h2>
           </div>
-          <Link href="/submit" className="link-arrow text-xs">
+          <Link href="/submit">
             <span>Submission protocol</span>
-            <IconArrowRight size={11} />
           </Link>
         </div>
 
@@ -278,9 +257,8 @@ function UnitRowAction({
 }) {
   if (enrolled) {
     return (
-      <Link href={`/units/${unitId}`} className="link-arrow text-xs inline-flex">
+      <Link href={`/units/${unitId}`}>
         <span>Open workbench</span>
-        <IconArrowRight size={11} />
       </Link>
     );
   }
@@ -291,7 +269,7 @@ function UnitRowAction({
   return (
     <form action={startCheckoutAction}>
       <input type="hidden" name="unit_id" value={unitId} />
-      <button type="submit" className="btn-ghost px-2.5 py-1 text-xs">
+      <button type="submit">
         {priceLabel ? `Enroll (${priceLabel})` : `Enroll unit ${unitId}`}
       </button>
     </form>
@@ -314,48 +292,43 @@ function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLooku
   );
 
   return (
-    <section className="rounded-lg border border-line bg-raised overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-line bg-inset px-5 py-3">
-        <span className="grid size-7 place-items-center rounded border border-line bg-raised text-accent">
-          <IconUnlock size={14} />
-        </span>
+    <section>
+      <div>
+        
         <div>
-          <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+          <h2>
             CRYPTOGRAPHIC GATE BARRIERS
           </h2>
         </div>
       </div>
 
       {lookup.state !== "ok" ? (
-        <p className="px-5 py-4 text-xs text-ink-3">
+        <p>
           Gate status is temporarily unavailable. Refresh in a moment.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div>
+          <table>
             <thead>
-              <tr className="border-b border-line bg-inset/40 font-mono text-[10px] text-ink-4 uppercase">
-                <th className="py-2.5 px-4 font-semibold">Milestone Gate</th>
-                <th className="py-2.5 px-4 font-semibold">Barrier Status</th>
-                <th className="py-2.5 px-4 font-semibold">Unlock Rule</th>
+              <tr>
+                <th>Milestone Gate</th>
+                <th>Barrier Status</th>
+                <th>Unlock Rule</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {rules.map((rule) => {
                 const clearedAt = passed.get(rule.gate_id);
                 const cleared = clearedAt !== undefined;
                 return (
-                  <tr key={rule.gate_id} className="hover:bg-raised-2/40 transition-colors">
-                    <td className="py-2.5 px-4 font-medium text-ink">{rule.title}</td>
-                    <td className="py-2.5 px-4">
-                      <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase font-semibold inline-flex items-center gap-1 ${
-                        cleared ? "border border-pass/30 bg-pass-soft text-pass" : "border border-line bg-inset text-ink-4"
-                      }`}>
-                        <IconLock size={10} className={cleared ? "hidden" : "inline"} />
+                  <tr key={rule.gate_id}>
+                    <td>{rule.title}</td>
+                    <td>
+                      <span>
                         {cleared ? "CLEARED" : "LOCKED"}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 text-xs text-ink-2 font-mono">
+                    <td>
                       {cleared && clearedAt
                         ? `Cleared on ${formatUtc(clearedAt.passed_at)}. ${gatesUnlocksSentence(rule, true)}`
                         : `${rule.summary} ${gatesUnlocksSentence(rule, false)}`}
@@ -398,42 +371,36 @@ function rebateStatusLine(rebate: Rebate): string {
 
 function RebateSection({ rebates }: { rebates: Rebate[] }) {
   return (
-    <section className="rounded-lg border border-line bg-raised overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-line bg-inset px-5 py-3">
-        <span className="grid size-7 place-items-center rounded border border-line bg-raised text-accent">
-          <IconAward size={14} />
-        </span>
+    <section>
+      <div>
+        
         <div>
-          <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+          <h2>
             30% COMPLETION REBATE LEDGER
           </h2>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      <div>
+        <table>
           <thead>
-            <tr className="border-b border-line bg-inset/40 font-mono text-[10px] text-ink-4 uppercase">
-              <th className="py-2.5 px-4 font-semibold">Rebate Milestone</th>
-              <th className="py-2.5 px-4 font-semibold">Ledger Status</th>
-              <th className="py-2.5 px-4 font-semibold">Settlement Details</th>
+            <tr>
+              <th>Rebate Milestone</th>
+              <th>Ledger Status</th>
+              <th>Settlement Details</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody>
             {rebates.map((rebate) => {
               return (
-                <tr key={rebate.gate_id} className="hover:bg-raised-2/40 transition-colors">
-                  <td className="py-2.5 px-4 font-medium text-ink font-mono">{gateLabel(rebate.gate_id)}</td>
-                  <td className="py-2.5 px-4">
-                    <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase font-semibold ${
-                      rebate.status === "paid" || rebate.status === "earned"
-                        ? "border border-pass/30 bg-pass-soft text-pass"
-                        : "border border-line bg-inset text-ink-3"
-                    }`}>
+                <tr key={rebate.gate_id}>
+                  <td>{gateLabel(rebate.gate_id)}</td>
+                  <td>
+                    <span>
                       {rebate.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="py-2.5 px-4 text-xs text-ink-2 font-mono">
+                  <td>
                     {rebateStatusLine(rebate)}
                   </td>
                 </tr>
@@ -458,58 +425,47 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
 
   return (
     <section
-      className="rounded-lg border border-line bg-raised overflow-hidden"
       data-keel-section="spaced-rechecks"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-inset px-5 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="grid size-7 place-items-center rounded border border-line bg-raised text-accent">
-            <IconClock size={14} />
-          </span>
-          <h2 className="font-mono text-xs font-semibold text-ink uppercase tracking-wider">
+      <div>
+        <div>
+          
+          <h2>
             SPACED RE-CHECKS
           </h2>
         </div>
         <span
-          className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase font-semibold ${
-            dueSeeds.length > 0
-              ? "border-warn/30 bg-warn-soft text-warn"
-              : "border-line bg-raised text-ink-3"
-          }`}
         >
           {`${dueSeeds.length} DUE`}
         </span>
       </div>
 
-      <div className="px-5 py-4">
+      <div>
         {!schedule ? (
-          <p className="text-xs text-ink-3">
+          <p>
             Re-check schedule is temporarily unavailable. Refresh in a moment.
           </p>
         ) : dueSeeds.length === 0 ? (
-          <p className="text-xs text-ink-3">
+          <p>
             No re-checks due. Passed drills come back here after 3 days, then 7 days.
             {nextDueAt ? ` Next scheduled: ${formatUtc(nextDueAt)}.` : ""}
           </p>
         ) : (
-          <ul className="divide-y divide-line">
+          <ul>
             {dueSeeds.map((s) => (
               <li
                 key={`${s.unit_id}-${s.seed_index}`}
-                className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
               >
-                <div className="min-w-0">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink-4">
+                <div>
+                  <span>
                     UNIT {s.unit_id} · QUESTION {s.seed_index + 1}
                   </span>
-                  <p className="mt-0.5 truncate text-xs text-ink-2">{s.seed_prompt}</p>
+                  <p>{s.seed_prompt}</p>
                 </div>
                 <Link
                   href={`/units/${s.unit_id}#practice`}
-                  className="link-arrow shrink-0 text-xs"
                 >
                   <span>Open drill</span>
-                  <IconArrowRight size={11} />
                 </Link>
               </li>
             ))}
@@ -527,7 +483,7 @@ function SubmissionsBody({
 }) {
   if (result.state === "unreachable" || result.state === "rejected") {
     return (
-      <p className="px-5 py-4 text-xs text-ink-3">
+      <p>
         Grading history is temporarily unavailable. Refresh in a moment.
       </p>
     );
@@ -535,65 +491,50 @@ function SubmissionsBody({
   const submissions = result.data.submissions;
   if (submissions.length === 0) {
     return (
-      <div className="px-5 py-6 space-y-2">
-        <p className="text-xs text-ink-3">No active submissions found in the runner queue.</p>
-        <Link href="/submit" className="link-arrow text-xs inline-flex">
+      <div>
+        <p>No active submissions found in the runner queue.</p>
+        <Link href="/submit">
           <span>View git submission instructions</span>
-          <IconArrowRight size={11} />
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
+    <div>
+      <table>
         <thead>
-          <tr className="border-b border-line bg-inset/40 font-mono text-[10px] text-ink-4 uppercase">
-            <th className="py-2.5 px-4 font-semibold">Submission SHA</th>
-            <th className="py-2.5 px-4 font-semibold">Target Unit</th>
-            <th className="py-2.5 px-4 font-semibold">Runner Pipeline</th>
-            <th className="py-2.5 px-4 font-semibold">Verdict</th>
-            <th className="py-2.5 px-4 font-semibold text-right">Timestamp (UTC)</th>
+          <tr>
+            <th>Submission SHA</th>
+            <th>Target Unit</th>
+            <th>Runner Pipeline</th>
+            <th>Verdict</th>
+            <th>Timestamp (UTC)</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-line font-mono">
+        <tbody>
           {submissions.map((s) => {
             return (
-              <tr key={s.id} className="hover:bg-raised-2/40 transition-colors">
-                <td className="py-2.5 px-4">
-                  <Link href={`/submissions/${s.id}`} className="text-accent hover:text-accent-strong">
+              <tr key={s.id}>
+                <td>
+                  <Link href={`/submissions/${s.id}`}>
                     #{s.id}
                   </Link>
                 </td>
-                <td className="py-2.5 px-4 text-ink font-medium">UNIT {s.unit_id}</td>
-                <td className="py-2.5 px-4">
+                <td>UNIT {s.unit_id}</td>
+                <td>
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] uppercase font-semibold ${
-                      s.status === "graded"
-                        ? "border border-line bg-inset text-ink-3"
-                        : s.status === "error"
-                          ? "border border-fail/30 bg-fail-soft text-fail"
-                          : "border border-accent/30 bg-accent-soft text-accent"
-                    }`}
                   >
                     {s.status}
                   </span>
                 </td>
-                <td className="py-2.5 px-4">
+                <td>
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] uppercase font-semibold ${
-                      s.overall === "pass"
-                        ? "border border-pass/30 bg-pass-soft text-pass"
-                        : s.overall === "fail"
-                          ? "border border-fail/30 bg-fail-soft text-fail"
-                          : "border border-warn/30 bg-warn-soft text-warn"
-                    }`}
                   >
                     {s.overall ?? "PENDING"}
                   </span>
                 </td>
-                <td className="py-2.5 px-4 text-right text-ink-4 tabular-nums text-[11px]">{formatUtc(s.created_at)}</td>
+                <td>{formatUtc(s.created_at)}</td>
               </tr>
             );
           })}

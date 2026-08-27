@@ -1,4 +1,21 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Keel Academy learner app
+
+## UI/UX STATUS: UNDECIDED
+
+**No UI/UX direction has been decided for this app.** A previous design
+system and a later full redesign were both fully torn down at the founder's
+direction. What remains is deliberate: every surface renders as plain,
+unstyled semantic HTML with zero CSS applied.
+
+Do not treat anything about the current presentation (structure, ordering,
+copy treatment, status chips, tables, markup patterns) as a design decision.
+It is not one. A future session chooses the visual direction from scratch,
+and records that decision in the repo-root `build-state.md` decisions log
+before writing any stylesheet.
+
+What IS decided and must be preserved: routes, functionality, data flows,
+and the exact text content of status/copy strings (the grading demo
+harnesses assert against them).
 
 ## Getting Started
 

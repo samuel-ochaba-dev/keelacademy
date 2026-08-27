@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listUnits } from "@/lib/content";
-import { Reveal } from "@/components/reveal";
-import { IconCheckCircle, IconArrowRight, IconAward, IconClock } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Transparent Pricing & 30% Completion Rebate",
@@ -83,20 +81,20 @@ export default function PricingPage() {
   const first = units[0];
 
   return (
-    <div className="space-y-0">
+    <div>
       {/* Header */}
-      <section className="border-b border-line bg-canvas pt-12 pb-10">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-amber">
-            <span className="size-1.5 rounded-full bg-amber" />
+      <section>
+        <div>
+          <div>
+            
             <span>TRANSPARENT TUITION & 30% REBATE CONSOLE</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1>
             Pay once. Earn 30% cash back by finishing.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             No recurring monthly subscriptions. Monthly fees quietly reward platforms for learner procrastination.
             We align incentives by refunding $585 to $735 in cash as you ship verified milestones on schedule.
           </p>
@@ -104,42 +102,38 @@ export default function PricingPage() {
       </section>
 
       {/* Tier Comparison Specification */}
-      <section className="shell py-14">
-        <div className="grid gap-8 lg:grid-cols-2">
+      <section>
+        <div>
           {TIERS.map((tier) => (
             <div
               key={tier.name}
-              className={`rounded-lg border bg-raised overflow-hidden flex flex-col justify-between ${
-                tier.popular ? "border-accent/40 shadow-xl" : "border-line"
-              }`}
             >
               <div>
                 {/* Tier header */}
-                <div className="border-b border-line bg-inset p-6 flex items-start justify-between">
+                <div>
                   <div>
-                    <span className="font-mono text-xs text-accent font-semibold uppercase">{tier.name}</span>
-                    <div className="mt-3 flex items-baseline gap-2">
-                      <span className="font-mono text-3xl font-bold text-ink tabular-nums">{tier.price}</span>
-                      <span className="font-mono text-xs text-ink-3">USD (ONE-TIME)</span>
+                    <span>{tier.name}</span>
+                    <div>
+                      <span>{tier.price}</span>
+                      <span>USD (ONE-TIME)</span>
                     </div>
-                    <p className="mt-2 text-xs text-ink-3">{tier.intro}</p>
+                    <p>{tier.intro}</p>
                   </div>
                   {tier.badge ? (
-                    <span className="rounded border border-accent/30 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent uppercase">
+                    <span>
                       {tier.badge}
                     </span>
                   ) : null}
                 </div>
 
                 {/* Features table */}
-                <div className="p-6">
-                  <span className="font-mono text-[10px] text-ink-4 uppercase tracking-wider">
+                <div>
+                  <span>
                     SPECIFICATION BREAKDOWN
                   </span>
-                  <ul className="mt-3 space-y-2.5">
+                  <ul>
                     {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5 text-xs text-ink-2">
-                        <IconCheckCircle size={13} className="mt-0.5 shrink-0 text-accent" />
+                      <li key={feature}>
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -148,14 +142,12 @@ export default function PricingPage() {
               </div>
 
               {/* Action button */}
-              <div className="border-t border-line bg-inset/50 p-6">
+              <div>
                 {first ? (
                   <Link
                     href={`/units/${first.id}`}
-                    className={`w-full ${tier.popular ? "btn-primary" : "btn-ghost"}`}
                   >
                     <span>{tier.cta}</span>
-                    <IconArrowRight size={13} />
                   </Link>
                 ) : null}
               </div>
@@ -165,68 +157,66 @@ export default function PricingPage() {
       </section>
 
       {/* Rebate Mechanics Table */}
-      <section className="border-t border-line bg-raised/30 py-14">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-pass">
-            <IconAward size={14} />
+      <section>
+        <div>
+          <div>
             <span>AUTOMATED 30% COMPLETION REBATE</span>
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2>
             Cash back milestones and refund triggers.
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+          <p>
             Clear passing test runs and code defense gates within 365 days of enrollment, and your refund is
             automatically credited to your original payment method via Stripe.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div>
             {REBATE_MILESTONES.map((milestone) => (
-              <div key={milestone.gate} className="rounded border border-line bg-raised p-5 space-y-3">
-                <div className="flex items-center justify-between font-mono text-xs">
-                  <span className="text-pass font-semibold">{milestone.rebate}</span>
-                  <span className="text-ink-4">{milestone.window}</span>
+              <div key={milestone.gate}>
+                <div>
+                  <span>{milestone.rebate}</span>
+                  <span>{milestone.window}</span>
                 </div>
-                <h3 className="text-sm font-semibold text-ink">{milestone.gate}</h3>
-                <p className="text-xs text-ink-3 leading-relaxed">{milestone.trigger}</p>
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-line font-mono text-xs">
-                  <div className="rounded bg-inset p-2">
-                    <span className="block text-[10px] text-ink-4 uppercase">Self-Guided</span>
-                    <span className="text-ink font-semibold">{milestone.selfGuided}</span>
+                <h3>{milestone.gate}</h3>
+                <p>{milestone.trigger}</p>
+                <div>
+                  <div>
+                    <span>Self-Guided</span>
+                    <span>{milestone.selfGuided}</span>
                   </div>
-                  <div className="rounded bg-inset p-2">
-                    <span className="block text-[10px] text-ink-4 uppercase">Cohort+</span>
-                    <span className="text-ink font-semibold">{milestone.cohortPlus}</span>
+                  <div>
+                    <span>Cohort+</span>
+                    <span>{milestone.cohortPlus}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 rounded border border-line bg-inset p-4 font-mono text-xs text-ink-3 space-y-1">
-            <p><span className="text-ink font-semibold">14-DAY RISK-FREE GUARANTEE:</span> If our text-first engineering format isn&apos;t the right fit, request a 100% full refund within 14 days before submitting your first deliverable.</p>
+          <div>
+            <p><span>14-DAY RISK-FREE GUARANTEE:</span> If our text-first engineering format isn&apos;t the right fit, request a 100% full refund within 14 days before submitting your first deliverable.</p>
           </div>
         </div>
       </section>
 
       {/* Commitment Protocol */}
-      <section id="commitment" className="border-t border-line bg-canvas py-14">
-        <div className="shell">
-          <div className="flex items-center gap-2 font-mono text-xs text-ink-3">
-            <IconClock size={14} className="text-accent" />
+      <section id="commitment">
+        <div>
+          <div>
             <span>LEARNER COMMITMENT PROTOCOL</span>
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2>
             The five expectations you agree to before enrolling.
           </h2>
 
-          <div className="mt-8 divide-y divide-line border-y border-line">
+          <div>
             {COMMITMENT_FACTS.map((fact, index) => (
-              <div key={fact.slice(0, 24)} className="grid grid-cols-[40px_1fr] items-baseline gap-4 py-4">
-                <span className="font-mono text-xs font-semibold text-accent">0{index + 1}</span>
-                <p className="text-xs leading-relaxed text-ink-2">{fact}</p>
+              <div key={fact.slice(0, 24)}>
+                <span>0{index + 1}</span>
+                <p>{fact}</p>
               </div>
             ))}
           </div>
@@ -234,18 +224,17 @@ export default function PricingPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-line bg-raised/40 py-12">
-        <div className="shell flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <section>
+        <div>
           <div>
-            <h2 className="text-lg font-semibold text-ink">Ready to verify your AI engineering skills?</h2>
-            <p className="text-xs text-ink-3">
+            <h2>Ready to verify your AI engineering skills?</h2>
+            <p>
               Unit 3.2.1 is available to start today with the complete grading loop.
             </p>
           </div>
           {first ? (
-            <Link href={`/units/${first.id}`} className="btn-primary">
+            <Link href={`/units/${first.id}`}>
               <span>Start Unit {first.id} [Live Workbench]</span>
-              <IconArrowRight size={14} />
             </Link>
           ) : null}
         </div>

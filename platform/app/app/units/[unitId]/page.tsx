@@ -7,15 +7,17 @@ import { PracticeSection } from "@/components/unit/practice-section";
 import { BuildSection } from "@/components/unit/build-section";
 import { VerifySection } from "@/components/unit/verify-section";
 import { UnstuckSection } from "@/components/unit/unstuck-section";
-import { IconArrowRight, IconChevronRight } from "@/components/icons";
+import { ConciergePanel } from "@/components/unit/concierge-panel";
 import { getSessionUser } from "@/lib/auth";
 import { ensureStudent, fetchProfile } from "@/lib/enroll";
 import {
+  fetchConciergeTurns,
   fetchPracticeAttempts,
   fetchPracticeManifest,
   fetchPracticeRoute,
   fetchRecheckSchedule,
   fetchRetrievalAttempts,
+  type ConciergeTurn,
   type PracticeAttemptSummary,
   type PracticeRouteData,
   type RetrievalAttemptSummary,
@@ -29,6 +31,7 @@ const SECTION_ANCHORS = [
   { id: "build", label: "Build" },
   { id: "verify", label: "Verify" },
   { id: "unstuck", label: "Unstuck" },
+  { id: "concierge", label: "Concierge" },
 ];
 
 function tryLoadUnit(unitId: string): Unit | null {
@@ -87,6 +90,7 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   let retrievalAttempts: RetrievalAttemptSummary[] = [];
   let dueSeedIndices: number[] = [];
   let routeData: PracticeRouteData | null = null;
+  let conciergeTurns: ConciergeTurn[] = [];
 
   if (user) {
     const studentRes = await ensureStudent(user);
@@ -117,6 +121,10 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
         if (routeRes.state === "ok") {
           routeData = routeRes.data;
         }
+        const turnsRes = await fetchConciergeTurns(studentId, unitId);
+        if (turnsRes.state === "ok") {
+          conciergeTurns = turnsRes.data.turns;
+        }
       }
     }
   }
@@ -126,38 +134,36 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
   const practiceServiceDown = manifestRes.state === "unreachable";
 
   return (
-    <article className="space-y-0">
+    <article>
       {/* Header */}
-      <header className="border-b border-line bg-canvas pt-8 pb-8">
-        <div className="shell">
-          <nav aria-label="Breadcrumb" className="crumbs">
+      <header>
+        <div>
+          <nav aria-label="Breadcrumb">
             <Link href="/curriculum">CURRICULUM</Link>
-            <IconChevronRight size={10} />
             <Link href={`/curriculum#phase-${yaml.phase}`}>PHASE-{yaml.phase}</Link>
-            <IconChevronRight size={10} />
-            <span className="text-ink font-semibold">UNIT-{yaml.id}</span>
+            <span>UNIT-{yaml.id}</span>
           </nav>
 
-          <div className="mt-5 flex flex-wrap items-start justify-between gap-6">
-            <div className="max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] text-accent font-semibold">
+          <div>
+            <div>
+              <div>
+                <span>
                   UNIT {yaml.id} SPECIFICATION
                 </span>
-                <span className="rounded border border-pass/40 bg-pass-soft px-2 py-0.5 font-mono text-[10px] text-pass font-semibold flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-pass" />
+                <span>
+                  
                   GRADING ACTIVE
                 </span>
               </div>
-              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              <h1>
                 {lesson?.title ?? curriculum?.title ?? `Unit ${yaml.id}`}
               </h1>
-              <p className="mt-2 font-mono text-xs text-ink-3">
+              <p>
                 PHASE {yaml.phase} · {yaml.est_hours ? `~${yaml.est_hours} HOURS` : "CORE DELIVERABLE"} · MERIDIAN MUTUAL CLAIMS CORPUS
               </p>
             </div>
 
-            <dl className="grid w-full max-w-md grid-cols-3 gap-px overflow-hidden rounded border border-line bg-line sm:w-auto font-mono">
+            <dl>
               <Spec label="Prerequisites" value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "ENTRY POINT"} />
               <Spec label="Unlocks" value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "PHASE GATE"} />
               <Spec label="Corpus Variant" value={yaml.build.data_variant} />
@@ -165,9 +171,9 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
           </div>
 
           {subtitleParts.length > 0 ? (
-            <div className="mt-5 flex flex-wrap gap-1.5">
+            <div>
               {subtitleParts.map((part) => (
-                <span key={part} className="rounded border border-line bg-raised px-2 py-0.5 font-mono text-[10px] text-ink-3">
+                <span key={part}>
                   {part}
                 </span>
               ))}
@@ -179,23 +185,20 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
       {/* Sticky section nav */}
       <nav
         aria-label="Unit sections"
-        className="sticky top-14 z-40 border-b border-line bg-ground/90 backdrop-blur-md"
       >
-        <div className="shell flex items-center justify-between gap-4 overflow-x-auto py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex gap-1">
+        <div>
+          <div>
             {SECTION_ANCHORS.map((anchor) => (
               <a
                 key={anchor.id}
                 href={`#${anchor.id}`}
-                className="rounded px-2.5 py-1 font-mono text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink"
               >
                 {anchor.label.toUpperCase()}
               </a>
             ))}
           </div>
-          <Link href="/submit" className="link-arrow shrink-0 text-xs">
+          <Link href="/submit">
             <span>Submission Guide</span>
-            <IconArrowRight size={11} />
           </Link>
         </div>
       </nav>
@@ -220,6 +223,14 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
         <BuildSection unit={yaml} contract={contract} />
         <VerifySection unit={yaml} checks={checks} rubric={rubric} curriculum={curriculum} />
         <UnstuckSection unit={yaml} faq={faq} />
+        <ConciergePanel
+          unitId={yaml.id}
+          isEnrolled={isEnrolled}
+          isSignedIn={isSignedIn}
+          serviceDown={practiceServiceDown}
+          routeData={routeData}
+          initialTurns={conciergeTurns}
+        />
       </div>
     </article>
   );
@@ -227,9 +238,9 @@ export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-raised px-3.5 py-2.5">
-      <dt className="font-mono text-[9px] text-ink-4 uppercase tracking-wider">{label}</dt>
-      <dd className="mt-0.5 font-mono text-xs break-words text-ink font-medium">{value}</dd>
+    <div>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
