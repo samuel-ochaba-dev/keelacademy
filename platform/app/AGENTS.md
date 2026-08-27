@@ -8,12 +8,34 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# UI/UX direction: UNDECIDED
+# UI/UX direction: UNDECIDED — including all copy and page structure
 
 No visual design direction (theme, type, color, layout, spacing, motion,
-iconography) has been chosen for this app. All styling was torn down to an
-unstyled semantic-HTML baseline at the founder's direction; `app/globals.css`
-is intentionally empty. The current markup carries no design decisions — do
-not infer one from it. When a direction is chosen, record it in the repo-root
-`build-state.md` decisions log first. Preserve routes, functionality, and
-copy strings (the demo harnesses assert against them).
+iconography) AND no copy direction (voice, tone, terminology, naming,
+marketing language) has been chosen for this app. Styling was torn down to
+an unstyled semantic-HTML baseline and, on 2026-08-27, the founder lifted
+the copy freeze as well; `app/globals.css` is intentionally empty.
+
+The current markup AND the current strings are non-binding placeholders
+inherited from a torn-down design. Do not infer, imitate, match, or
+preserve them — including the ALL-CAPS status badges, the systems
+terminology ("Submission Engine", "Learner Cockpit", "Git Ingestion
+Protocol", "Meridian Map"), and the footer voice. Do not mine git history
+for the removed design; it was removed so no session gets anchored to it.
+
+What IS binding for a redesign session:
+
+1. Routes, functionality, and data flows are preserved.
+2. Content-as-data rendering and the honesty rules hold (honest
+   placeholders, no fake states, no fake telemetry, no invented content).
+3. The demo harnesses stay green: a session that changes copy or structure
+   updates the demo greps to match the new copy (the greps assert
+   placeholder copy; updating them is expected, not a violation) and
+   re-runs demo-rebate, demo-gates, demo-map, and demo-practice before
+   closing.
+4. Every new word of copy is written under the humanizer and copywriting
+   skills (a quality bar, not a voice).
+
+Before writing any stylesheet or any copy, record BOTH the visual
+direction and the copy direction in the repo-root `build-state.md`
+decisions log.

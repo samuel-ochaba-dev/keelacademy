@@ -1,21 +1,29 @@
 # Keel Academy learner app
 
-## UI/UX STATUS: UNDECIDED
+## UI/UX STATUS: UNDECIDED — including all copy
 
-**No UI/UX direction has been decided for this app.** A previous design
-system and a later full redesign were both fully torn down at the founder's
-direction. What remains is deliberate: every surface renders as plain,
+**No UI/UX direction AND no copy direction has been decided for this app.**
+A previous design system and a later full redesign were both fully torn
+down at the founder's direction, and on 2026-08-27 the copy freeze was
+lifted too. What remains is deliberate: every surface renders as plain,
 unstyled semantic HTML with zero CSS applied.
 
-Do not treat anything about the current presentation (structure, ordering,
-copy treatment, status chips, tables, markup patterns) as a design decision.
-It is not one. A future session chooses the visual direction from scratch,
-and records that decision in the repo-root `build-state.md` decisions log
-before writing any stylesheet.
+Do not treat anything about the current presentation as a design decision
+— not the structure, ordering, markup patterns, and NOT the copy strings
+either. The current text (ALL-CAPS badges, "Submission Engine", "Learner
+Cockpit", "Meridian Map", the footer voice) is placeholder copy inherited
+from the torn-down design; it carries no voice decision and will be
+rewritten from scratch. Do not mine git history for the removed design.
+
+A future session chooses the visual direction and writes the copy from
+scratch, recording both decisions in the repo-root `build-state.md`
+decisions log before writing either.
 
 What IS decided and must be preserved: routes, functionality, data flows,
-and the exact text content of status/copy strings (the grading demo
-harnesses assert against them).
+content-as-data rendering, and the honesty rules. The demo harnesses
+(demo-rebate, demo-gates, demo-map, demo-practice) grep the current
+placeholder copy — a session that rewrites copy updates those greps to
+match and re-runs all four demos green before closing.
 
 ## Getting Started
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# NOTE: the copy greps below assert the CURRENT PLACEHOLDER copy (pre-redesign).
+# A UI session that rewrites copy updates these greps to the new strings and
+# re-runs this demo green — see the 2026-08-27 copy-unfreeze decision in build-state.md.
 # verdict-demo.sh — S2.4 end-to-end proof: a real git push becomes real rows
 # and the learner app's verdict page renders them read-only.
 #

@@ -1,11 +1,13 @@
 /*
-  UI/UX STATUS: UNDECIDED.
+  UI/UX STATUS: UNDECIDED — including all copy.
 
   No stylesheet is applied to this app. No theme, fonts, colors, spacing,
-  radius, motion, or iconography system has been chosen. This file is empty
-  on purpose: an earlier design system was fully torn down at the founder's
-  direction so that the visual direction can be decided from scratch.
+  radius, motion, or iconography system has been chosen, and no copy voice
+  has been chosen either. This file is empty on purpose: an earlier design
+  system was fully torn down at the founder's direction so that the visual
+  direction AND the copy can be decided from scratch.
 
-  A future session that chooses a direction records that decision in
-  build-state.md (decisions log) before writing styles here.
+  A future session that chooses a direction records BOTH decisions in
+  build-state.md (decisions log) before writing styles here. See
+  platform/app/AGENTS.md for the full binding rules.
 */

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# NOTE: the copy greps below assert the CURRENT PLACEHOLDER copy (pre-redesign).
+# A UI session that rewrites copy updates these greps to the new strings and
+# re-runs this demo green — see the 2026-08-27 copy-unfreeze decision in build-state.md.
 # demo-map.sh — S2.8 end-to-end proof: progress dashboard v1, "the growing Meridian map".
 #
 # Modes:
