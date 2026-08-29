@@ -1,13 +1,61 @@
-/*
-  UI/UX STATUS: UNDECIDED — including all copy.
+@import "tailwindcss";
 
-  No stylesheet is applied to this app. No theme, fonts, colors, spacing,
-  radius, motion, or iconography system has been chosen, and no copy voice
-  has been chosen either. This file is empty on purpose: an earlier design
-  system was fully torn down at the founder's direction so that the visual
-  direction AND the copy can be decided from scratch.
+@layer base {
+  :root {
+    --background: #09090b;
+    --foreground: #f4f4f5;
+    --surface: #18181b;
+    --surface-elevated: #27272a;
+    --border: #27272a;
+    --border-subtle: #18181b;
+    --border-strong: #3f3f46;
+    --muted: #a1a1aa;
+    --muted-foreground: #71717a;
+    --accent: #38bdf8;
+    --accent-foreground: #09090b;
+  }
 
-  A future session that chooses a direction records BOTH decisions in
-  build-state.md (decisions log) before writing styles here. See
-  platform/app/AGENTS.md for the full binding rules.
-*/
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  /* Code & Pre styling for precision technical aesthetic */
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875em;
+  }
+
+  pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #121215;
+    border: 1px solid #27272a;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  /* Custom scrollbar for dark technical look */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
