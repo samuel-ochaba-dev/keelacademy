@@ -55,12 +55,31 @@ export type TraceRecord = {
   cost_usd?: number;
 };
 
+export type DefendQuestion = {
+  id: string;
+  question: string;
+  anchors: string[];
+};
+
+export type DefendResult = {
+  submission_ref?: string;
+  tier?: string;
+  questions: DefendQuestion[];
+  meta?: {
+    model: string;
+    prompt_tokens: number;
+    completion_tokens: number;
+    latency_s: number;
+  };
+};
+
 export type VerdictJson = {
   overall?: "pass" | "fail";
   rubric_id?: string;
   rubric_version?: number;
   layer1?: Layer1Result;
   judge?: JudgeVerdict;
+  defend?: DefendResult;
   trace?: { log: string | null; call_id: string; records: TraceRecord[] };
   stub?: boolean;
 };
