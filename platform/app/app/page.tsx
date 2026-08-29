@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { listUnits, loadCurriculumMap } from "@/lib/content";
+import { loadCurriculumMap } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  const units = listUnits();
   const curriculumMap = loadCurriculumMap();
 
   // Key phases highlighted for the curriculum showcase
