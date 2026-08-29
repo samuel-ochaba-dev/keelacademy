@@ -66,13 +66,14 @@ export default async function MePage({ searchParams }: Props) {
                 <h1>
                   {user.name ?? user.email}
                 </h1>
+                <p>{user.email}</p>
               </div>
             </div>
 
             <div>
               <span>
                 
-                <span>{bridged.state === "ok" ? `STUDENT ID #${bridged.data}` : "GUEST SESSION"}</span>
+                <span>{bridged.state === "ok" ? `grading record #${bridged.data}` : "GUEST SESSION"}</span>
               </span>
             </div>
           </div>
@@ -144,16 +145,13 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
                 GRADING TOKEN CONSUMPTION BUDGET
               </h2>
             </div>
-            <span>
-              {usedTokens.toLocaleString("en-US")} / {capTokens.toLocaleString("en-US")} TOKENS ({pctUsed}%)
-            </span>
+            <span>{`${usedTokens.toLocaleString("en-US")} / ${capTokens.toLocaleString("en-US")} tokens (${pctUsed}%)`}</span>
           </div>
 
           <div>
-            <div
-              style={{ width: `${pctUsed}%` }}
-            />
+            <progress value={usedTokens} max={capTokens} />
           </div>
+          <p>{`Provisioned budget: ${capTokens.toLocaleString("en-US")} tokens`}</p>
           <p>
             Tokens are consumed exclusively when the Layer 2 calibrated rubric judge evaluates your git commits.
           </p>
@@ -200,7 +198,7 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
                       <td>PHASE 0{unit.phase}</td>
                       <td>
                         <span>
-                          {isEnrolled ? "ENROLLED" : "AVAILABLE"}
+                          {isEnrolled ? "enrolled" : "available"}
                         </span>
                       </td>
                       <td>
@@ -270,7 +268,7 @@ function UnitRowAction({
     <form action={startCheckoutAction}>
       <input type="hidden" name="unit_id" value={unitId} />
       <button type="submit">
-        {priceLabel ? `Enroll (${priceLabel})` : `Enroll unit ${unitId}`}
+        {priceLabel ? `Enroll for ${priceLabel}` : `Enroll unit ${unitId}`}
       </button>
     </form>
   );
@@ -492,7 +490,7 @@ function SubmissionsBody({
   if (submissions.length === 0) {
     return (
       <div>
-        <p>No active submissions found in the runner queue.</p>
+        <p>No submissions yet</p>
         <Link href="/submit">
           <span>View git submission instructions</span>
         </Link>

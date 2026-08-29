@@ -22,24 +22,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Keel Academy · The AI Engineer's Path",
+    default: "Keel Academy",
     template: "%s · Keel Academy",
   },
-  description:
-    "Stop getting stuck in tutorial loops. Build a production-grade AI system across 13 phases, get instant feedback on every line of code, and graduate with a defended portfolio that proves you can ship.",
-  keywords: [
-    "AI Engineering",
-    "Learn AI by Building",
-    "Production AI Portfolio",
-    "AI Bootcamp",
-    "RAG",
-    "AI Agents",
-    "LLMOps",
-    "Code Defense",
-  ],
+  description: "Keel Academy",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>

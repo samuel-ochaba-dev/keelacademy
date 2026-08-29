@@ -11,7 +11,7 @@ function bannerConfig(
   if (status === "queued") {
     return {
       title: "Queued for a sandbox container",
-      body: "Your repository push was received and is waiting for an available isolated runner.",
+      body: "Your repository push was received and is waiting for an available runner.",
       badge: "QUEUED",
     };
   }
@@ -32,14 +32,14 @@ function bannerConfig(
   if (verdict?.overall === "pass") {
     return {
       title: "Verdict: passed",
-      body: "All automated sandbox checks and rubric criteria passed. Your progress is recorded in the immutable ledger.",
+      body: "All automated sandbox checks and rubric criteria passed.",
       badge: "PASS",
     };
   }
   if (verdict?.overall === "fail") {
     return {
       title: "Verdict: not passed",
-      body: "One or more checks or rubric criteria did not meet the required bar. Inspect the failure breakdown and quoted evidence below.",
+      body: "One or more checks or rubric criteria did not meet the required bar.",
       badge: "FAIL",
     };
   }
@@ -60,7 +60,7 @@ export function StatusBanner({
   const config = bannerConfig(status, verdict);
 
   return (
-    <div>
+    <div data-keel-status={status}>
       <div>
         <div>
           <h2>{config.title}</h2>

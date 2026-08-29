@@ -7,7 +7,7 @@ import { OfflineAuthNote } from "@/components/auth/offline-note";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "Sign In — Keel Academy",
   robots: { index: false },
 };
 
@@ -38,62 +38,32 @@ export default async function SignInPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div>
+      <h1>Sign In</h1>
+      {errorBody && <p role="alert">{errorBody}</p>}
+      <form action={offlineSignInAction}>
+        <input type="hidden" name="next" value={next ?? "/me"} />
         <div>
-          
-          <div>
-            <span>
-              AUTHENTICATION TERMINAL
-            </span>
-            <h1>Sign in to Keel Academy</h1>
-          </div>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={email ?? ""}
+            placeholder="developer@example.com"
+          />
         </div>
-
-        <p>
-          Sign in to access your workbench, inspect grading verdicts, and continue building.
-        </p>
-
-        {errorBody ? (
-          <div
-            role="alert"
-          >
-            <p>{errorBody}</p>
-          </div>
-        ) : null}
-
-        <form action={offlineSignInAction}>
-          <input type="hidden" name="next" value={next ?? "/me"} />
-
-          <div>
-            <label htmlFor="email">
-              GITHUB COMMIT EMAIL
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              defaultValue={email ?? ""}
-              placeholder="developer@example.com"
-            />
-          </div>
-
-          <button type="submit">
-            <span>AUTHENTICATE & ENTER</span>
-          </button>
-        </form>
-
-        <p>
-          Don&apos;t have an account yet?{" "}
-          <Link
-            href={next ? `/sign-up?next=${encodeURIComponent(next)}` : "/sign-up"}
-          >
-            CREATE ONE
-          </Link>
-        </p>
-      </div>
-
+        <div>
+          <button type="submit">Sign In</button>
+        </div>
+      </form>
+      <p>
+        Don&apos;t have an account?{" "}
+        <Link href={next ? `/sign-up?next=${encodeURIComponent(next)}` : "/sign-up"}>
+          Sign up
+        </Link>
+      </p>
       <OfflineAuthNote mode={mode} />
     </div>
   );

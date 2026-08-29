@@ -7,14 +7,14 @@ import { OfflineAuthNote } from "@/components/auth/offline-note";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Create an Account",
+  title: "Sign Up — Keel Academy",
   robots: { index: false },
 };
 
 const ERRORS: Record<string, string> = {
-  exists: "An account already exists with that email. Sign in instead.",
+  exists: "An account already exists with that email. Please sign in instead.",
   "invalid-email": "Please enter a valid email address.",
-  invalid: "The name or email provided is too long.",
+  invalid: "The name or email provided exceeds character limits.",
   mode: "This sign-up form is configured for offline development mode.",
 };
 
@@ -39,76 +39,43 @@ export default async function SignUpPage({ searchParams }: Props) {
 
   return (
     <div>
-      <div>
+      <h1>Sign Up</h1>
+      {errorBody && <p role="alert">{errorBody}</p>}
+      <form action={offlineSignUpAction}>
+        <input type="hidden" name="next" value={next ?? "/me"} />
         <div>
-          
-          <div>
-            <span>
-              NEW STUDENT PROVISIONING
-            </span>
-            <h1>Create your account</h1>
-          </div>
+          <label htmlFor="name">Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            maxLength={100}
+            placeholder="Ada Lovelace"
+          />
         </div>
-
-        <p>
-          Use the same email you commit with on GitHub so your project submissions link automatically.
-        </p>
-
-        {errorBody ? (
-          <div
-            role="alert"
-          >
-            <p>{errorBody}</p>
-          </div>
-        ) : null}
-
-        <form action={offlineSignUpAction}>
-          <input type="hidden" name="next" value={next ?? "/me"} />
-
-          <div>
-            <label htmlFor="name">
-              FULL NAME
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              maxLength={100}
-              placeholder="Ada Lovelace"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email">
-              GITHUB COMMIT EMAIL
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              defaultValue={email ?? ""}
-              placeholder="developer@example.com"
-            />
-          </div>
-
-          <button type="submit">
-            <span>PROVISION LEARNER ACCOUNT</span>
-          </button>
-        </form>
-
-        <p>
-          Already have an account?{" "}
-          <Link
-            href={next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in"}
-          >
-            SIGN IN
-          </Link>
-        </p>
-      </div>
-
+        <div>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={email ?? ""}
+            placeholder="developer@example.com"
+          />
+        </div>
+        <div>
+          <button type="submit">Sign Up</button>
+        </div>
+      </form>
+      <p>
+        Already have an account?{" "}
+        <Link href={next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in"}>
+          Sign in
+        </Link>
+      </p>
       <OfflineAuthNote mode={mode} />
     </div>
   );

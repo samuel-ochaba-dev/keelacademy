@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { formatUtc, type SubmissionView } from "@/lib/grading";
 
-export function SubmissionFacts({ view }: { view: SubmissionView }) {
+export function SubmissionFacts({
+  view,
+  studentEmail,
+}: {
+  view: SubmissionView;
+  studentEmail?: string | null;
+}) {
   const s = view.submission;
   return (
     <dl>
       <Fact label="Student account">
-        <dd>{s.student_name ?? `Student #${s.student_id}`}</dd>
+        <dd>{studentEmail ?? s.student_name ?? `Student #${s.student_id}`}</dd>
       </Fact>
       <Fact label="Target unit">
         <dd>

@@ -5,25 +5,20 @@ import { requireSession } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Checkout Cancelled",
+  title: "Checkout Cancelled — Keel Academy",
   robots: { index: false },
 };
 
 export default async function CheckoutCancelPage() {
   await requireSession("/me");
+
   return (
     <div>
-      
-
-      <h1>Checkout cancelled</h1>
+      <h1>Checkout Cancelled</h1>
+      <p>nothing was charged to your account.</p>
       <p>
-        Nothing was charged to your card. You can resume enrollment whenever you are ready from your
-        dashboard.
+        <Link href="/me">Return to Dashboard</Link>
       </p>
-
-      <Link href="/me">
-        Return to dashboard
-      </Link>
     </div>
   );
 }

@@ -42,8 +42,12 @@ function tryLoadUnit(unitId: string): Unit | null {
   }
 }
 
+type Props = {
+  params: Promise<{ unitId: string }>;
+};
+
 export async function generateMetadata(
-  props: PageProps<"/units/[unitId]">,
+  props: Props,
 ): Promise<Metadata> {
   const { unitId } = await props.params;
   const unit = tryLoadUnit(unitId);
@@ -54,7 +58,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function UnitPage(props: PageProps<"/units/[unitId]">) {
+export default async function UnitPage(props: Props) {
   const { unitId } = await props.params;
   try {
     assertValidUnitId(unitId);

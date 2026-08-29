@@ -13,8 +13,12 @@ import { Timeline } from "@/components/submission/timeline";
 
 export const dynamic = "force-dynamic";
 
+type Props = {
+  params: Promise<{ submissionId: string }>;
+};
+
 export async function generateMetadata(
-  props: PageProps<"/submissions/[submissionId]">,
+  props: Props,
 ): Promise<Metadata> {
   const { submissionId } = await props.params;
   const lookup = await lookupSubmission(submissionId);
@@ -23,7 +27,7 @@ export async function generateMetadata(
   return { title, robots: { index: false } };
 }
 
-export default async function SubmissionPage(props: PageProps<"/submissions/[submissionId]">) {
+export default async function SubmissionPage(props: Props) {
   const { submissionId } = await props.params;
 
   const user = await getSessionUser();
@@ -104,7 +108,7 @@ export default async function SubmissionPage(props: PageProps<"/submissions/[sub
 
           <div>
             <StatusBanner status={submission.status} verdict={verdict} />
-            <SubmissionFacts view={lookup.view} />
+            <SubmissionFacts view={lookup.view} studentEmail={user.email} />
           </div>
         </div>
       </header>
