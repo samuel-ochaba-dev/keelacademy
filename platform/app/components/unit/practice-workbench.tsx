@@ -111,13 +111,16 @@ export function PracticeWorkbench({
   }
 
   return (
-    <div data-keel-practice-workbench>
+    <div data-keel-practice-workbench className="space-y-6">
       {/* Workbench panel */}
-      <div>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-sm">
         {/* Header bar */}
-        <div>
-          <div>
-            <span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/80">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+            <span className="text-xs font-mono text-zinc-400 font-semibold ml-2">
               practice-workbench
             </span>
           </div>
@@ -127,6 +130,7 @@ export function PracticeWorkbench({
               type="button"
               onClick={handleResetAll}
               disabled={isPending}
+              className="text-xs font-mono text-zinc-400 hover:text-zinc-200 px-2.5 py-1 rounded bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 transition-colors disabled:opacity-50"
             >
               Reset all files
             </button>
@@ -134,28 +138,37 @@ export function PracticeWorkbench({
         </div>
 
         {/* File tabs */}
-        <div>
-          {editableFiles.map((fname) => (
-            <button
-              key={fname}
-              type="button"
-              onClick={() => setActiveFile(fname)}
-            >
-              {fname}
-            </button>
-          ))}
+        <div className="flex items-center gap-1 px-3 pt-2 border-b border-zinc-800/80 bg-zinc-900/40 overflow-x-auto">
+          {editableFiles.map((fname) => {
+            const isActive = activeFile === fname;
+            return (
+              <button
+                key={fname}
+                type="button"
+                onClick={() => setActiveFile(fname)}
+                className={`px-3 py-1.5 rounded-t text-xs font-mono transition-colors border-t border-x ${
+                  isActive
+                    ? "bg-zinc-950 text-sky-400 border-zinc-800 font-semibold"
+                    : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
+                }`}
+              >
+                {fname}
+              </button>
+            );
+          })}
         </div>
 
         {/* Code editor area */}
-        <div>
-          <div>
+        <div className="p-4 space-y-3 bg-zinc-950">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
             <span>
-              Editing: {activeFile}
+              Editing: <span className="text-zinc-200">{activeFile}</span>
             </span>
             <button
               type="button"
               onClick={() => handleResetFile(activeFile)}
               disabled={isPending}
+              className="text-zinc-500 hover:text-zinc-300 underline"
             >
               Reset this file
             </button>
@@ -168,16 +181,18 @@ export function PracticeWorkbench({
             disabled={isPending || !isEnrolled}
             rows={18}
             spellCheck={false}
+            className="w-full rounded-lg bg-zinc-900/90 border border-zinc-800 p-4 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-sky-500/80 leading-relaxed resize-y"
           />
         </div>
 
         {/* Submit action strip */}
-        <div>
-          <div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-800 bg-zinc-900/60">
+          <div className="text-xs font-sans text-zinc-400">
             {!isSignedIn ? (
               <p>
                 <Link
                   href={`/sign-in?next=/units/${unitId}#practice`}
+                  className="text-sky-400 hover:underline font-mono"
                 >
                   Sign in
                 </Link>{" "}
@@ -188,15 +203,15 @@ export function PracticeWorkbench({
                 Active enrollment required to run checks.{" "}
                 <Link
                   href={`/map`}
+                  className="text-sky-400 hover:underline font-mono"
                 >
                   Enroll via the Progress Map
                 </Link>
                 .
               </p>
             ) : (
-              <p>
-                Deterministic Layer-1 checks run in an isolated sandbox. Fast,
-                free, retryable.
+              <p className="font-mono text-zinc-400">
+                Deterministic Layer-1 checks run in an isolated sandbox. Fast, free, retryable.
               </p>
             )}
           </div>
@@ -206,15 +221,16 @@ export function PracticeWorkbench({
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !isEnrolled}
+              className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-zinc-950 font-mono text-xs font-semibold tracking-wide transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm flex items-center gap-2"
             >
               {isPending ? (
                 <>
-                  <span aria-hidden />
+                  <span className="w-3 h-3 rounded-full border-2 border-zinc-950 border-t-transparent animate-spin" aria-hidden />
                   Grading in sandbox...
                 </>
               ) : (
                 <>
-                  Run practice checks
+                  Run practice checks →
                 </>
               )}
             </button>

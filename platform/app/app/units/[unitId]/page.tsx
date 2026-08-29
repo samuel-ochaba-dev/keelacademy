@@ -139,45 +139,76 @@ export default async function UnitPage(props: Props) {
 
   return (
     <article>
-      {/* Header */}
-      <header>
-        <div>
-          <nav aria-label="Breadcrumb">
-            <Link href="/curriculum">CURRICULUM</Link>
-            <Link href={`/curriculum#phase-${yaml.phase}`}>PHASE-{yaml.phase}</Link>
-            <span>UNIT-{yaml.id}</span>
+      {/* Header & Context HUD */}
+      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {/* Breadcrumbs */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-mono tracking-wider text-zinc-500 uppercase mb-4">
+            <Link href="/curriculum" className="hover:text-zinc-300 transition-colors">
+              CURRICULUM
+            </Link>
+            <span className="text-zinc-700">/</span>
+            <Link href={`/curriculum#phase-${yaml.phase}`} className="hover:text-zinc-300 transition-colors">
+              PHASE {yaml.phase}
+            </Link>
+            <span className="text-zinc-700">/</span>
+            <span className="text-sky-400 font-semibold">UNIT {yaml.id}</span>
           </nav>
 
-          <div>
-            <div>
-              <div>
-                <span>
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div className="space-y-3 max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-zinc-900 border border-zinc-800 text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
                   UNIT {yaml.id} SPECIFICATION
                 </span>
-                <span>
-                  
-                  GRADING ACTIVE
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-emerald-950/50 border border-emerald-800/60 text-emerald-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  GRADING PIPELINE ACTIVE
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  TIER: {unit.rubric ? unit.rubric.judge.model_tier.toUpperCase() : "DETERMINISTIC"}
                 </span>
               </div>
-              <h1>
+
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-zinc-100 font-mono">
                 {lesson?.title ?? curriculum?.title ?? `Unit ${yaml.id}`}
               </h1>
-              <p>
-                PHASE {yaml.phase} · {yaml.est_hours ? `~${yaml.est_hours} HOURS` : "CORE DELIVERABLE"} · MERIDIAN MUTUAL CLAIMS CORPUS
+
+              <p className="text-sm text-zinc-400 font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>PHASE {yaml.phase}</span>
+                <span className="text-zinc-700">·</span>
+                <span>{yaml.est_hours ? `~${yaml.est_hours} HOURS` : "CORE DELIVERABLE"}</span>
+                <span className="text-zinc-700">·</span>
+                <span className="text-zinc-300">MERIDIAN MUTUAL CORPUS</span>
               </p>
             </div>
 
-            <dl>
-              <Spec label="Prerequisites" value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "ENTRY POINT"} />
-              <Spec label="Unlocks" value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "PHASE GATE"} />
-              <Spec label="Corpus Variant" value={yaml.build.data_variant} />
+            {/* Spec HUD Cards */}
+            <dl className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-xs font-mono min-w-[240px] bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3">
+              <Spec
+                label="Prerequisites"
+                value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "ENTRY POINT"}
+                highlight={yaml.prereq_units.length === 0}
+              />
+              <Spec
+                label="Unlocks"
+                value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "PHASE GATE"}
+              />
+              <Spec
+                label="Corpus Variant"
+                value={yaml.build.data_variant}
+              />
             </dl>
           </div>
 
           {subtitleParts.length > 0 ? (
-            <div>
+            <div className="flex flex-wrap gap-2 pt-4 mt-4 border-t border-zinc-900">
               {subtitleParts.map((part) => (
-                <span key={part}>
+                <span
+                  key={part}
+                  className="px-2.5 py-1 rounded text-xs font-mono text-zinc-400 bg-zinc-900/80 border border-zinc-800/80"
+                >
                   {part}
                 </span>
               ))}
@@ -189,26 +220,32 @@ export default async function UnitPage(props: Props) {
       {/* Sticky section nav */}
       <nav
         aria-label="Unit sections"
+        className="sticky top-14 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md"
       >
-        <div>
-          <div>
-            {SECTION_ANCHORS.map((anchor) => (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto py-2.5 gap-4 scrollbar-none">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-max">
+            {SECTION_ANCHORS.map((anchor, idx) => (
               <a
                 key={anchor.id}
                 href={`#${anchor.id}`}
+                className="px-3 py-1.5 rounded-md text-xs font-mono font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all flex items-center gap-1.5"
               >
-                {anchor.label.toUpperCase()}
+                <span className="text-zinc-600">0{idx + 1}.</span>
+                <span>{anchor.label}</span>
               </a>
             ))}
           </div>
-          <Link href="/submit">
-            <span>Submission Guide</span>
+          <Link
+            href="/submit"
+            className="text-xs font-mono px-3 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border border-zinc-700/80 transition-colors whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
+          >
+            <span>Submission Guide →</span>
           </Link>
         </div>
       </nav>
 
       {/* Five unit sections */}
-      <div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-16">
         <LearnSection lesson={lesson} curriculum={curriculum} lastVerified={yaml.last_verified} />
         <PracticeSection
           unitId={yaml.id}
@@ -240,11 +277,11 @@ export default async function UnitPage(props: Props) {
   );
 }
 
-function Spec({ label, value }: { label: string; value: string }) {
+function Spec({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div>
-      <dt>{label}</dt>
-      <dd>{value}</dd>
+    <div className="flex items-center justify-between py-1 border-b border-zinc-800/40 last:border-0">
+      <dt className="text-zinc-500 uppercase tracking-wider">{label}</dt>
+      <dd className={`font-semibold ${highlight ? "text-sky-400" : "text-zinc-200"}`}>{value}</dd>
     </div>
   );
 }
