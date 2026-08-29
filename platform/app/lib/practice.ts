@@ -330,3 +330,283 @@ export function askConcierge(input: {
   });
 }
 
+export type DiagnosticQuestionBreakdown = {
+  question_id: string;
+  category: string;
+  points_possible: number;
+  points_earned: number;
+  correct: boolean;
+  submitted_answer: string;
+  correct_answer: string;
+  explanation: string;
+};
+
+export type DiagnosticAttempt = {
+  id: number;
+  student_id: number;
+  diagnostic_id: string;
+  passed: boolean;
+  score_pct: number;
+  points_earned: number;
+  points_possible: number;
+  route: "1.3_skip" | "baseline_0.1" | "opt_out";
+  answers: Record<string, string>;
+  breakdown: DiagnosticQuestionBreakdown[];
+  created_at: string;
+};
+
+export type DiagnosticEvaluateResult = {
+  ok: boolean;
+  attempt_id: number;
+  student_id: number;
+  diagnostic_id: string;
+  passed: boolean;
+  score_pct: number;
+  passing_threshold_pct?: number;
+  points_earned: number;
+  points_possible: number;
+  route: "1.3_skip" | "baseline_0.1" | "opt_out";
+  unlocked_units: string[];
+  breakdown: DiagnosticQuestionBreakdown[];
+  created_at: string;
+};
+
+export function fetchDiagnosticAttempts(
+  studentId: number,
+): Promise<PracticeResult<{ student_id: number; attempts: DiagnosticAttempt[] }>> {
+  return practiceFetch<{ student_id: number; attempts: DiagnosticAttempt[] }>(
+    `/diagnostic/attempts?student_id=${studentId}`,
+  );
+}
+
+export function evaluateDiagnostic(input: {
+  studentId: number;
+  diagnosticId?: string;
+  answers: Record<string, string>;
+}): Promise<PracticeResult<DiagnosticEvaluateResult>> {
+  return practiceFetch<DiagnosticEvaluateResult>("/diagnostic/evaluate", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      diagnostic_id: input.diagnosticId || "placement-phase-1",
+      answers: input.answers,
+    }),
+  });
+}
+
+export function optOutDiagnostic(input: {
+  studentId: number;
+  diagnosticId?: string;
+}): Promise<PracticeResult<DiagnosticEvaluateResult>> {
+  return practiceFetch<DiagnosticEvaluateResult>("/diagnostic/opt-out", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      diagnostic_id: input.diagnosticId || "placement-phase-1",
+    }),
+  });
+}
+
+export type PodPeer = {
+  student_id: number;
+  display_name: string;
+  is_self: boolean;
+  joined_at: string;
+};
+
+export type PodDetails = {
+  pod_id: number;
+  name: string;
+  cohort_week: string;
+  discord_channel_id: string | null;
+  discord_role_id: string | null;
+  discord_channel_url: string | null;
+  joined_at: string;
+  peers: PodPeer[];
+};
+
+export type PodPost = {
+  id: number;
+  pod_id: number;
+  student_id: number;
+  author_name: string;
+  week_number: number;
+  shipped_text: string;
+  broke_text: string;
+  next_text: string;
+  discord_message_id: string | null;
+  created_at: string;
+};
+
+export type PodMembersResponse = {
+  student_id: number;
+  has_pod: boolean;
+  pod: PodDetails | null;
+};
+
+export type PodAssignResponse = {
+  ok: boolean;
+  student_id: number;
+  pod_id: number;
+  name: string;
+  cohort_week: string;
+  discord_channel_id: string | null;
+  discord_role_id: string | null;
+  joined_at: string;
+  newly_assigned: boolean;
+};
+
+export type PodPostSubmitResult = {
+  ok: boolean;
+  post_id: number;
+  pod_id: number;
+  student_id: number;
+  week_number: number;
+  shipped_text: string;
+  broke_text: string;
+  next_text: string;
+  discord_message_id: string | null;
+  created_at: string;
+};
+
+export function fetchPodMembers(
+  studentId: number,
+): Promise<PracticeResult<PodMembersResponse>> {
+  return practiceFetch<PodMembersResponse>(`/pod/members?student_id=${studentId}`);
+}
+
+export function assignPod(input: {
+  studentId: number;
+  cohortWeek?: string;
+}): Promise<PracticeResult<PodAssignResponse>> {
+  return practiceFetch<PodAssignResponse>("/pod/assign", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      cohort_week: input.cohortWeek,
+    }),
+  });
+}
+
+export function fetchPodPosts(
+  podId: number,
+  weekNumber?: number,
+): Promise<PracticeResult<{ pod_id: number; week_number: number | null; posts: PodPost[] }>> {
+  const weekParam = weekNumber !== undefined ? `&week=${weekNumber}` : "";
+  return practiceFetch<{ pod_id: number; week_number: number | null; posts: PodPost[] }>(
+    `/pod/posts?pod_id=${podId}${weekParam}`,
+  );
+}
+
+export function submitPodPost(input: {
+  studentId: number;
+  podId: number;
+  weekNumber: number;
+  shippedText: string;
+  brokeText: string;
+  nextText: string;
+}): Promise<PracticeResult<PodPostSubmitResult>> {
+  return practiceFetch<PodPostSubmitResult>("/pod/posts", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      pod_id: input.podId,
+      week_number: input.weekNumber,
+      shipped_text: input.shippedText,
+      broke_text: input.brokeText,
+      next_text: input.nextText,
+    }),
+  });
+}
+
+export type DigestLocationPillar = {
+  active_unit: string;
+  active_unit_title: string;
+  completed_units: string[];
+  completed_count: number;
+  current_route_step: string;
+  is_idle: boolean;
+  is_completed: boolean;
+  headline: string;
+  note: string;
+};
+
+export type DigestNextUnlocksPillar = {
+  next_units: { unit_id: string; title: string; phase: number; description: string }[];
+  meridian_phase_next: number;
+  summary: string;
+};
+
+export type DigestPodHighlight = {
+  post_id: number;
+  author: string;
+  is_self: boolean;
+  week_number: number;
+  shipped: string;
+  broke: string;
+  next: string;
+};
+
+export type DigestPodActivityPillar = {
+  has_pod: boolean;
+  pod_id: number | null;
+  pod_name: string;
+  highlights: DigestPodHighlight[];
+  summary: string;
+};
+
+export type DigestRebateMilestone = {
+  gate_id: string;
+  unit_id: string;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  window_ends_at: string;
+  earned_at: string | null;
+};
+
+export type DigestRebateStatusPillar = {
+  earned_cents: number;
+  pledged_cents: number;
+  currency: string;
+  milestones: DigestRebateMilestone[];
+  summary: string;
+};
+
+export type DigestPillars = {
+  current_location: DigestLocationPillar;
+  next_unlocks: DigestNextUnlocksPillar;
+  pod_activity: DigestPodActivityPillar;
+  rebate_status: DigestRebateStatusPillar;
+};
+
+export type DigestContentJson = {
+  student_id: number;
+  display_name: string;
+  email: string;
+  cohort_week: string;
+  generated_at: string;
+  pillars: DigestPillars;
+};
+
+export type DigestRecord = {
+  id: number;
+  student_id: number;
+  cohort_week: string;
+  content_json: DigestContentJson;
+  email_to: string;
+  delivered_at: string | null;
+  created_at: string;
+};
+
+export type LatestDigestResponse = {
+  student_id: number;
+  has_digest: boolean;
+  digest: DigestRecord | null;
+};
+
+export function fetchLatestDigest(
+  studentId: number,
+): Promise<PracticeResult<LatestDigestResponse>> {
+  return practiceFetch<LatestDigestResponse>(`/digest/latest?student_id=${studentId}`);
+}

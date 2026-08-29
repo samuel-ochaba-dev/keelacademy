@@ -7,14 +7,15 @@ import {
   fetchPrice,
   formatPrice,
 } from "@/lib/enroll";
-import { listUnits } from "@/lib/content";
+import { listUnits, loadCommitmentDeclaration } from "@/lib/content";
 import { startCheckoutAction } from "@/app/auth/actions";
+import { CommitmentForm } from "@/components/commitment-form";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Checkout & Enrollment — Keel Academy",
-  description: "Complete your enrollment with transparent pricing and automated rebate wiring.",
+  title: "Commitment & Checkout — Keel Academy",
+  description: "Review workload, expectations, and transparent terms before completing enrollment.",
   robots: { index: false },
 };
 
@@ -26,6 +27,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
   const units = listUnits();
   const selectedUnitId = unitParam ?? units[0]?.id ?? "3.2.1";
+  const commitment = loadCommitmentDeclaration();
 
   if (!user) {
     redirect(`/sign-in?next=${encodeURIComponent(`/checkout?unit=${selectedUnitId}`)}`);
@@ -46,20 +48,20 @@ export default async function CheckoutPage({ searchParams }: Props) {
         <div className="mx-auto max-w-4xl space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            ENROLLMENT CHECKOUT
+            DAY-ZERO COMMITMENT & ENROLLMENT
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-            Confirm Your Enrollment
+            Commitment & Enrollment Gate
           </h1>
           <p className="text-xs text-zinc-400 font-sans">
-            Review your target module, payment method terms, and completion rebate eligibility.
+            Review workload requirements (700–950h), self-directed delivery terms, and honesty guarantees before payment.
           </p>
         </div>
       </header>
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Left: Enrollment Summary Card */}
+          {/* Left: Commitment Declaration & Action Form */}
           <div className="md:col-span-7 rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 space-y-6">
             <div>
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
@@ -106,16 +108,25 @@ export default async function CheckoutPage({ searchParams }: Props) {
               </p>
             </div>
 
-            {/* Action Form */}
-            <form action={startCheckoutAction} className="pt-2">
-              <input type="hidden" name="unit_id" value={selectedUnitId} />
-              <button
-                type="submit"
-                className="w-full rounded-md bg-emerald-500 py-3 text-sm font-mono font-bold text-zinc-950 hover:bg-emerald-400 transition-colors shadow-lg active:scale-[0.98]"
-              >
-                Proceed to Secure Payment ({unitPrice}) &rarr;
-              </button>
-            </form>
+            {/* Commitment Form with Acknowledgment Checks */}
+            {commitment ? (
+              <CommitmentForm
+                commitment={commitment}
+                selectedUnitId={selectedUnitId}
+                unitPrice={unitPrice}
+                formAction={startCheckoutAction}
+              />
+            ) : (
+              <form action={startCheckoutAction} className="pt-2">
+                <input type="hidden" name="unit_id" value={selectedUnitId} />
+                <button
+                  type="submit"
+                  className="w-full rounded-md bg-emerald-500 py-3 text-sm font-mono font-bold text-zinc-950 hover:bg-emerald-400 transition-colors shadow-lg active:scale-[0.98]"
+                >
+                  Proceed to Secure Payment ({unitPrice}) &rarr;
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Right: Security & Terms */}

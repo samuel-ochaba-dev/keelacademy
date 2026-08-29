@@ -22,10 +22,23 @@ import {
   type PassedGate,
 } from "@/lib/gates";
 import {
+  fetchLatestDigest,
   fetchRecheckSchedule,
+  type LatestDigestResponse,
   type PracticeResult,
   type RecheckSchedule,
 } from "@/lib/practice";
+import {
+  fetchStudentGalleryProjects,
+  type GalleryResult,
+  type StudentGalleryProject,
+} from "@/lib/gallery";
+import {
+  fetchStudentDefenses,
+  type ClientResult as SimClientResult,
+  type StudentDefenses,
+} from "@/lib/simulation";
+
 
 export const dynamic = "force-dynamic";
 
@@ -128,12 +141,16 @@ async function EnrolledSections({
   studentId: number;
   userEmail: string;
 }) {
-  const [profileResult, submissionsResult, gatesLookup, recheckResult] = await Promise.all([
+  const [profileResult, submissionsResult, gatesLookup, recheckResult, digestResult, galleryResult, defensesResult] = await Promise.all([
     fetchProfile(studentId),
     fetchOwnSubmissions(studentId),
     fetchStudentGates(studentId),
     fetchRecheckSchedule(studentId),
+    fetchLatestDigest(studentId),
+    fetchStudentGalleryProjects(studentId),
+    fetchStudentDefenses(studentId),
   ]);
+
 
   const gateRules = loadGateRules();
   const units = listUnits();
@@ -251,6 +268,9 @@ async function EnrolledSections({
         </div>
       </div>
 
+      {/* Weekly Personalized Retention Digest Preview */}
+      <DigestSection result={digestResult} />
+
       {/* 2. Token Budget Telemetry */}
       {budget ? (
         <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
@@ -361,10 +381,13 @@ async function EnrolledSections({
       {/* 5. Cryptographic Gate Barriers */}
       {gateRules.length > 0 ? <GatesSection rules={gateRules} lookup={gatesLookup} /> : null}
 
-      {/* 6. Rebates Detail Ledger */}
+      {/* 6. Standing Skeptical Reviewer Defenses HUD (S4.6) */}
+      <DefensesHUDSection result={defensesResult} />
+
+      {/* 7. Rebates Detail Ledger */}
       {rebates.length > 0 ? <RebateSection rebates={rebates} /> : null}
 
-      {/* 7. Immutable Submission Audit Ledger */}
+      {/* 8. Immutable Submission Audit Ledger */}
       <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden">
         <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -386,7 +409,242 @@ async function EnrolledSections({
 
         <SubmissionsBody submissions={submissions} error={submissionsResult.state !== "ok"} />
       </section>
+
+      {/* 9. Public Build Gallery Showcase Portfolio (S4.4) */}
+      <GalleryProjectsSection result={galleryResult} />
     </div>
+  );
+}
+
+function DefensesHUDSection({
+  result,
+}: {
+  result: SimClientResult<StudentDefenses>;
+}) {
+  const defenses = result.state === "ok" ? result.data : null;
+  const tech = defenses?.technical_stakeholder;
+  const biz = defenses?.business_owner;
+  const cleared = defenses?.defense_cleared ?? false;
+
+  return (
+    <section
+      data-keel-section="skeptical-defenses-hud"
+      className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden"
+    >
+      <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${cleared ? "bg-emerald-400" : "bg-amber-400"}`} />
+            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
+              Standing Skeptical Reviewer Defenses HUD
+            </h2>
+          </div>
+          <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+            Phase 12 capstone graduation and Section 14 credentialing check requiring passing simulations against Marcus Vance & Elena Rostova.
+          </p>
+        </div>
+        <Link
+          href="/simulations"
+          className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
+        >
+          <span>Open Simulation Hub</span>
+          <span>&rarr;</span>
+        </Link>
+      </div>
+
+      <div className="p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Tech Stakeholder Card */}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
+                SECTION 14.3 • TECHNICAL AUDIT
+              </span>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                  tech?.passed
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                }`}
+              >
+                {tech?.passed ? "CLEARED" : "NOT CLEARED"}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold font-mono text-zinc-100">
+                Marcus Vance
+              </h3>
+              <p className="text-[11px] font-mono text-zinc-400">
+                Staff AI Architect & Lead Systems Auditor
+              </p>
+            </div>
+            <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+              Demands golden-set eval numbers, token economics, cascading routers, and prompt injection defense.
+            </p>
+            <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
+              <span className="text-zinc-500 text-[11px]">
+                {tech?.score_pct !== null && tech?.score_pct !== undefined
+                  ? `Latest Score: ${tech.score_pct}%`
+                  : "No completed reps"}
+              </span>
+              <Link
+                href="/simulations/technical-stakeholder"
+                className="text-emerald-400 hover:underline"
+              >
+                Rehearse Defense &rarr;
+              </Link>
+            </div>
+          </div>
+
+          {/* Business Owner Card */}
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
+                SECTION 14.4 • COMMERCIAL AUDIT
+              </span>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                  biz?.passed
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                }`}
+              >
+                {biz?.passed ? "CLEARED" : "NOT CLEARED"}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold font-mono text-zinc-100">
+                Elena Rostova
+              </h3>
+              <p className="text-[11px] font-mono text-zinc-400">
+                Managing Director & P&L Owner
+              </p>
+            </div>
+            <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+              Demands plain-language dollar ROI, adjuster hours saved, and human-in-the-loop fallback for $50k claims.
+            </p>
+            <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
+              <span className="text-zinc-500 text-[11px]">
+                {biz?.score_pct !== null && biz?.score_pct !== undefined
+                  ? `Latest Score: ${biz.score_pct}%`
+                  : "No completed reps"}
+              </span>
+              <Link
+                href="/simulations/business-owner"
+                className="text-emerald-400 hover:underline"
+              >
+                Rehearse Defense &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+function GalleryProjectsSection({
+  result,
+}: {
+  result: GalleryResult<{ student_id: number; projects: StudentGalleryProject[] }>;
+}) {
+  const projects = result.state === "ok" ? result.data.projects : [];
+
+  return (
+    <section
+      data-keel-section="gallery-portfolio"
+      className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden"
+    >
+      <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
+              Public Build Gallery Showcase Portfolio
+            </h2>
+          </div>
+          <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+            Opt-in public portfolio deliverables visible across cohorts and prospective clients.
+          </p>
+        </div>
+        <Link
+          href="/gallery"
+          className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
+        >
+          <span>Explore Full Public Gallery</span>
+          <span>&rarr;</span>
+        </Link>
+      </div>
+
+      {result.state !== "ok" ? (
+        <div className="p-6 text-xs font-mono text-zinc-400">
+          Gallery showcase status is temporarily unavailable.
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="p-8 text-center space-y-3 font-mono">
+          <p className="text-xs text-zinc-400 font-sans">
+            No portfolio projects published yet. When your unit submissions pass automated verification, you can opt them into the public build gallery.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs font-mono">
+            <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
+              <tr>
+                <th className="py-3 px-4 font-semibold">Project Title</th>
+                <th className="py-3 px-4 font-semibold">Unit Spec</th>
+                <th className="py-3 px-4 font-semibold">Showcase Visibility</th>
+                <th className="py-3 px-4 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+              {projects.map((proj) => (
+                <tr key={proj.id} className="hover:bg-zinc-900/60 transition-colors">
+                  <td className="py-3 px-4 font-bold text-zinc-100">
+                    <div className="flex flex-col">
+                      <span>{proj.title}</span>
+                      <span className="text-[10px] text-zinc-500 font-normal">
+                        Audit #{proj.submission_id} · {proj.commit_sha.slice(0, 7)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-zinc-300">UNIT {proj.unit_id}</td>
+                  <td className="py-3 px-4">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        proj.published
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                          : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                      }`}
+                    >
+                      {proj.published ? "PUBLISHED LIVE" : "UNPUBLISHED"}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right space-x-3">
+                    {proj.published && (
+                      <Link
+                        href={`/gallery/${proj.id}`}
+                        className="text-emerald-400 hover:underline inline-flex items-center gap-0.5"
+                      >
+                        <span>View</span>
+                        <span>&rarr;</span>
+                      </Link>
+                    )}
+                    <Link
+                      href={`/submissions/${proj.submission_id}`}
+                      className="text-zinc-400 hover:text-zinc-200"
+                    >
+                      Manage
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -679,6 +937,136 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
             ))}
           </ul>
         )}
+      </div>
+    </section>
+  );
+}
+
+function DigestSection({ result }: { result: PracticeResult<LatestDigestResponse> }) {
+  const digest = result.state === "ok" && result.data.has_digest ? result.data.digest : null;
+  const content = digest?.content_json;
+  const pillars = content?.pillars;
+
+  if (!digest || !content || !pillars) {
+    return (
+      <section
+        data-keel-section="weekly-digest"
+        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 space-y-3"
+      >
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
+              Your Weekly Dispatch
+            </h2>
+          </div>
+          <span className="text-[10px] font-mono text-zinc-500">PROACTIVE RETENTION</span>
+        </div>
+        <p className="text-xs text-zinc-400 font-sans">
+          Your weekly personalized digest synthesizes every Monday morning, mapping where you stand, what unlocks next on the Meridian route, and peer activity from your pod.
+        </p>
+      </section>
+    );
+  }
+
+  const { current_location: loc, next_unlocks: unlocks, pod_activity: pod, rebate_status: rebate } = pillars;
+
+  return (
+    <section
+      data-keel-section="weekly-digest"
+      className="rounded-lg border border-emerald-500/30 bg-zinc-900/50 p-5 sm:p-6 space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-800/80 pb-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
+              Your Weekly Dispatch & Flight Plan ({digest.cohort_week})
+            </h2>
+          </div>
+          <p className="text-xs text-zinc-400 font-sans">
+            Delivered to <span className="font-mono text-zinc-300">{digest.email_to}</span> on {formatUtc(digest.delivered_at || digest.created_at)}.
+          </p>
+        </div>
+        <div className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 self-start sm:self-auto">
+          {loc.is_idle ? "REACH-OUT DISPATCH" : "ACTIVE MOMENTUM"}
+        </div>
+      </div>
+
+      {/* 4 Pillars Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Pillar 1: Location */}
+        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
+              1. Current Location
+            </span>
+            <span className="text-[10px] text-zinc-400">Unit {loc.active_unit}</span>
+          </div>
+          <div className="text-sm font-semibold font-mono text-zinc-200">{loc.active_unit_title}</div>
+          <p className="text-xs text-zinc-400 font-sans leading-relaxed">{loc.note}</p>
+        </div>
+
+        {/* Pillar 2: Unlocks */}
+        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
+              2. Next Unlocks
+            </span>
+            <span className="text-[10px] text-zinc-400">Phase {unlocks.meridian_phase_next}</span>
+          </div>
+          <ul className="text-xs font-mono text-zinc-300 space-y-1">
+            {unlocks.next_units.slice(0, 2).map((u) => (
+              <li key={u.unit_id} className="flex items-center gap-1.5 truncate">
+                <span className="text-emerald-400 font-bold">&bull;</span>
+                <span className="text-zinc-200">Unit {u.unit_id}:</span>
+                <span className="text-zinc-400 truncate">{u.title}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-zinc-500 font-sans">{unlocks.summary}</p>
+        </div>
+
+        {/* Pillar 3: Pod Highlights */}
+        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
+              3. Pod Activity
+            </span>
+            <span className="text-[10px] text-zinc-400 truncate max-w-[120px]">{pod.pod_name}</span>
+          </div>
+          <div className="space-y-2 text-xs">
+            {pod.highlights.slice(0, 2).map((h, i) => (
+              <div key={i} className="rounded bg-zinc-900/60 p-2 text-[11px] space-y-0.5">
+                <div className="font-mono font-semibold text-zinc-300">{h.author}:</div>
+                <div className="text-zinc-400 line-clamp-1"><strong className="text-zinc-300">Shipped:</strong> {h.shipped}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pillar 4: Rebates */}
+        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
+              4. Rebate Progress
+            </span>
+            <span className="text-emerald-400 font-bold font-mono">
+              ${rebate.earned_cents / 100} / ${rebate.pledged_cents / 100}
+            </span>
+          </div>
+          <p className="text-xs text-zinc-300 font-sans leading-relaxed">{rebate.summary}</p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {rebate.milestones.map((m) => (
+              <span
+                key={m.gate_id}
+                className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300"
+              >
+                {m.gate_id}: <strong className="text-emerald-400">${m.amount_cents / 100}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

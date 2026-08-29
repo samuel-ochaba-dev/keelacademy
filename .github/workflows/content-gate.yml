@@ -39,6 +39,8 @@ jobs:
         run: python content/tools/validate-routing.py
       - name: Validate guard evals
         run: python content/tools/validate-guard-evals.py
+      - name: Validate diagnostic assessments and commitment declarations
+        run: python content/tools/validate-diagnostics.py
       - name: Concierge structural contract and spoof-immunity checks (keyless)
         run: python platform/grading/scripts/check-concierge-structural.py
       - name: Dry-run unit 3.2.1 checks against the reference solution

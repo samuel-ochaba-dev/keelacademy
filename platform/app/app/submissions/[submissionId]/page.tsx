@@ -12,6 +12,10 @@ import { DefendSection } from "@/components/submission/defend-section";
 import { VerdictFacts } from "@/components/submission/verdict-facts";
 import { Timeline } from "@/components/submission/timeline";
 import { Button } from "@/components/ui/button";
+import { fetchSubmissionGalleryProject } from "@/lib/gallery";
+import { GalleryShowcase } from "@/components/gallery/gallery-showcase";
+import { fetchStudentDefenses } from "@/lib/simulation";
+
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +86,15 @@ export default async function SubmissionPage(props: Props) {
   if (submission.student_id !== bridged.data) {
     notFound();
   }
+
+  const isPassed = verdict?.overall === "pass";
+  const galleryLookup = isPassed ? await fetchSubmissionGalleryProject(submission.id) : null;
+  const initialGalleryProject = galleryLookup?.state === "ok" ? galleryLookup.data.project : null;
+
+  const isCapstone = submission.unit_id === "12.1" || submission.unit_id.startsWith("12.");
+  const defensesLookup = isCapstone ? await fetchStudentDefenses(submission.student_id) : null;
+  const defenses = defensesLookup?.state === "ok" ? defensesLookup.data : null;
+
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
@@ -155,9 +168,92 @@ export default async function SubmissionPage(props: Props) {
             {/* Layer 3 Defend Matrix */}
             <DefendSection defend={verdict.json?.defend} />
 
+            {/* Standing Skeptical Reviewer Defenses (Capstone Section 14) */}
+            {isCapstone && defenses && (
+              <section
+                data-keel-section="capstone-skeptical-defenses"
+                className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 space-y-4"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${defenses.defense_cleared ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`} />
+                      <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
+                        Section 14 Capstone Defense Clearance
+                      </h2>
+                    </div>
+                    <p className="text-xs text-zinc-400 font-sans">
+                      Final capstone credentialing requires passing defense simulations with both Marcus Vance and Elena Rostova.
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-mono font-bold border self-start sm:self-auto ${
+                      defenses.defense_cleared
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                    }`}
+                  >
+                    {defenses.defense_cleared ? "DEFENSES CLEARED" : "DEFENSES PENDING"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-zinc-200">
+                        Technical Defense (Marcus Vance)
+                      </span>
+                      <span className={`text-[11px] font-mono font-bold ${defenses.technical_stakeholder.passed ? "text-emerald-400" : "text-zinc-500"}`}>
+                        {defenses.technical_stakeholder.passed ? "PASSED" : "NOT CLEARED"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-sans">
+                      Demands evaluation metrics, token economics, cascading routers, and prompt injection defense.
+                    </p>
+                    <Link
+                      href="/simulations/technical-stakeholder"
+                      className="text-xs font-mono text-emerald-400 hover:underline inline-block pt-1"
+                    >
+                      Open Defense Workbench &rarr;
+                    </Link>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-zinc-200">
+                        Business Defense (Elena Rostova)
+                      </span>
+                      <span className={`text-[11px] font-mono font-bold ${defenses.business_owner.passed ? "text-emerald-400" : "text-zinc-500"}`}>
+                        {defenses.business_owner.passed ? "PASSED" : "NOT CLEARED"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-sans">
+                      Demands plain-language dollar ROI, adjuster hours saved, and human-in-the-loop fallback for $50k claims.
+                    </p>
+                    <Link
+                      href="/simulations/business-owner"
+                      className="text-xs font-mono text-emerald-400 hover:underline inline-block pt-1"
+                    >
+                      Open Defense Workbench &rarr;
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Telemetry & Ledger Details */}
             <VerdictFacts view={lookup.view} />
+
+            {/* Public Build Gallery Showcase (Opt-In) */}
+            <GalleryShowcase
+              submissionId={submission.id}
+              unitId={submission.unit_id}
+              isPassed={isPassed}
+              defaultRepoUrl={submission.repo_url}
+              initialProject={initialGalleryProject}
+            />
           </>
+
         ) : submission.status === "error" ? (
           <div className="rounded-lg border border-rose-800/80 bg-rose-950/30 p-6 space-y-3">
             <h2 className="text-base font-semibold text-rose-300 font-mono">

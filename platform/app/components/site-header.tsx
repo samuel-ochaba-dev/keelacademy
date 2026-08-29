@@ -55,6 +55,18 @@ export async function SiteHeader() {
             Meridian Map
           </Link>
           <Link
+            href="/community"
+            className="rounded-md px-3 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+          >
+            Pod Community
+          </Link>
+          <Link
+            href="/gallery"
+            className="rounded-md px-3 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+          >
+            Build Gallery
+          </Link>
+          <Link
             href="/me"
             className="rounded-md px-3 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
           >
@@ -65,6 +77,12 @@ export async function SiteHeader() {
             className="rounded-md px-3 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
           >
             Pricing & Rebates
+          </Link>
+          <Link
+            href="/analytics"
+            className="rounded-md px-3 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+          >
+            Analytics
           </Link>
         </nav>
 

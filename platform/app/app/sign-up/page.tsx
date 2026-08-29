@@ -60,7 +60,7 @@ export default async function SignUpPage({ searchParams }: Props) {
         )}
 
         <form action={offlineSignUpAction} className="space-y-4">
-          <input type="hidden" name="next" value={next ?? "/me"} />
+          <input type="hidden" name="next" value={next ?? "/diagnostic"} />
           <div className="space-y-1.5">
             <label htmlFor="name" className="block text-xs font-mono font-medium text-zinc-300">
               Full name <span className="text-zinc-500 font-normal">(optional)</span>

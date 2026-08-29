@@ -33,6 +33,14 @@ Routes:
     GET  /practice/route?student_id=<id>&unit=<id>        -> derived adaptive practice route (S3.4)
     POST /concierge/ask                                   -> derive mode -> call proxy -> persist -> return {mode, mode_reason, answer, tokens_charged} (S3.5)
     GET  /concierge/turns?student_id=<id>&unit=<id>       -> student concierge turn history (S3.5)
+    GET  /diagnostic/spec?id=<id>                         -> diagnostic question set and placement threshold (S4.1)
+    POST /diagnostic/evaluate                             -> evaluate answers, compute placement route, unlock units -> persist -> return {score_pct, passed, route, breakdown} (S4.1)
+    GET  /diagnostic/attempts?student_id=<id>             -> student diagnostic attempt history (S4.1)
+    POST /diagnostic/opt-out                              -> student opts out -> route to baseline 0.1/1.1 (S4.1)
+    POST /gallery/publish                                 -> publish/showcase passed verified project (S4.4)
+    POST /gallery/unpublish                               -> unpublish/hide project from gallery (S4.4)
+    GET  /gallery                                         -> public gallery listing with phase/unit filter (S4.4)
+    GET  /gallery/<id>                                    -> project detail with verified rubric proof (S4.4)
 
 Security & Boundaries:
     - Auth: X-Keel-App-Token header matched to env KEEL_ENROLL_SECRET.
@@ -72,6 +80,11 @@ GRADING_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GRADING_DIR))
 from db import db_sql, sql_str
 import layer1
+import community.pods as pods
+import community.digests as digests
+import community.gallery as gallery
+import simulation.engine as simulation
+import analytics.engine as analytics
 
 MAX_BODY_BYTES = 1 * 1024 * 1024       # 1 MB total request body cap
 MAX_FILE_BYTES = 128 * 1024             # 128 KB per individual file/answer cap
@@ -262,6 +275,91 @@ def get_concierge_guard_prompt(unit_id: str) -> str:
     if general_prompt.is_file():
         return general_prompt.read_text(encoding="utf-8")
     raise RuntimeError(f"concierge guard prompt not found in {prompts_dir}")
+
+
+def get_diagnostic_spec(diagnostic_id: str = "placement-phase-1") -> dict[str, Any] | None:
+    """Read placement diagnostic specification from content/diagnostic/*.yaml (S4.1)."""
+    root = content_root()
+    diag_dir = root / "diagnostic"
+    target = diag_dir / f"{diagnostic_id}.yaml"
+    if not target.is_file():
+        # Fall back to any yaml matching diagnostic_id
+        matches = sorted(diag_dir.glob("*.yaml")) if diag_dir.is_dir() else []
+        for m in matches:
+            try:
+                doc = yaml.safe_load(m.read_text(encoding="utf-8"))
+                if isinstance(doc, dict) and doc.get("id") == diagnostic_id:
+                    return doc
+            except Exception:
+                continue
+        if matches:
+            try:
+                return yaml.safe_load(matches[0].read_text(encoding="utf-8"))
+            except Exception:
+                return None
+        return None
+    try:
+        return yaml.safe_load(target.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def evaluate_diagnostic(spec: dict[str, Any], answers: dict[str, str]) -> dict[str, Any]:
+    """Score diagnostic answers deterministically against the rubric spec (S4.1).
+    
+    Returns breakdown, points_earned, points_possible, score_pct, passed, route, unlocks.
+    """
+    questions = spec.get("questions") or []
+    threshold_pct = float(spec.get("passing_threshold_pct", 75.0))
+    pass_units = spec.get("pass_skip_units") or ["1.3", "1.4", "1.5"]
+    fail_units = spec.get("fail_baseline_units") or ["0.1", "1.1", "1.2"]
+
+    total_points = 0
+    earned_points = 0
+    breakdown = []
+
+    for q in questions:
+        qid = q.get("id")
+        pts = int(q.get("points", 1))
+        correct_opt = str(q.get("correct_answer", "")).strip()
+        student_ans = str(answers.get(qid, "")).strip()
+        is_correct = (student_ans == correct_opt) and bool(student_ans)
+
+        total_points += pts
+        if is_correct:
+            earned_points += pts
+
+        breakdown.append({
+            "question_id": qid,
+            "category": q.get("category"),
+            "points_possible": pts,
+            "points_earned": pts if is_correct else 0,
+            "correct": is_correct,
+            "submitted_answer": student_ans,
+            "correct_answer": correct_opt,
+            "explanation": q.get("explanation", ""),
+        })
+
+    if total_points > 0:
+        score_pct = round((earned_points / total_points) * 100.0, 2)
+    else:
+        score_pct = 0.0
+
+    passed = score_pct >= threshold_pct
+    route = "1.3_skip" if passed else "baseline_0.1"
+    unlocked_units = pass_units if passed else fail_units
+
+    return {
+        "diagnostic_id": spec.get("id"),
+        "points_earned": earned_points,
+        "points_possible": total_points,
+        "score_pct": score_pct,
+        "passing_threshold_pct": threshold_pct,
+        "passed": passed,
+        "route": route,
+        "unlocked_units": unlocked_units,
+        "breakdown": breakdown,
+    }
 
 
 def get_unit_faq_text(unit_id: str) -> str:
@@ -1374,12 +1472,132 @@ class PracticeHandler(BaseHTTPRequestHandler):
             self._respond(200, {"ok": True})
             return
 
-        if not self._app_authorized():
+        parsed = urllib.parse.urlsplit(self.path)
+        query = urllib.parse.parse_qs(parsed.query)
+
+        # Public routes: /gallery and /gallery/<id> can be queried publicly OR with app token (S4.4)
+        is_public_get = (parsed.path == "/gallery" or bool(re.match(r"^/gallery/\d+$", parsed.path)))
+        if not is_public_get and not self._app_authorized():
             self._bad_token()
             return
 
-        parsed = urllib.parse.urlsplit(self.path)
-        query = urllib.parse.parse_qs(parsed.query)
+        # Analytics routes (S4.7)
+        if parsed.path == "/analytics/summary":
+            self._handle_get_analytics_summary()
+            return
+        if parsed.path == "/analytics/funnel":
+            self._handle_get_analytics_funnel()
+            return
+        if parsed.path in ("/analytics/drop-off", "/analytics/dropoff"):
+            self._handle_get_analytics_dropoff(query)
+            return
+        m_aunit = re.match(r"^/analytics/units/([A-Za-z0-9_.-]+)$", parsed.path)
+        if m_aunit:
+            self._handle_get_analytics_unit(m_aunit.group(1))
+            return
+
+        # GET /gallery (S4.4)
+        if parsed.path == "/gallery":
+            self._handle_get_gallery(query)
+            return
+        m_gproj = re.match(r"^/gallery/(\d{1,15})$", parsed.path)
+        if m_gproj:
+            self._handle_get_gallery_project(int(m_gproj.group(1)))
+            return
+        m_gsub = re.match(r"^/gallery/submission/(\d{1,15})$", parsed.path)
+        if m_gsub:
+            self._handle_get_submission_gallery(int(m_gsub.group(1)))
+            return
+        m_sgall = re.match(r"^/students/(\d{1,15})/gallery$", parsed.path)
+        if m_sgall:
+            self._handle_get_student_gallery(int(m_sgall.group(1)))
+            return
+        m_gsid = re.match(r"^/gallery/student/(\d{1,15})$", parsed.path)
+        if m_gsid:
+            self._handle_get_student_gallery(int(m_gsid.group(1)))
+            return
+
+        # GET /simulation/<id> and GET /students/<id>/simulations (S4.5, S4.6)
+        m_sim_defenses = re.match(r"^/students/(\d{1,15})/simulations/defenses$", parsed.path)
+        if m_sim_defenses:
+            self._handle_get_student_defenses(int(m_sim_defenses.group(1)))
+            return
+        m_sim_detail = re.match(r"^/simulation/(\d{1,15})$", parsed.path)
+        if m_sim_detail:
+            self._handle_get_simulation(int(m_sim_detail.group(1)), query)
+            return
+        m_sim_stud = re.match(r"^/students/(\d{1,15})/simulations$", parsed.path)
+        if m_sim_stud:
+            self._handle_get_student_simulations(int(m_sim_stud.group(1)))
+            return
+        if parsed.path == "/simulations":
+            sid_str = (query.get("student_id") or [""])[0]
+            if sid_str.isdigit():
+                self._handle_get_student_simulations(int(sid_str))
+                return
+
+
+        # GET /diagnostic/spec?id=<id> (S4.1)
+        if parsed.path == "/diagnostic/spec":
+            diag_id = (query.get("id") or ["placement-phase-1"])[0]
+            self._handle_get_diagnostic_spec(diag_id)
+            return
+
+        # GET /pod/members?student_id=<id> OR /students/<id>/pod (S4.2)
+        if parsed.path in ("/pod/members", "/pod/detail"):
+            sid_str = (query.get("student_id") or [""])[0]
+            if not sid_str.isdigit():
+                self._respond(400, {"error": "student_id (int) required"})
+                return
+            self._handle_get_pod_members(int(sid_str))
+            return
+        m_pod_m = re.match(r"^/students/(\d{1,15})/pod$", parsed.path)
+        if m_pod_m:
+            self._handle_get_pod_members(int(m_pod_m.group(1)))
+            return
+
+        # GET /pod/posts?pod_id=<id>[&week=<week>] (S4.2)
+        if parsed.path == "/pod/posts":
+            pid_str = (query.get("pod_id") or [""])[0]
+            if not pid_str.isdigit():
+                self._respond(400, {"error": "pod_id (int) required"})
+                return
+            week_str = (query.get("week") or query.get("week_number") or [""])[0]
+            week_num = int(week_str) if week_str.isdigit() else None
+            self._handle_get_pod_posts(int(pid_str), week_num)
+            return
+        m_pod_p = re.match(r"^/pods/(\d{1,15})/posts$", parsed.path)
+        if m_pod_p:
+            week_str = (query.get("week") or query.get("week_number") or [""])[0]
+            week_num = int(week_str) if week_str.isdigit() else None
+            self._handle_get_pod_posts(int(m_pod_p.group(1)), week_num)
+            return
+
+        # GET /digest/latest?student_id=<id> (S4.3)
+        if parsed.path == "/digest/latest":
+            sid_str = (query.get("student_id") or [""])[0]
+            if not sid_str.isdigit():
+                self._respond(400, {"error": "student_id (int) required"})
+                return
+            self._handle_get_latest_digest(int(sid_str))
+            return
+        m_digest = re.match(r"^/students/(\d{1,15})/digest/latest$", parsed.path)
+        if m_digest:
+            self._handle_get_latest_digest(int(m_digest.group(1)))
+            return
+
+        # GET /diagnostic/attempts?student_id=<id> (S4.1)
+        if parsed.path == "/diagnostic/attempts":
+            sid_str = (query.get("student_id") or [""])[0]
+            if not sid_str.isdigit():
+                self._respond(400, {"error": "student_id (int) required"})
+                return
+            self._handle_get_diagnostic_attempts(int(sid_str))
+            return
+        m_datt = re.match(r"^/students/(\d{1,15})/diagnostic/attempts$", parsed.path)
+        if m_datt:
+            self._handle_get_diagnostic_attempts(int(m_datt.group(1)))
+            return
 
         # GET /practice/retrieval/seeds?unit=3.2.1 OR /units/<unit_id>/practice/retrieval/seeds
         if parsed.path == "/practice/retrieval/seeds":
@@ -1533,6 +1751,838 @@ ROLLBACK;
                 "created_at": str(r[7]),
             })
         self._respond(200, {"turns": turns})
+
+    def _handle_get_diagnostic_spec(self, diagnostic_id: str) -> None:
+        spec = get_diagnostic_spec(diagnostic_id)
+        if not spec:
+            self._respond(404, {"error": "diagnostic_spec_not_found"})
+            return
+        # Return public spec (omit correct_answer and explanation for student clients)
+        client_questions = []
+        for q in spec.get("questions", []):
+            client_questions.append({
+                "id": q.get("id"),
+                "category": q.get("category"),
+                "type": q.get("type"),
+                "prompt": q.get("prompt"),
+                "points": q.get("points"),
+                "options": q.get("options"),
+            })
+        self._respond(200, {
+            "id": spec.get("id"),
+            "title": spec.get("title"),
+            "est_minutes": spec.get("est_minutes"),
+            "passing_threshold_pct": spec.get("passing_threshold_pct"),
+            "pass_skip_units": spec.get("pass_skip_units"),
+            "fail_baseline_units": spec.get("fail_baseline_units"),
+            "categories": spec.get("categories"),
+            "questions": client_questions,
+        })
+
+    def _handle_get_diagnostic_attempts(self, student_id: int) -> None:
+        sql = """BEGIN;
+SELECT id, student_id, diagnostic_id, passed, score_pct, points_earned, points_possible,
+       route, answers_json::text, breakdown_json::text, created_at
+FROM diagnostic_attempts
+WHERE student_id = %d
+ORDER BY id DESC
+LIMIT 50;
+ROLLBACK;
+""" % student_id
+        try:
+            rows = db_sql(sql)
+        except Exception:
+            self._respond(500, {"error": "database error"})
+            return
+
+        attempts = []
+        for r in rows:
+            attempts.append({
+                "id": int(r[0]),
+                "student_id": int(r[1]),
+                "diagnostic_id": r[2],
+                "passed": r[3] == "t" or r[3] is True,
+                "score_pct": float(r[4]),
+                "points_earned": int(r[5]),
+                "points_possible": int(r[6]),
+                "route": r[7],
+                "answers": json.loads(r[8]),
+                "breakdown": json.loads(r[9]),
+                "created_at": str(r[10]),
+            })
+        self._respond(200, {"student_id": student_id, "attempts": attempts})
+
+    def _handle_diagnostic_opt_out(self) -> None:
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        diagnostic_id = payload.get("diagnostic_id") or "placement-phase-1"
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+
+        spec = get_diagnostic_spec(diagnostic_id)
+        if not spec:
+            self._respond(404, {"error": "diagnostic_spec_not_found"})
+            return
+
+        # 1. Verify student exists
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+
+        baseline_units = spec.get("fail_baseline_units") or ["0.1", "1.1", "1.2"]
+        now_override = practice_now_override()
+        created_at_sql = sql_str(now_override.isoformat()) if now_override is not None else "now()"
+
+        # Atomic persistence: diagnostic_attempts + spine events + unlocked_units
+        units_values = ", ".join(sql_str(u) for u in baseline_units)
+        answers_json_str = sql_str(json.dumps({}))
+        breakdown_json_str = sql_str(json.dumps([]))
+        unlocked_json_str = sql_str(json.dumps(baseline_units))
+        persist_sql = f"""BEGIN;
+WITH attempt AS (
+    INSERT INTO diagnostic_attempts (
+        student_id, diagnostic_id, passed, score_pct, points_earned, points_possible,
+        route, answers_json, breakdown_json, created_at
+    ) VALUES (
+        {student_id}, {sql_str(diagnostic_id)}, false, 0.0, 0, {len(spec.get("questions", []))}, 'opt_out', {answers_json_str}::jsonb, {breakdown_json_str}::jsonb, {created_at_sql}
+    )
+    RETURNING id, student_id, diagnostic_id, passed, score_pct, route, created_at
+), ins AS (
+    INSERT INTO unlocked_units (student_id, unit_id, gate_id, unlocked_at, source_event_seq)
+    SELECT {student_id}, u, {sql_str("diagnostic-opt-out")}, {created_at_sql}, (SELECT id FROM attempt)
+    FROM unnest(ARRAY[{units_values}]::text[]) u
+    ON CONFLICT (student_id, unit_id) DO NOTHING
+    RETURNING student_id, unit_id, unlocked_at
+), ev AS (
+    INSERT INTO events (type, payload)
+    SELECT 'diagnostic.placed',
+           jsonb_build_object(
+               'attempt_id', id,
+               'student_id', student_id,
+               'diagnostic_id', diagnostic_id,
+               'passed', false,
+               'score_pct', score_pct,
+               'route', route,
+               'opt_out', true,
+               'unlocked_units', {unlocked_json_str}::jsonb
+           )
+    FROM attempt
+    RETURNING id
+)
+SELECT id, created_at FROM attempt;
+COMMIT;
+"""
+        try:
+            p_rows = db_sql(persist_sql)
+        except Exception as exc:
+            sys.stderr.write(f"practice: diagnostic opt-out persistence failed: {exc}\n")
+            self._respond(500, {"error": "database persistence error"})
+            return
+
+        attempt_id = int(p_rows[0][0])
+        created_at_val = str(p_rows[0][1])
+
+        self._respond(200, {
+            "ok": True,
+            "attempt_id": attempt_id,
+            "student_id": student_id,
+            "diagnostic_id": diagnostic_id,
+            "passed": False,
+            "score_pct": 0.0,
+            "route": "opt_out",
+            "unlocked_units": baseline_units,
+            "created_at": created_at_val,
+        })
+
+    def _handle_get_latest_digest(self, student_id: int) -> None:
+        """S4.3: Retrieve the most recent generated weekly personalized digest for a student."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+
+        digest_record = digests.get_latest_student_digest(student_id)
+        if not digest_record:
+            self._respond(200, {
+                "student_id": student_id,
+                "has_digest": False,
+                "digest": None,
+            })
+            return
+
+        self._respond(200, {
+            "student_id": student_id,
+            "has_digest": True,
+            "digest": digest_record,
+        })
+
+    def _handle_get_pod_members(self, student_id: int) -> None:
+        """S4.2: Retrieve student's current active pod details, Discord deep link, and peer list."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+
+        detail = pods.get_student_pod_details(student_id)
+        if not detail:
+            self._respond(200, {
+                "student_id": student_id,
+                "has_pod": False,
+                "pod": None,
+            })
+            return
+
+        self._respond(200, {
+            "student_id": student_id,
+            "has_pod": True,
+            "pod": detail,
+        })
+
+    def _handle_get_pod_posts(self, pod_id: int, week_number: int | None = None) -> None:
+        """S4.2: Retrieve all submitted weekly accountability posts for a pod."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM pods WHERE id = %d);\nROLLBACK;\n" % pod_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "pod_not_found"})
+            return
+
+        posts_list = pods.get_pod_posts(pod_id, week_number)
+        self._respond(200, {
+            "pod_id": pod_id,
+            "week_number": week_number,
+            "posts": posts_list,
+        })
+
+    # ------------------------------------------------------------------
+    # S4.4: Public Build Gallery Handlers
+    # ------------------------------------------------------------------
+
+    def _handle_get_gallery(self, query: dict[str, list[str]]) -> None:
+        """S4.4: List public published gallery projects with optional unit/phase filters and pagination."""
+        unit_id = (query.get("unit_id") or query.get("unit") or [None])[0]
+        phase_raw = (query.get("phase") or [None])[0]
+        phase = int(phase_raw) if phase_raw and phase_raw.isdigit() else None
+        search = (query.get("search") or query.get("q") or [None])[0]
+        limit_raw = (query.get("limit") or ["50"])[0]
+        limit = int(limit_raw) if limit_raw.isdigit() else 50
+        offset_raw = (query.get("offset") or ["0"])[0]
+        offset = int(offset_raw) if offset_raw.isdigit() else 0
+
+        res = gallery.list_gallery_projects(
+            unit_id=unit_id,
+            phase=phase,
+            search=search,
+            limit=limit,
+            offset=offset,
+        )
+        self._respond(200, res)
+
+    def _handle_get_gallery_project(self, project_id: int) -> None:
+        """S4.4: Retrieve full details and verification proof for a single gallery project."""
+        res = gallery.get_gallery_project(project_id)
+        if not res:
+            self._respond(404, {"error": "project_not_found", "message": f"Gallery project #{project_id} not found"})
+            return
+        self._respond(200, res)
+
+    def _handle_get_student_gallery(self, student_id: int) -> None:
+        """S4.4: Retrieve all gallery project entries for a student (published & unpublished)."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+        projects = gallery.get_student_gallery_projects(student_id)
+        self._respond(200, {
+            "student_id": student_id,
+            "projects": projects,
+        })
+
+    def _handle_get_submission_gallery(self, submission_id: int) -> None:
+        """S4.4: Retrieve gallery project entry linked to a specific submission record."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM submissions WHERE id = %d);\nROLLBACK;\n" % submission_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "submission_not_found"})
+            return
+        proj = gallery.get_submission_gallery_project(submission_id)
+        self._respond(200, {
+            "submission_id": submission_id,
+            "has_gallery_project": proj is not None,
+            "project": proj,
+        })
+
+    def _handle_gallery_publish(self) -> None:
+        """S4.4: Publish/showcase a verified passing project to the public build gallery."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        submission_id = payload.get("submission_id")
+        title = payload.get("title")
+        description = payload.get("description")
+        repo_url = payload.get("repo_url")
+        demo_url = payload.get("demo_url")
+        walkthrough_video_url = payload.get("walkthrough_video_url")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(submission_id, int) or submission_id <= 0:
+            self._respond(422, {"error": "submission_id (positive integer) is required"})
+            return
+        if not isinstance(title, str) or not title.strip():
+            self._respond(422, {"error": "title_required", "message": "Project title is required"})
+            return
+        if not isinstance(description, str) or not description.strip():
+            self._respond(422, {"error": "description_required", "message": "Project description is required"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = gallery.publish_gallery_project(
+                student_id=student_id,
+                submission_id=submission_id,
+                title=title,
+                description=description,
+                repo_url=repo_url,
+                demo_url=demo_url,
+                walkthrough_video_url=walkthrough_video_url,
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "submission_ownership_mismatch", "message": "Submission does not belong to student"})
+        except KeyError as exc:
+            self._respond(404, {"error": "student_not_found", "message": str(exc)})
+        except ValueError as exc:
+            err_code = str(exc)
+            if err_code == "submission_not_found":
+                self._respond(404, {"error": "submission_not_found", "message": "Submission record not found"})
+            elif err_code == "submission_not_eligible_for_gallery":
+                self._respond(422, {"error": "submission_not_eligible_for_gallery", "message": "Only verified passing submissions can be published to the gallery"})
+            else:
+                self._respond(422, {"error": err_code})
+        except Exception as exc:
+            sys.stderr.write(f"practice: gallery publish error: {exc}\n")
+            self._respond(500, {"error": "gallery_publish_error", "detail": str(exc)})
+
+    def _handle_gallery_unpublish(self) -> None:
+        """S4.4: Unpublish a gallery project, hiding it from the public listing."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        project_id = payload.get("project_id")
+        unit_id = payload.get("unit_id")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if project_id is None and unit_id is None:
+            self._respond(422, {"error": "project_id_or_unit_id_required", "message": "Either project_id or unit_id is required"})
+            return
+        if project_id is not None and not isinstance(project_id, int):
+            self._respond(422, {"error": "project_id must be an integer"})
+            return
+        if unit_id is not None and not isinstance(unit_id, str):
+            self._respond(422, {"error": "unit_id must be a string"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = gallery.unpublish_gallery_project(
+                student_id=student_id,
+                project_id=project_id,
+                unit_id=unit_id,
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "project_ownership_mismatch", "message": "Gallery project belongs to a different student"})
+        except KeyError:
+            self._respond(404, {"error": "project_not_found", "message": "Gallery project not found"})
+        except ValueError as exc:
+            self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: gallery unpublish error: {exc}\n")
+            self._respond(500, {"error": "gallery_unpublish_error", "detail": str(exc)})
+
+    def _handle_pod_assign(self) -> None:
+        """S4.2: Assign student to a pod for their cohort week (idempotent, 6-10 capacity)."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        cohort_week = payload.get("cohort_week")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if cohort_week is not None and not isinstance(cohort_week, str):
+            self._respond(422, {"error": "cohort_week must be a string (e.g. 2026-W35)"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = pods.assign_student_to_pod(
+                student_id=student_id,
+                cohort_week=cohort_week,
+                now_override=now_override,
+            )
+            self._respond(200, {
+                "ok": True,
+                "student_id": student_id,
+                **res,
+            })
+        except ValueError as exc:
+            if str(exc) == "student_not_found":
+                self._respond(404, {"error": "student_not_found"})
+            else:
+                self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: pod assignment error: {exc}\n")
+            self._respond(500, {"error": "pod_assignment_error", "detail": str(exc)})
+
+    def _handle_pod_post_submit(self) -> None:
+        """S4.2: Submit weekly accountability check-in post with 3 mandatory pillars."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        pod_id = payload.get("pod_id")
+        week_number = payload.get("week_number")
+        shipped_text = payload.get("shipped_text")
+        broke_text = payload.get("broke_text")
+        next_text = payload.get("next_text")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(pod_id, int) or pod_id <= 0:
+            self._respond(422, {"error": "pod_id (positive integer) is required"})
+            return
+        if not isinstance(week_number, int) or week_number < 1:
+            self._respond(422, {"error": "week_number (integer >= 1) is required"})
+            return
+        if not isinstance(shipped_text, str) or not shipped_text.strip():
+            self._respond(422, {"error": "shipped_text_required", "message": "What shipped text is required"})
+            return
+        if not isinstance(broke_text, str) or not broke_text.strip():
+            self._respond(422, {"error": "broke_text_required", "message": "What broke text is required"})
+            return
+        if not isinstance(next_text, str) or not next_text.strip():
+            self._respond(422, {"error": "next_text_required", "message": "What's next text is required"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = pods.submit_pod_post(
+                student_id=student_id,
+                pod_id=pod_id,
+                week_number=week_number,
+                shipped_text=shipped_text,
+                broke_text=broke_text,
+                next_text=next_text,
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "not_pod_member", "message": "Student is not an active member of this pod"})
+        except KeyError:
+            self._respond(409, {"error": "post_already_submitted_for_week", "message": f"Weekly post already submitted for week {week_number}"})
+        except ValueError as exc:
+            self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: pod post submission error: {exc}\n")
+            self._respond(500, {"error": "pod_post_error", "detail": str(exc)})
+
+    def _handle_diagnostic_evaluate(self) -> None:
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        diagnostic_id = payload.get("diagnostic_id") or "placement-phase-1"
+        answers = payload.get("answers")
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(answers, dict):
+            self._respond(422, {"error": "answers object is required"})
+            return
+
+        spec = get_diagnostic_spec(diagnostic_id)
+        if not spec:
+            self._respond(404, {"error": "diagnostic_spec_not_found"})
+            return
+
+        # 1. Verify student exists
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+
+        # 2. Score answers deterministically
+        evaluation = evaluate_diagnostic(spec, answers)
+        passed = evaluation["passed"]
+        score_pct = evaluation["score_pct"]
+        route = evaluation["route"]
+        points_earned = evaluation["points_earned"]
+        points_possible = evaluation["points_possible"]
+        unlocked_units = evaluation["unlocked_units"]
+        breakdown = evaluation["breakdown"]
+
+        now_override = practice_now_override()
+        created_at_sql = sql_str(now_override.isoformat()) if now_override is not None else "now()"
+
+        # 3. Atomic persistence: diagnostic_attempts + spine events + unlocked_units
+        units_values = ", ".join(sql_str(u) for u in unlocked_units)
+        gate_id = "diagnostic-pass-skip" if passed else "diagnostic-baseline"
+        answers_json_str = sql_str(json.dumps(answers))
+        breakdown_json_str = sql_str(json.dumps(breakdown))
+        unlocked_json_str = sql_str(json.dumps(unlocked_units))
+        passed_str = "true" if passed else "false"
+
+        persist_sql = f"""BEGIN;
+WITH attempt AS (
+    INSERT INTO diagnostic_attempts (
+        student_id, diagnostic_id, passed, score_pct, points_earned, points_possible,
+        route, answers_json, breakdown_json, created_at
+    ) VALUES (
+        {student_id}, {sql_str(diagnostic_id)}, {passed_str}, {sql_str(str(score_pct))}, {points_earned}, {points_possible},
+        {sql_str(route)}, {answers_json_str}::jsonb, {breakdown_json_str}::jsonb, {created_at_sql}
+    )
+    RETURNING id, student_id, diagnostic_id, passed, score_pct, route, created_at
+), ins AS (
+    INSERT INTO unlocked_units (student_id, unit_id, gate_id, unlocked_at, source_event_seq)
+    SELECT {student_id}, u, {sql_str(gate_id)}, {created_at_sql}, (SELECT id FROM attempt)
+    FROM unnest(ARRAY[{units_values}]::text[]) u
+    ON CONFLICT (student_id, unit_id) DO NOTHING
+    RETURNING student_id, unit_id, unlocked_at
+), ev1 AS (
+    INSERT INTO events (type, payload)
+    SELECT 'diagnostic.completed',
+           jsonb_build_object(
+               'attempt_id', id,
+               'student_id', student_id,
+               'diagnostic_id', diagnostic_id,
+               'passed', passed,
+               'score_pct', score_pct,
+               'points_earned', {points_earned},
+               'points_possible', {points_possible}
+           )
+    FROM attempt
+    RETURNING id
+), ev2 AS (
+    INSERT INTO events (type, payload)
+    SELECT 'diagnostic.placed',
+           jsonb_build_object(
+               'attempt_id', id,
+               'student_id', student_id,
+               'diagnostic_id', diagnostic_id,
+               'passed', passed,
+               'score_pct', score_pct,
+               'route', route,
+               'unlocked_units', {unlocked_json_str}::jsonb
+           )
+    FROM attempt
+    RETURNING id
+)
+SELECT id, created_at FROM attempt;
+COMMIT;
+"""
+        try:
+            p_rows = db_sql(persist_sql)
+        except Exception as exc:
+            sys.stderr.write(f"practice: diagnostic evaluate persistence failed: {exc}\n")
+            self._respond(500, {"error": "database persistence error"})
+            return
+
+        attempt_id = int(p_rows[0][0])
+        created_at_val = str(p_rows[0][1])
+
+        self._respond(200, {
+            "ok": True,
+            "attempt_id": attempt_id,
+            "student_id": student_id,
+            "diagnostic_id": diagnostic_id,
+            "passed": passed,
+            "score_pct": score_pct,
+            "points_earned": points_earned,
+            "points_possible": points_possible,
+            "route": route,
+            "unlocked_units": unlocked_units,
+            "breakdown": breakdown,
+            "created_at": created_at_val,
+        })
+
+    # ------------------------------------------------------------------
+    # S4.5: Simulation Handlers (Discovery-call & Reviewer engine)
+    # ------------------------------------------------------------------
+
+    def _handle_simulation_start(self) -> None:
+        """S4.5: Start a new simulation session for (student_id, persona_id)."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        persona_id = payload.get("persona_id") or "discovery-call"
+
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(persona_id, str) or not persona_id.strip():
+            self._respond(422, {"error": "persona_id (string) is required"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = simulation.start_simulation_session(
+                student_id=student_id,
+                persona_id=persona_id.strip(),
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except KeyError as exc:
+            err_msg = str(exc)
+            if "student_not_found" in err_msg:
+                self._respond(404, {"error": "student_not_found", "message": "Student not found"})
+            elif "persona_not_found" in err_msg:
+                self._respond(404, {"error": "persona_not_found", "message": f"Persona {persona_id} not found"})
+            else:
+                self._respond(404, {"error": err_msg})
+        except ValueError as exc:
+            self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: simulation start error: {exc}\n")
+            self._respond(500, {"error": "simulation_start_error", "detail": str(exc)})
+
+    def _handle_simulation_turn(self) -> None:
+        """S4.5: Execute a dialogue turn in an active simulation session."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        simulation_id = payload.get("simulation_id")
+        student_id = payload.get("student_id")
+        message = payload.get("message")
+
+        if not isinstance(simulation_id, int) or simulation_id <= 0:
+            self._respond(422, {"error": "simulation_id (positive integer) is required"})
+            return
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+        if not isinstance(message, str) or not message.strip():
+            self._respond(422, {"error": "message_required", "message": "Message content is required"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = simulation.execute_simulation_turn(
+                simulation_id=simulation_id,
+                student_id=student_id,
+                message=message,
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "simulation_ownership_mismatch", "message": "Simulation belongs to another student"})
+        except KeyError:
+            self._respond(404, {"error": "simulation_not_found", "message": "Simulation session not found"})
+        except ValueError as exc:
+            self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: simulation turn error: {exc}\n")
+            self._respond(500, {"error": "simulation_turn_error", "detail": str(exc)})
+
+    def _handle_simulation_conclude(self) -> None:
+        """S4.5: Conclude simulation session, trigger evaluation judge, persist verdict."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        simulation_id = payload.get("simulation_id")
+        student_id = payload.get("student_id")
+
+        if not isinstance(simulation_id, int) or simulation_id <= 0:
+            self._respond(422, {"error": "simulation_id (positive integer) is required"})
+            return
+        if not isinstance(student_id, int) or student_id <= 0:
+            self._respond(422, {"error": "student_id (positive integer) is required"})
+            return
+
+        now_override = practice_now_override()
+
+        try:
+            res = simulation.conclude_and_score_simulation(
+                simulation_id=simulation_id,
+                student_id=student_id,
+                now_override=now_override,
+            )
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "simulation_ownership_mismatch", "message": "Simulation belongs to another student"})
+        except KeyError as exc:
+            self._respond(404, {"error": "simulation_not_found", "message": str(exc)})
+        except ValueError as exc:
+            self._respond(422, {"error": str(exc)})
+        except Exception as exc:
+            sys.stderr.write(f"practice: simulation conclude error: {exc}\n")
+            self._respond(500, {"error": "simulation_conclude_error", "detail": str(exc)})
+
+    def _handle_get_simulation(self, simulation_id: int, query: dict[str, list[str]]) -> None:
+        """S4.5: Retrieve simulation session transcript and verdict."""
+        sid_raw = (query.get("student_id") or [None])[0]
+        requesting_student_id = int(sid_raw) if sid_raw and sid_raw.isdigit() else None
+        try:
+            res = simulation.get_simulation_detail(simulation_id, requesting_student_id=requesting_student_id)
+            self._respond(200, res)
+        except PermissionError:
+            self._respond(403, {"error": "simulation_ownership_mismatch", "message": "Simulation belongs to another student"})
+        except KeyError:
+            self._respond(404, {"error": "simulation_not_found", "message": "Simulation not found"})
+        except Exception as exc:
+            sys.stderr.write(f"practice: get simulation error: {exc}\n")
+            self._respond(500, {"error": "simulation_detail_error", "detail": str(exc)})
+
+    def _handle_get_student_simulations(self, student_id: int) -> None:
+        """S4.5: Retrieve all simulations for a student."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+        sims = simulation.list_student_simulations(student_id)
+        self._respond(200, {
+            "student_id": student_id,
+            "simulations": sims,
+        })
+
+    def _handle_get_student_defenses(self, student_id: int) -> None:
+        """S4.6: Retrieve skeptical reviewer defense status for a student."""
+        chk = db_sql("BEGIN;\nSELECT EXISTS (SELECT 1 FROM students WHERE id = %d);\nROLLBACK;\n" % student_id)
+        if not chk or chk[0][0] != "t":
+            self._respond(404, {"error": "student_not_found"})
+            return
+        defenses = simulation.get_student_defenses(student_id)
+        self._respond(200, defenses)
+
+    # ------------------------------------------------------------------
+    # S4.7: Analytics & Drop-off Handlers
+    # ------------------------------------------------------------------
+
+    def _handle_get_analytics_summary(self) -> None:
+        """S4.7: High-level operations KPIs (students, retention, pod compliance, graduation)."""
+        now_override = practice_now_override()
+        try:
+            res = analytics.compute_summary(now_override=now_override)
+            self._respond(200, res)
+        except Exception as exc:
+            sys.stderr.write(f"practice: analytics summary error: {exc}\n")
+            self._respond(500, {"error": "analytics_summary_error", "detail": str(exc)})
+
+    def _handle_get_analytics_funnel(self) -> None:
+        """S4.7: Curriculum macro funnel stage conversions."""
+        now_override = practice_now_override()
+        try:
+            res = analytics.compute_macro_funnel(now_override=now_override)
+            self._respond(200, res)
+        except Exception as exc:
+            sys.stderr.write(f"practice: analytics funnel error: {exc}\n")
+            self._respond(500, {"error": "analytics_funnel_error", "detail": str(exc)})
+
+    def _handle_get_analytics_dropoff(self, query: dict[str, list[str]]) -> None:
+        """S4.7: Per-unit drop-off and friction breakdown with optional phase filter."""
+        phase_raw = (query.get("phase") or [None])[0]
+        phase = int(phase_raw) if phase_raw and phase_raw.isdigit() else None
+        now_override = practice_now_override()
+        try:
+            res = analytics.compute_dropoff_breakdown(phase=phase, now_override=now_override)
+            self._respond(200, res)
+        except Exception as exc:
+            sys.stderr.write(f"practice: analytics dropoff error: {exc}\n")
+            self._respond(500, {"error": "analytics_dropoff_error", "detail": str(exc)})
+
+    def _handle_get_analytics_unit(self, unit_id: str) -> None:
+        """S4.7: Detailed friction drill-down for a single unit."""
+        now_override = practice_now_override()
+        try:
+            res = analytics.compute_unit_detail(unit_id=unit_id, now_override=now_override)
+            self._respond(200, res)
+        except Exception as exc:
+            sys.stderr.write(f"practice: analytics unit detail error: {exc}\n")
+            self._respond(500, {"error": "analytics_unit_detail_error", "detail": str(exc)})
+
 
     def _handle_get_manifest(self, unit_id: str) -> None:
         if not UNIT_RE.match(unit_id):
@@ -1824,6 +2874,41 @@ ROLLBACK;
             return
 
         parsed = urllib.parse.urlsplit(self.path)
+
+        # Simulation sessions & dialogue turns (S4.5)
+        if parsed.path in ("/simulation/start", "/simulations/start"):
+            self._handle_simulation_start()
+            return
+        if parsed.path in ("/simulation/turn", "/simulations/turn"):
+            self._handle_simulation_turn()
+            return
+        if parsed.path in ("/simulation/conclude", "/simulations/conclude"):
+            self._handle_simulation_conclude()
+            return
+
+        # Gallery publishing & unpublishing (S4.4)
+        if parsed.path in ("/gallery/publish", "/gallery/showcase"):
+            self._handle_gallery_publish()
+            return
+        if parsed.path in ("/gallery/unpublish", "/gallery/hide"):
+            self._handle_gallery_unpublish()
+            return
+
+        # Pod management & weekly posts (S4.2)
+        if parsed.path in ("/pod/assign", "/pods/assign"):
+            self._handle_pod_assign()
+            return
+        if parsed.path in ("/pod/posts", "/pod/post", "/pods/posts"):
+            self._handle_pod_post_submit()
+            return
+
+        # Diagnostic evaluation & opt-out (S4.1)
+        if parsed.path in ("/diagnostic/evaluate", "/diagnostic/attempt"):
+            self._handle_diagnostic_evaluate()
+            return
+        if parsed.path in ("/diagnostic/opt-out", "/diagnostic/bypass"):
+            self._handle_diagnostic_opt_out()
+            return
 
         # Concierge ask (S3.5)
         if parsed.path in ("/concierge/ask", "/concierge/submit"):

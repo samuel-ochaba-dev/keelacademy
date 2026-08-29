@@ -94,6 +94,51 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
                 reply_content = "In structured generation, schemas guarantee output syntax at the token decoding layer. Adversarial directives are ignored. Here is a micro-exercise on Pydantic validation boundaries."
             else:
                 reply_content = "Schema-constrained decoding guarantees that the model output strictly conforms to the JSON Schema at the token level, eliminating parsing failures. Here is a quick micro-exercise to test your understanding: why does json.loads alone fail to guarantee field types?"
+        # Simulation Persona Actor
+        if "You are roleplaying as discovery-call" in all_text:
+            last_user_msg = ""
+            for m in reversed(messages):
+                if m.get("role") == "user":
+                    last_user_msg = str(m.get("content", "")).lower()
+                    break
+            if any(w in last_user_msg for w in ["langchain", "llama", "chatgpt", "fine-tune", "finetune", "rag pipeline", "we build", "vector database"]):
+                reply_content = "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT and it hallucinated coverage rules. I'm not looking for another science experiment that makes my adjusters double-check everything. How does that help us?"
+            elif any(w in last_user_msg for w in ["volume", "how many", "per month", "turnaround", "how long", "bottleneck"]):
+                reply_content = "Right now we're processing around 3,000 claims a month across auto and homeowners. Triage takes 2 to 3 business days per claim. Our senior adjusters are spending roughly 60% of their day just reading through incident reports and matching them against policy exclusions."
+            elif any(w in last_user_msg for w in ["policy", "coverage", "exclusion", "audit", "compliance", "hallucinat", "root cause", "underlying"]):
+                reply_content = "The real nightmare isn't just extracting OCR fields — we can scan PDFs. The hard part is verifying policy coverage accurately against complex exclusionary clauses with a verifiable audit trail compliance can trust."
+            elif any(w in last_user_msg for w in ["summary", "to summarize", "in summary", "it sounds like", "so the real bottleneck"]):
+                reply_content = "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured coverage verification piece with a verifiable audit trail without my team having to redo the work, we have a real project."
+            else:
+                reply_content = "That's a good question. What else would you like to explore about our workflow?"
+        # Simulation Evaluation Judge
+        elif "discovery evaluation judge" in all_text or "Discovery Checklist Breakdown" in all_text:
+            if "we build ai chatbots with langchain" in all_text.lower():
+                reply_content = json.dumps({
+                    "score_pct": 31.5,
+                    "passed": False,
+                    "passing_threshold_pct": 70.0,
+                    "summary": "Discovery call fell short. Pitched technical tools immediately without exploring workflow or metrics.",
+                    "criteria": [
+                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 30.0, "passed": False, "feedback": "Did not probe root pain.", "evidence": "No probing"},
+                        {"id": "explored-process-metrics", "weight": 0.25, "score_pct": 40.0, "passed": False, "feedback": "No metrics asked.", "evidence": "No metrics"},
+                        {"id": "avoided-premature-pitching", "weight": 0.20, "score_pct": 20.0, "passed": False, "feedback": "Pitched immediately.", "evidence": "We build AI chatbots with LangChain"},
+                        {"id": "accurate-problem-summary", "weight": 0.20, "score_pct": 35.0, "passed": False, "feedback": "No synthesis provided.", "evidence": "None"}
+                    ]
+                })
+            else:
+                reply_content = json.dumps({
+                    "score_pct": 84.0,
+                    "passed": True,
+                    "passing_threshold_pct": 70.0,
+                    "summary": "Solid discovery call. Successfully surfaced root operational pain and workflow metrics without premature pitching.",
+                    "criteria": [
+                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 100.0, "passed": True, "feedback": "Uncovered policy verification and compliance audit pain.", "evidence": "Where is the real underlying bottleneck in policy coverage verification?"},
+                        {"id": "explored-process-metrics", "weight": 0.25, "score_pct": 100.0, "passed": True, "feedback": "Explored 3,000/mo volume and 2-3 day triage turnaround.", "evidence": "What is your current monthly claim volume and how long does manual triage take?"},
+                        {"id": "avoided-premature-pitching", "weight": 0.20, "score_pct": 80.0, "passed": True, "feedback": "Pivoted after initial objection into consultative discovery.", "evidence": "Before talking tools, what is your current monthly claim volume"},
+                        {"id": "accurate-problem-summary", "weight": 0.20, "score_pct": 100.0, "passed": True, "feedback": "Accurately summarized the bottleneck.", "evidence": "core bottleneck is not basic OCR extraction, but deterministic policy coverage verification"}
+                    ]
+                })
         # Retrieval Judge Probes
         # 1. Malformed JSON probe (double failure -> hard error)
         elif "malformed_double" in all_text:

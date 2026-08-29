@@ -14,15 +14,14 @@ Verifies without API keys or external services:
 
 Exit 0 on success; 1 on any violation naming the failing file/clause/test.
 """
-from __future__ import annotations
-
+import os
 import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent.parent.parent
 GRADING_DIR = SCRIPT_DIR.parent
-CONTENT_DIR = REPO_ROOT / "content"
+CONTENT_DIR = Path(os.environ.get("KEEL_CONTENT_ROOT", str(REPO_ROOT / "content")))
 
 sys.path.insert(0, str(GRADING_DIR))
 
@@ -53,7 +52,10 @@ def check_prompt_contracts() -> list[str]:
     if not guard_prompts:
         errors.append("No concierge-guard*.md prompt files found in content/prompts/")
     for gp in guard_prompts:
-        rel = gp.relative_to(REPO_ROOT)
+        try:
+            rel = gp.relative_to(REPO_ROOT)
+        except ValueError:
+            rel = gp.name
         text = gp.read_text(encoding="utf-8")
         for tag, clause in GUARD_REQUIRED_CLAUSES:
             if clause not in text:
@@ -64,7 +66,10 @@ def check_prompt_contracts() -> list[str]:
     if not teach_prompts:
         errors.append("No concierge-teach*.md prompt files found in content/prompts/")
     for tp in teach_prompts:
-        rel = tp.relative_to(REPO_ROOT)
+        try:
+            rel = tp.relative_to(REPO_ROOT)
+        except ValueError:
+            rel = tp.name
         text = tp.read_text(encoding="utf-8")
         for tag, clause in TEACH_REQUIRED_CLAUSES:
             if clause not in text:

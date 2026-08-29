@@ -44,6 +44,69 @@ export type CurriculumMap = {
   phases: MapPhase[];
 };
 
+export type CommitmentAcknowledgment = {
+  id: string;
+  label: string;
+  required: boolean;
+};
+
+export type CommitmentDeclaration = {
+  workload: {
+    total_hours_min: number;
+    total_hours_max: number;
+    months_min: number;
+    months_max: number;
+    hours_per_week_min: number;
+    hours_per_week_max: number;
+    summary: string;
+  };
+  format: {
+    style: string;
+    finish_line: string;
+    teaching_delivery: string;
+    summary: string;
+  };
+  guarantees: {
+    client_guarantee: string;
+    what_we_guarantee: string;
+    summary: string;
+  };
+  acknowledgments: CommitmentAcknowledgment[];
+};
+
+export type DiagnosticOption = {
+  id: string;
+  label: string;
+};
+
+export type DiagnosticQuestion = {
+  id: string;
+  category: string;
+  type: "multiple_choice" | "code_analysis" | "concept";
+  prompt: string;
+  points: number;
+  options: DiagnosticOption[];
+  correct_answer?: string;
+  explanation?: string;
+};
+
+export type DiagnosticCategory = {
+  id: string;
+  title: string;
+  weight: number;
+};
+
+export type PlacementDiagnostic = {
+  id: string;
+  title: string;
+  est_minutes: number;
+  passing_threshold_pct: number;
+  pass_skip_units: string[];
+  fail_baseline_units: string[];
+  categories: DiagnosticCategory[];
+  questions: DiagnosticQuestion[];
+};
+
 export type UnitYaml = {
   id: string;
   phase: number;
@@ -199,6 +262,34 @@ export function loadCurriculumMap(): CurriculumMap {
     return parseYaml(text) as CurriculumMap;
   } catch {
     return { version: 1, phases: [] };
+  }
+}
+
+export function loadCommitmentDeclaration(): CommitmentDeclaration | null {
+  try {
+    const contentRoot = findContentRoot();
+    const filePath = path.join(/* turbopackIgnore: true */ contentRoot, "commitment", "commitment.yaml");
+    if (!existsSync(filePath)) return null;
+    const text = readFileSync(filePath, "utf8");
+    return parseYaml(text) as CommitmentDeclaration;
+  } catch {
+    return null;
+  }
+}
+
+export function loadPlacementDiagnostic(id: string = "placement-phase-1"): PlacementDiagnostic | null {
+  try {
+    const contentRoot = findContentRoot();
+    const diagDir = path.join(/* turbopackIgnore: true */ contentRoot, "diagnostic");
+    let target = path.join(/* turbopackIgnore: true */ diagDir, `${id}.yaml`);
+    if (!existsSync(target)) {
+      target = path.join(/* turbopackIgnore: true */ diagDir, "placement.yaml");
+    }
+    if (!existsSync(target)) return null;
+    const text = readFileSync(target, "utf8");
+    return parseYaml(text) as PlacementDiagnostic;
+  } catch {
+    return null;
   }
 }
 

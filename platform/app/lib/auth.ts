@@ -75,6 +75,30 @@ export async function requireSession(next: string): Promise<SessionUser> {
   return user;
 }
 
+/** Check if current session user has admin privileges. */
+export function isAdminUser(user: SessionUser | null): boolean {
+  if (!user) return false;
+  const adminEmails = (process.env.KEEL_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const email = user.email.trim().toLowerCase();
+  // If specific admin emails configured, check list; default allow staff/admin or dev in offline mode if none configured
+  if (adminEmails.length > 0) {
+    return adminEmails.includes(email);
+  }
+  return email.endsWith("@keelacademy.com") || email.endsWith("@keel.test") || email.startsWith("admin");
+}
+
+/** Route gate: require admin session. Redirects to sign-in or access denied. */
+export async function requireAdminSession(next: string = "/admin/analytics"): Promise<SessionUser> {
+  const user = await requireSession(next);
+  if (!isAdminUser(user)) {
+    redirect(`/?error=admin_access_required`);
+  }
+  return user;
+}
+
 // ---------------------------------------------------------------------------
 // Offline fake: cookie mint/verify + JSON identity store
 // ---------------------------------------------------------------------------

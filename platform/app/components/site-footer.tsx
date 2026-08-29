@@ -86,6 +86,14 @@ export function SiteFooter() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
+                  href="/gallery"
+                  className="transition-colors hover:text-zinc-100"
+                >
+                  Public Build Gallery
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/me"
                   className="transition-colors hover:text-zinc-100"
                 >

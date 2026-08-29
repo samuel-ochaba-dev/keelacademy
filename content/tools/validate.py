@@ -49,9 +49,13 @@ FIXTURE_CASES = [
     ("map.schema.json", "content/examples/map.example.yaml", True),
     ("routing.schema.json", "content/examples/routing.example.yaml", True),
     ("guard-eval.schema.json", "content/examples/guard-eval.example.yaml", True),
+    ("commitment.schema.json", "content/examples/commitment.example.yaml", True),
+    ("diagnostic.schema.json", "content/examples/diagnostic.example.yaml", True),
     ("unit.schema.json", "content/examples/unit.invalid.yaml", False),
     ("routing.schema.json", "content/examples/routing.invalid.yaml", False),
     ("guard-eval.schema.json", "content/examples/guard-eval.invalid.yaml", False),
+    ("commitment.schema.json", "content/examples/commitment.invalid.yaml", False),
+    ("diagnostic.schema.json", "content/examples/diagnostic.invalid.yaml", False),
 ]
 
 # (schema, glob relative to content/, may_be_empty)
@@ -61,6 +65,8 @@ DISCOVERED = [
     ("variant.schema.json", "variants/*.yaml", True),
     ("persona.schema.json", "personas/*.yaml", True),
     ("guard-eval.schema.json", "evals/guard/*.yaml", False),
+    ("commitment.schema.json", "commitment/*.yaml", False),
+    ("diagnostic.schema.json", "diagnostic/*.yaml", False),
 ]
 
 PHASE_DIR_RE = re.compile(r"^phase-(\d+)$")
@@ -153,7 +159,8 @@ def main() -> int:
                 problems.append("file is empty or parses to null")
             else:
                 problems.extend(schema_errors(normalize(doc), schema))
-            problems.extend(unit_layout_errors(doc, path))
+            if schema_name == "unit.schema.json":
+                problems.extend(unit_layout_errors(doc, path))
             if problems:
                 failures += 1
                 print(f"FAIL {repo_rel(path)}")
