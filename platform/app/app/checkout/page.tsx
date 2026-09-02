@@ -1,165 +1,126 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getSessionUser } from "@/lib/auth";
-import {
-  ensureStudent,
-  fetchPrice,
-  formatPrice,
-} from "@/lib/enroll";
-import { listUnits, loadCommitmentDeclaration } from "@/lib/content";
-import { startCheckoutAction } from "@/app/auth/actions";
+import { requireSession } from "@/lib/auth";
+import { fetchPrice, formatPrice } from "@/lib/enroll";
+import { isUnitAuthored } from "@/lib/content";
 import { CommitmentForm } from "@/components/commitment-form";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Commitment & Checkout — Keel Academy",
-  description: "Review workload, expectations, and transparent terms before completing enrollment.",
+  title: "Checkout",
   robots: { index: false },
 };
 
 type Props = { searchParams: Promise<{ unit?: string }> };
 
 export default async function CheckoutPage({ searchParams }: Props) {
-  const { unit: unitParam } = await searchParams;
-  const user = await getSessionUser();
+  const user = await requireSession("/checkout");
+  const { unit } = await searchParams;
+  const unitId = unit || "0.1";
 
-  const units = listUnits();
-  const selectedUnitId = unitParam ?? units[0]?.id ?? "3.2.1";
-  const commitment = loadCommitmentDeclaration();
-
-  if (!user) {
-    redirect(`/sign-in?next=${encodeURIComponent(`/checkout?unit=${selectedUnitId}`)}`);
+  if (!isUnitAuthored(unitId)) {
+    return (
+      <div className="shell section">
+        <div className="card-dark max-w-[62ch]">
+          <p className="eyebrow">Nothing to buy here</p>
+          <h1 className="heading-lg mt-3">Unit {unitId} is not written yet</h1>
+          <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            You can only enroll in a unit that exists. Nothing was charged.
+          </p>
+          <Link href="/curriculum" className="btn btn-ghost btn-sm mt-7">
+            See what is written
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  const bridged = await ensureStudent(user);
-  const priceResult = await fetchPrice(selectedUnitId);
+  const priceRes = await fetchPrice(unitId);
 
-  const unitPrice =
-    priceResult.state === "ok"
-      ? formatPrice(priceResult.data.amount_cents, priceResult.data.currency)
-      : "$35";
+  if (priceRes.state !== "ok") {
+    return (
+      <div className="shell section">
+        <div className="card-dark max-w-[62ch]">
+          <p className="eyebrow">Checkout unavailable</p>
+          <h1 className="heading-lg mt-3">We could not load the price</h1>
+          <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            The enrollment server did not answer, so we will not guess at a number. Nothing
+            was charged. Refresh in a moment.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href={`/checkout?unit=${unitId}`} className="btn btn-primary btn-sm">
+              Try again
+            </Link>
+            <Link href="/pricing" className="btn btn-ghost btn-sm">
+              Back to pricing
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const amountCents = priceRes.data.amount_cents;
+  const currency = priceRes.data.currency;
+  const priceLabel = formatPrice(amountCents, currency);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            DAY-ZERO COMMITMENT & ENROLLMENT
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-            Commitment & Enrollment Gate
-          </h1>
-          <p className="text-xs text-zinc-400 font-sans">
-            Review workload requirements (700–950h), self-directed delivery terms, and honesty guarantees before payment.
-          </p>
-        </div>
+    <div className="shell section">
+      <header className="max-w-[62ch]">
+        <p className="eyebrow">Checkout</p>
+        <h1 className="heading-xl mt-4">Enroll in unit {unitId}</h1>
+        <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          One unit, paid once. You keep access to it, and clearing a milestone gate sends
+          15% of what you paid back to the card you used.
+        </p>
       </header>
 
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Left: Commitment Declaration & Action Form */}
-          <div className="md:col-span-7 rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 space-y-6">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-                Enrollment Spec
-              </span>
-              <h2 className="text-lg font-mono font-bold text-zinc-100 mt-1">
-                Target Unit: {selectedUnitId}
-              </h2>
-              <p className="text-xs text-zinc-400 font-sans mt-1">
-                Full deterministic test harness, calibrated Layer 2 rubric judge, and defend-your-work evaluation.
-              </p>
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <section aria-labelledby="details-title" className="card-dark">
+          <h2 id="details-title" className="heading-md">
+            What you are buying
+          </h2>
+          <dl className="mt-6 space-y-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[color:var(--line-on-dark)] pb-4">
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Account</dt>
+              <dd className="text-[15px] text-phosphor-white">{user.email}</dd>
             </div>
-
-            <div className="p-4 rounded-md bg-zinc-950/70 border border-zinc-800/80 space-y-3 text-xs font-mono">
-              <div className="flex justify-between items-center text-zinc-300">
-                <span>Target Unit Module:</span>
-                <span className="font-bold text-zinc-100">Unit {selectedUnitId}</span>
-              </div>
-              <div className="flex justify-between items-center text-zinc-300">
-                <span>Account Identity:</span>
-                <span className="text-zinc-400 truncate max-w-[200px]">{user.email}</span>
-              </div>
-              <div className="flex justify-between items-center text-zinc-300">
-                <span>Grading Profile:</span>
-                <span className="text-emerald-400">
-                  {bridged.state === "ok" ? `#${bridged.data}` : "Ready to bridge"}
-                </span>
-              </div>
-              <div className="pt-2 border-t border-zinc-800 flex justify-between items-center text-sm font-bold">
-                <span className="text-zinc-200">Total Due Today:</span>
-                <span className="text-emerald-400 font-mono text-base">{unitPrice}</span>
-              </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[color:var(--line-on-dark)] pb-4">
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Unit</dt>
+              <dd className="font-code-mono text-[15px] text-phosphor-white">{unitId}</dd>
             </div>
-
-            {/* Guaranteed Rebates Reminder */}
-            <div className="rounded-md border border-emerald-500/30 bg-emerald-950/20 p-4 space-y-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-emerald-400">
-                  COMPLETION REBATE GUARANTEE
-                </span>
-              </div>
-              <p className="text-zinc-300 font-sans leading-relaxed">
-                Clearing milestone gates automatically issues cash refunds directly back to your card via Stripe without manual claim filing.
-              </p>
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[color:var(--line-on-dark)] pb-4">
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Price</dt>
+              <dd className="stat-number">{priceLabel}</dd>
             </div>
-
-            {/* Commitment Form with Acknowledgment Checks */}
-            {commitment ? (
-              <CommitmentForm
-                commitment={commitment}
-                selectedUnitId={selectedUnitId}
-                unitPrice={unitPrice}
-                formAction={startCheckoutAction}
-              />
-            ) : (
-              <form action={startCheckoutAction} className="pt-2">
-                <input type="hidden" name="unit_id" value={selectedUnitId} />
-                <button
-                  type="submit"
-                  className="w-full rounded-md bg-emerald-500 py-3 text-sm font-mono font-bold text-zinc-950 hover:bg-emerald-400 transition-colors shadow-lg active:scale-[0.98]"
-                >
-                  Proceed to Secure Payment ({unitPrice}) &rarr;
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Right: Security & Terms */}
-          <div className="md:col-span-5 space-y-6 text-xs text-zinc-400">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-5 space-y-3">
-              <h3 className="font-mono font-bold uppercase tracking-wider text-zinc-200">
-                Payment Security
-              </h3>
-              <p className="font-sans leading-relaxed">
-                Payments are processed through Stripe over encrypted TLS. Keel Academy never stores your credit card numbers or billing secrets.
-              </p>
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">
+                Back at each gate
+              </dt>
+              <dd className="text-[15px] text-phosphor-white">
+                {formatPrice(Math.round(amountCents * 0.15), currency)}
+              </dd>
             </div>
+          </dl>
+        </section>
 
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-5 space-y-3">
-              <h3 className="font-mono font-bold uppercase tracking-wider text-zinc-200">
-                Instant Access
-              </h3>
-              <p className="font-sans leading-relaxed">
-                Your unit workbench and test suite runners unlock immediately upon payment confirmation.
-              </p>
-            </div>
+        <section aria-labelledby="commit-title" className="card-dark">
+          <h2 id="commit-title" className="heading-md">
+            Three things to agree to
+          </h2>
+          <CommitmentForm unitId={unitId} priceLabel={priceLabel} />
+        </section>
+      </div>
 
-            <div className="text-center pt-2">
-              <Link
-                href="/pricing"
-                className="font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                &larr; Return to Pricing Options
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
+      <p className="mt-8">
+        <Link
+          href="/pricing"
+          className="text-[15px] text-fern-link underline underline-offset-4 hover:text-phosphor-white"
+        >
+          Back to pricing
+        </Link>
+      </p>
     </div>
   );
 }

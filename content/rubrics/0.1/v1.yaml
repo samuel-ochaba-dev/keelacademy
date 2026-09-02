@@ -1,0 +1,33 @@
+id: rubric-0.1
+version: 1
+pass_rule: all
+judge:
+  prompt: prompts/judge-0.1.md
+  model_tier: mid
+golden_set: golden/0.1/
+criteria:
+  - id: jargon-free-problem-statement
+    description: >-
+      The problem statement describes OmniSupply's operational intake and
+      triage challenge completely in plain language without using technology
+      buzzwords (such as AI, LLM, machine learning, agent, or neural network). It
+      articulates the 4,000 monthly transactions volume, multi-format inputs (PDFs,
+      packing slips, emails, dispute tickets), and 2-3 day manual triage latency.
+    evidence: >-
+      Quote the problem statement sentences and verify absence of buzzwords.
+  - id: three-stakeholder-definitions
+    description: >-
+      The submission provides three distinct and concrete definitions of success
+      tailored to the operational constraints of the operations manager (speed and
+      backlog), compliance officer (auditability and vendor contract citations), and
+      CFO (cost per transaction and unit economics).
+    evidence: >-
+      Quote the success criteria for operations manager, compliance officer, and CFO.
+  - id: operational-workflow-mapping
+    description: >-
+      The submission demonstrates understanding of the end-to-end document lifecycle
+      from intake receipt to account settlement, identifying specific
+      current failure modes (manual cross-referencing, dropped records) and target
+      controls (schema validation, audit logs).
+    evidence: >-
+      Quote the workflow analysis detailing current failure modes and target requirements.

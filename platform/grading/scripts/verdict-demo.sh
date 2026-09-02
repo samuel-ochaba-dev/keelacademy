@@ -1,23 +1,32 @@
 #!/usr/bin/env bash
-# NOTE: the copy greps below assert the CURRENT PLACEHOLDER copy (pre-redesign).
-# A UI session that rewrites copy updates these greps to the new strings and
-# re-runs this demo green — see the 2026-08-27 copy-unfreeze decision in build-state.md.
+# NOTE: the copy greps below assert the copy the pages render today. A session
+# that rewrites that copy updates these greps to the new strings and re-runs
+# this demo green (the 2026-08-27 copy-unfreeze decision in build-state.md).
 # verdict-demo.sh — S2.4 end-to-end proof: a real git push becomes real rows
 # and the learner app's verdict page renders them read-only.
+#
+# A verdict page opens only for the account that pushed the commit, so this
+# demo also stands up the S2.5 enrollment service and runs the app in its
+# offline auth mode: the proof signs alice and bob in through the app's own
+# sign-up form and reads every page with that account's cookie, exactly as a
+# student's browser would.
 #
 # Modes:
 #   setup     Stand up the S1.9 push -> verdict pipeline (push-demo-setup.sh,
 #             run under setsid so the daemons survive), then add: the S2.4
-#             read-only reader, the learner app dev server (setsid), a second
-#             repo for a budget-blocked student (bob), and a raised budget for
-#             alice so multiple proof pushes fit. Persists until teardown.
+#             read-only reader, the enrollment service that links a signed-in
+#             account to its grading row, the learner app dev server (setsid),
+#             a second repo for a budget-blocked student (bob), and a raised
+#             budget for alice so multiple proof pushes fit. Persists until
+#             teardown.
 #   prove     Run setup if needed, then perform the worker-side proof: graded,
 #             grading (mid-flight, worker SIGSTOP'd for a stable window),
 #             queued (worker frozen across the push), error (bob's exhausted
 #             budget), /submit, and an unknown id's honest 404. Exit 0 only if
 #             every assertion holds.
-#   teardown  Stop the reader + app daemons, then run push-demo-teardown.sh
-#             (which removes the containers and /tmp/keel-push-demo).
+#   teardown  Stop the reader, enroll and app daemons, then run
+#             push-demo-teardown.sh (which removes the containers and
+#             /tmp/keel-push-demo).
 #
 # No secret is ever echoed or written under $ROOT; the platform key stays in
 # the setup script's process environment (sourced from ~/.keelacademy.env).
@@ -27,6 +36,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 APP_DIR="$REPO_ROOT/platform/app"
 READER="$SCRIPT_DIR/../reader/server.py"
+ENROLL="$SCRIPT_DIR/../enroll/server.py"
+SCHEMA_DIR="$SCRIPT_DIR/../schema"
 PUSH_SETUP="$SCRIPT_DIR/push-demo-setup.sh"
 PUSH_TEARDOWN="$SCRIPT_DIR/push-demo-teardown.sh"
 HOOK_TEMPLATE="$SCRIPT_DIR/push-demo-post-receive"
@@ -42,6 +53,12 @@ DB_NAME="grading"
 GOLDEN="$REPO_ROOT/content/golden/3.2.1/s01-textbook"
 CORPUS="$REPO_ROOT/content/golden/3.2.1/s14-artifact-evidence/claims_messy.jsonl"
 SETUP_LOG="/tmp/keel-verdict-setup.log"
+
+# Test-mode placeholders for the two shared secrets this demo needs. Neither
+# is a credential: the app token guards a loopback-only service, and the auth
+# secret signs cookies for the offline auth fake. No real key is used here.
+APP_TOKEN="verdict-demo-app-token"
+AUTH_SECRET="verdict-demo-offline-auth-secret"
 
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     DOCKER="docker"
@@ -101,9 +118,22 @@ do_setup() {
     # shellcheck disable=SC1090
     . "$ROOT/pids.env"
 
-    if [ -n "${READER_PID:-}" ] && kill -0 "$READER_PID" 2>/dev/null; then
+    if [ -n "${READER_PID:-}" ] && kill -0 "$READER_PID" 2>/dev/null \
+        && [ -n "${ENROLL_PID:-}" ] && kill -0 "$ENROLL_PID" 2>/dev/null; then
         echo "== demo already set up (reader pid $READER_PID, app port ${APP_PORT:-?}) =="
         return 0
+    fi
+
+    # The verdict page resolves ownership through the enrollment service, so
+    # this demo needs the tables that service owns. push-demo-setup applies
+    # 0001..0003; add 0004 and 0005 once, guarded so a re-stand does not
+    # re-run a migration that is not written to be re-runnable.
+    if [ "$(psql_sql "SELECT to_regclass('public.enrollments') IS NULL;")" = "t" ]; then
+        echo "== applying schema 0004 + 0005 (enrollment tables) =="
+        for m in 0004_enrollments 0005_rebates; do
+            "$DOCKER" exec -i "$CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" \
+                -v ON_ERROR_STOP=1 < "$SCHEMA_DIR/$m.sql" >/dev/null
+        done
     fi
 
     echo "== raising alice's budget (multiple proof pushes) =="
@@ -161,6 +191,17 @@ do_setup() {
     wait_http "http://127.0.0.1:$READER_PORT/healthz" "reader" \
         || { kill "$READER_PID" 2>/dev/null || true; exit 1; }
 
+    echo "== starting the enrollment service (setsid) =="
+    ENROLL_PORT="$(free_port)"
+    ( exec env KEEL_ENROLL_PORT="$ENROLL_PORT" \
+        KEEL_DB_CMD="$DB_CMD_PLAIN" \
+        KEEL_ENROLL_SECRET="$APP_TOKEN" \
+        KEEL_DEFAULT_BUDGET_TOKENS="5000" \
+        setsid python3 "$ENROLL" ) >> "$ROOT/logs/enroll.log" 2>&1 < /dev/null &
+    ENROLL_PID=$!
+    wait_http "http://127.0.0.1:$ENROLL_PORT/healthz" "enroll service" \
+        || { kill "$READER_PID" "$ENROLL_PID" 2>/dev/null || true; exit 1; }
+
     echo "== starting the learner app dev server (setsid) =="
     if pgrep -f "node_modules/.bin/next dev" >/dev/null 2>&1; then
         echo "FAIL: a next dev server is already running for this app (Next refuses a second one). Kill it first:" >&2
@@ -171,31 +212,40 @@ do_setup() {
     # exec inside the subshell so $! is the setsid'd session leader itself,
     # and the process-group kill in teardown reaches next's render workers.
     ( cd "$APP_DIR" && exec env KEEL_READER_URL="http://127.0.0.1:$READER_PORT" \
+        KEEL_ENROLL_URL="http://127.0.0.1:$ENROLL_PORT" \
+        KEEL_ENROLL_SECRET="$APP_TOKEN" \
+        KEEL_OFFLINE_AUTH_SECRET="$AUTH_SECRET" \
+        KEEL_OFFLINE_AUTH_STORE="$ROOT/offline-auth-store.json" \
         setsid ./node_modules/.bin/next dev -p "$APP_PORT" -H 127.0.0.1 ) \
         >> "$ROOT/logs/app.log" 2>&1 < /dev/null &
     APP_PID=$!
     if ! wait_http "http://127.0.0.1:$APP_PORT/" "learner app"; then
-        kill -TERM -- "-$READER_PID" 2>/dev/null || kill "$READER_PID" 2>/dev/null || true
-        kill -TERM -- "-$APP_PID" 2>/dev/null || kill "$APP_PID" 2>/dev/null || true
+        for pid in "$READER_PID" "$ENROLL_PID" "$APP_PID"; do
+            kill -TERM -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
+        done
         exit 1
     fi
 
     # Persist the S2.4 additions where teardown (and re-runs) can find them.
-    printf 'READER_PID=%s\nREADER_PORT=%s\nAPP_PID=%s\nAPP_PORT=%s\n' \
-        "$READER_PID" "$READER_PORT" "$APP_PID" "$APP_PORT" >> "$ROOT/pids.env"
+    printf 'READER_PID=%s\nREADER_PORT=%s\nENROLL_PID=%s\nENROLL_PORT=%s\nAPP_PID=%s\nAPP_PORT=%s\n' \
+        "$READER_PID" "$READER_PORT" "$ENROLL_PID" "$ENROLL_PORT" "$APP_PID" "$APP_PORT" \
+        >> "$ROOT/pids.env"
 
     cat <<SUMMARY
 
 == verdict-page demo READY (persists until teardown) ==
    app        : http://127.0.0.1:$APP_PORT/submit
    reader     : http://127.0.0.1:$READER_PORT/healthz  (pid $READER_PID)
+   enroll svc : http://127.0.0.1:$ENROLL_PORT/healthz  (pid $ENROLL_PID)
    alice repo : $ROOT/student/$ALICE_REPO  (registered, budget raised)
    bob repo   : $BOB_STUDENT  (registered, budget exhausted -> error path)
-   logs       : $ROOT/logs/{reader,app}.log
+   logs       : $ROOT/logs/{reader,enroll,app}.log
 
    YOUR PUSH (creates the submission the verdict page renders):
        cd $ROOT/student/$ALICE_REPO && git push origin main
-   then open http://127.0.0.1:$APP_PORT/submissions/<id-from-the-hook-response>
+   then sign in as $PUSHER_EMAIL at http://127.0.0.1:$APP_PORT/sign-up
+   and open http://127.0.0.1:$APP_PORT/submissions/<id-from-the-hook-response>
+   (a verdict page opens only for the account that pushed the commit)
 
    teardown: bash $SCRIPT_DIR/verdict-demo.sh teardown
 SUMMARY
@@ -214,8 +264,80 @@ check() {  # check <name> <cmd...> — run in a subshell; PASS/FAIL tally
     fi
 }
 
-html_has() {  # html_has <path> <needle>
-    curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$1" | grep -qF "$2"
+html_has() {  # html_has <cookie-jar-or-"-"> <path> <needle>
+    # The needle is matched with a bash pattern rather than a pipe into
+    # `grep -q`, deliberately. grep exits on its first match, so with a page
+    # larger than the 64KB pipe buffer the writer is still writing when the
+    # pipe closes, dies of SIGPIPE, and `set -o pipefail` reports a found
+    # needle as a failed assertion. The earlier the needle sits in the page,
+    # the more often that happens.
+    #
+    # Three attempts, because this page is rendered from two live services on
+    # every request: one momentary failure there renders the honest "we could
+    # not confirm this is yours" fallback, which is correct behaviour and not
+    # what these assertions are about.
+    local jar="$1" path="$2" needle="$3" body attempt
+    for attempt in 1 2 3; do
+        if [ "$jar" = "-" ]; then
+            body="$(curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$path")" || body=""
+        else
+            body="$(curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$path")" || body=""
+        fi
+        case "$body" in *"$needle"*) return 0 ;; esac
+        sleep 1
+    done
+    # Keep the page that did not carry the needle: a copy-grep failure and a
+    # render failure look identical in the PASS/FAIL tally otherwise.
+    printf '%s' "$body" > "$ROOT/logs/miss-$(printf '%s' "$path$needle" | tr -c 'a-zA-Z0-9' '-' | cut -c1-60).html"
+    return 1
+}
+
+status_of() {  # status_of <cookie-jar-or-"-"> <path> — HTTP code only
+    local jar="$1"
+    if [ "$jar" = "-" ]; then
+        curl -s -o /dev/null -w "%{http_code}" --max-time 30 "http://127.0.0.1:$APP_PORT$2"
+    else
+        curl -s -o /dev/null -w "%{http_code}" --max-time 30 -b "$jar" \
+            "http://127.0.0.1:$APP_PORT$2"
+    fi
+}
+
+# Extract the progressive-enhancement action id from a rendered form: Next
+# injects <input type="hidden" name="$ACTION_ID_..."> for no-JS posts.
+action_id() {  # action_id <html-file>
+    python3 - "$1" <<'EOF'
+import re, sys
+html = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+names = re.findall(r'name="(\$ACTION_ID_[0-9a-f]+)"', html)
+if not names:
+    sys.exit(1)
+print(names[0])
+EOF
+}
+
+sign_in_as() {  # sign_in_as <jar> <name> <email> — drive the app's own forms
+    # Prefer sign-in: a second prove run against a live demo finds the account
+    # already created, and the offline auth fake answers a repeat sign-up with
+    # "that email already has an account". Sign-up is the first-run path.
+    local jar="$1" who="$2" email="$3"
+    rm -f "$jar"
+    if post_auth_form "$jar" /sign-in "email=$email" "next=/me"; then return 0; fi
+    post_auth_form "$jar" /sign-up "name=$who" "email=$email" "next=/me"
+}
+
+post_auth_form() {  # post_auth_form <jar> <path> <field=value>...
+    local jar="$1" path="$2"; shift 2
+    local form="$ROOT/auth-form.html" action code args=() kv
+    curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$path" -o "$form" || return 1
+    action="$(action_id "$form")" || return 1
+    args=(-F "$action=")
+    for kv in "$@"; do args+=(-F "$kv"); done
+    # The rendered forms carry encType="multipart/form-data", so the no-JS
+    # posts mirror that exactly with curl -F.
+    code="$(curl -s --max-time 30 -o /dev/null -w "%{http_code}" -b "$jar" -c "$jar" \
+        -X POST "http://127.0.0.1:$APP_PORT$path" "${args[@]}")"
+    [ "$code" = "303" ] || return 1
+    grep -q "keel_session" "$jar"
 }
 
 json_is() {  # json_is <submission_id> <python-expr over doc>
@@ -238,6 +360,18 @@ do_prove() {
     . "$ROOT/pids.env"
     ALICE="$ROOT/student/$ALICE_REPO"
     BOB="$ROOT/student/$BOB_REPO"
+    JAR_ALICE="$ROOT/jar-alice.txt"
+    JAR_BOB="$ROOT/jar-bob.txt"
+
+    echo
+    echo "== proof 0: the accounts sign in through the app's own form =="
+    # Both students already have a grading row from pushing; signing up with
+    # the same email claims that row, which is what makes their verdict pages
+    # theirs. Every page assertion below is read with that account's cookie.
+    check "alice signs in and claims her grading row" \
+        sign_in_as "$JAR_ALICE" "Alice" "$PUSHER_EMAIL"
+    check "bob signs in and claims his grading row" \
+        sign_in_as "$JAR_BOB" "Bob" "$BOB_EMAIL"
 
     echo
     echo "== proof 1: a real push grades and the verdict page renders it =="
@@ -254,13 +388,17 @@ do_prove() {
         json_is "$ID_A" 'doc["verdict"]["rubric_id"] == "rubric-3.2.1" and doc["verdict"]["rubric_version"] == 1 and len(doc["verdict"]["json"]["trace"]["records"]) > 0'
     check "reader: event timeline is created + issued" \
         json_is "$ID_A" '[e["type"] for e in doc["events"]] == ["submission.created", "verdict.issued"]'
-    check "page: graded banner (Passed)" html_has "/submissions/$ID_A" 'data-keel-status="graded"'
-    check "page: layer-1 summary renders" html_has "/submissions/$ID_A" "checks passed"
-    check "page: judge section renders" html_has "/submissions/$ID_A" "criteria passed"
-    check "page: rubric identity renders" html_has "/submissions/$ID_A" "rubric-3.2.1"
-    check "page: budget charged renders" html_has "/submissions/$ID_A" "tokens"
-    check "page: timeline labels render" html_has "/submissions/$ID_A" "Verdict issued"
-    check "page: privacy note present" html_has "/submissions/$ID_A" "This link is private"
+    check "page: graded banner (Passed)" html_has "$JAR_ALICE" "/submissions/$ID_A" 'data-keel-status="graded"'
+    check "page: layer-1 summary renders" html_has "$JAR_ALICE" "/submissions/$ID_A" "checks passed"
+    check "page: judge section renders" html_has "$JAR_ALICE" "/submissions/$ID_A" "criteria passed"
+    check "page: rubric identity renders" html_has "$JAR_ALICE" "/submissions/$ID_A" "rubric-3.2.1"
+    check "page: budget charged renders" html_has "$JAR_ALICE" "/submissions/$ID_A" "tokens"
+    check "page: timeline labels render" html_has "$JAR_ALICE" "/submissions/$ID_A" "Verdict issued"
+    check "page: privacy note present" html_has "$JAR_ALICE" "/submissions/$ID_A" "This link is private"
+    check "page: signed-out visitors are sent to sign-in" \
+        test "$(status_of - "/submissions/$ID_A")" = "307"
+    check "page: another account gets a 404, not a peek" \
+        test "$(status_of "$JAR_BOB" "/submissions/$ID_A")" = "404"
 
     echo
     echo "== proof 2: mid-flight (grading) renders while the worker is paused =="
@@ -270,8 +408,8 @@ do_prove() {
     wait_status "$ID_B" grading
     kill -STOP "$WORKER_PID"
     echo "   submission $ID_B grading; worker $WORKER_PID frozen for a stable window"
-    check "page: grading banner (live state)" html_has "/submissions/$ID_B" 'data-keel-status="grading"'
-    check "page: while-you-wait copy, no verdict sections" html_has "/submissions/$ID_B" "While you wait"
+    check "page: grading banner (live state)" html_has "$JAR_ALICE" "/submissions/$ID_B" 'data-keel-status="grading"'
+    check "page: while-you-wait copy, no verdict sections" html_has "$JAR_ALICE" "/submissions/$ID_B" "While you wait"
     kill -CONT "$WORKER_PID"
     wait_status "$ID_B" graded
     echo "   submission $ID_B graded after resume"
@@ -283,7 +421,7 @@ do_prove() {
     git -C "$ALICE" push -q origin main || true
     ID_C="$(psql_sql "SELECT max(id) FROM submissions;")"
     sleep 2
-    check "page: queued banner" html_has "/submissions/$ID_C" 'data-keel-status="queued"'
+    check "page: queued banner" html_has "$JAR_ALICE" "/submissions/$ID_C" 'data-keel-status="queued"'
     check "reader: row really is queued" json_is "$ID_C" 'doc["submission"]["status"] == "queued"'
     kill -CONT "$WORKER_PID"
     wait_status "$ID_C" graded
@@ -297,19 +435,19 @@ do_prove() {
     echo "   submission $ID_D errored (budget blocked)"
     check "reader: no verdict row, budget_blocked event" \
         json_is "$ID_D" 'doc["verdict"] is None and [e["type"] for e in doc["events"]] == ["submission.created", "grade.budget_blocked"]'
-    check "page: error banner" html_has "/submissions/$ID_D" 'data-keel-status="error"'
-    check "page: error explanation, not a verdict" html_has "/submissions/$ID_D" "What an error means"
-    check "page: budget-blocked timeline label" html_has "/submissions/$ID_D" "Budget blocked"
+    check "page: error banner" html_has "$JAR_BOB" "/submissions/$ID_D" 'data-keel-status="error"'
+    check "page: error explanation, not a verdict" html_has "$JAR_BOB" "/submissions/$ID_D" "What an error means"
+    check "page: budget-blocked timeline label" html_has "$JAR_BOB" "/submissions/$ID_D" "Budget blocked"
 
     echo
     echo "== proof 5: /submit documents the flow; unknown ids 404 honestly =="
-    check "page: /submit renders the push contract" html_has "/submit" "What happens after the push"
-    check "page: /submit names the repo pattern" html_has "/submit" "your-suffix"
-    check "page: /submit is honest about S2.5" html_has "/submit" "What is not here yet"
-    CODE="$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "http://127.0.0.1:$APP_PORT/submissions/999999")"
-    check "page: unknown submission id is a 404" test "$CODE" = "404"
-    CODE="$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "http://127.0.0.1:$APP_PORT/submissions/not-an-id")"
-    check "page: malformed submission id is a 404" test "$CODE" = "404"
+    check "page: /submit renders the push contract" html_has - "/submit" "What happens after the push"
+    check "page: /submit names the repo pattern" html_has - "/submit" "your-suffix"
+    check "page: /submit is honest about S2.5" html_has - "/submit" "What is not here yet"
+    check "page: unknown submission id is a 404" \
+        test "$(status_of "$JAR_ALICE" /submissions/999999)" = "404"
+    check "page: malformed submission id is a 404" \
+        test "$(status_of "$JAR_ALICE" /submissions/not-an-id)" = "404"
     CODE="$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://127.0.0.1:$READER_PORT/submissions/999999")"
     check "reader: unknown id 404 at the service too" test "$CODE" = "404"
 
@@ -322,7 +460,7 @@ do_teardown() {
     if [ -f "$ROOT/pids.env" ]; then
         # shellcheck disable=SC1090
         . "$ROOT/pids.env"
-        for pid in ${APP_PID:-} ${READER_PID:-}; do
+        for pid in ${APP_PID:-} ${READER_PID:-} ${ENROLL_PID:-}; do
             if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
                 kill -TERM -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
             fi
@@ -330,9 +468,10 @@ do_teardown() {
     fi
     sleep 1
     if pgrep -f "reader/server.py" >/dev/null 2>&1 \
+        || pgrep -f "enroll/server.py" >/dev/null 2>&1 \
         || pgrep -f "next dev -p ${APP_PORT:-} " >/dev/null 2>&1; then
-        echo "FAIL: reader/app daemons survived the kill" >&2
-        pgrep -af "reader/server.py|next dev -p" >&2 || true
+        echo "FAIL: reader/enroll/app daemons survived the kill" >&2
+        pgrep -af "reader/server.py|enroll/server.py|next dev -p" >&2 || true
         exit 1
     fi
     rm -f "$SETUP_LOG" "$ROOT/app.pid"

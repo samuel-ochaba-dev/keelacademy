@@ -1,14 +1,41 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { assertValidUnitId, loadUnit, type Unit } from "@/lib/content";
-import { LearnSection } from "@/components/unit/learn-section";
-import { PracticeSection } from "@/components/unit/practice-section";
-import { BuildSection } from "@/components/unit/build-section";
-import { VerifySection } from "@/components/unit/verify-section";
-import { UnstuckSection } from "@/components/unit/unstuck-section";
+import {
+  assertValidUnitId,
+  loadCurriculumMap,
+  loadUnit,
+  oldestVerified,
+  type MapModule,
+  type MapPhase,
+  type Unit,
+} from "@/lib/content";
+import {
+  PracticeRouteStrip,
+  WorkedExampleCard,
+  CompletionWorkbenchCard,
+  RetrievalDrillCard,
+} from "@/components/unit/practice-section";
+import {
+  DeliverableCallout,
+  SubmissionContractCard,
+} from "@/components/unit/build-section";
+import {
+  ProveItCard,
+  GradingModesCard,
+  AutomatedChecksCard,
+  RubricCard,
+} from "@/components/unit/verify-section";
+import { UnstuckList } from "@/components/unit/unstuck-section";
 import { ConciergePanel } from "@/components/unit/concierge-panel";
+import { UnitScript } from "@/components/unit/unit-script";
+import { UnitExitCard } from "@/components/unit/unit-exit-card";
+import { MermaidRuntime } from "@/components/unit/mermaid-runtime";
+import { CodeFigureRuntime } from "@/components/unit/code-figure";
+import { ChapterOpener } from "@/components/unit/chapter-opener";
 import { getSessionUser } from "@/lib/auth";
+import { fetchStudentSubmissions, parseDbTimestamp } from "@/lib/grading";
 import { ensureStudent, fetchProfile } from "@/lib/enroll";
 import {
   fetchConciergeTurns,
@@ -25,21 +52,25 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const SECTION_ANCHORS = [
-  { id: "learn", label: "Learn" },
-  { id: "practice", label: "Practice" },
-  { id: "build", label: "Build" },
-  { id: "verify", label: "Verify" },
-  { id: "unstuck", label: "Unstuck" },
-  { id: "concierge", label: "Concierge" },
-];
-
 function tryLoadUnit(unitId: string): Unit | null {
   try {
     return loadUnit(unitId);
   } catch {
     return null;
   }
+}
+
+/**
+ * A unit id the curriculum map knows about but nobody has written yet. The map
+ * does not link to these, but a typed or bookmarked id still lands here, and a
+ * planned unit is a real answer where a 404 is a wrong one.
+ */
+function findPlannedUnit(unitId: string): { phase: MapPhase; module: MapModule } | null {
+  for (const phase of loadCurriculumMap().phases) {
+    const entry = phase.modules.find((m) => m.id === unitId);
+    if (entry) return { phase, module: entry };
+  }
+  return null;
 }
 
 type Props = {
@@ -51,9 +82,19 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { unitId } = await props.params;
   const unit = tryLoadUnit(unitId);
-  if (!unit) return { title: "Unit not found" };
+  if (!unit) {
+    const planned = findPlannedUnit(unitId);
+    if (planned) {
+      return {
+        title: `Unit ${unitId}: ${planned.module.title} (planned)`,
+        description: planned.module.description,
+        robots: { index: false },
+      };
+    }
+    return { title: "Unit not found" };
+  }
   return {
-    title: `Unit ${unit.yaml.id}: ${unit.lesson?.title ?? unit.curriculum?.title ?? unit.yaml.id}`,
+    title: `Unit ${unit.yaml.id}: ${unit.script?.title ?? unit.curriculum?.title ?? unit.yaml.id}`,
     description: unit.yaml.build.deliverable,
   };
 }
@@ -66,11 +107,15 @@ export default async function UnitPage(props: Props) {
     notFound();
   }
   const unit = tryLoadUnit(unitId);
-  if (!unit) notFound();
+  if (!unit) {
+    const planned = findPlannedUnit(unitId);
+    if (!planned) notFound();
+    return <PlannedUnit phase={planned.phase} module={planned.module} />;
+  }
 
   const {
     yaml,
-    lesson,
+    script,
     workedExample,
     completionProblem,
     checks,
@@ -79,12 +124,19 @@ export default async function UnitPage(props: Props) {
     faq,
     curriculum,
   } = unit;
-  const subtitleParts = lesson?.subtitle
-    ? lesson.subtitle
-        .split("·")
-        .map((part) => part.trim())
-        .filter(Boolean)
-    : [];
+
+  /**
+   * Every lesson is authored as a unit script, so a lesson file without a
+   * `::: phase` line is an authoring mistake rather than a state a student can
+   * reach. Failing loudly names the file and the missing marker; rendering a
+   * partial page would hide it until someone read the whole unit.
+   */
+  if (!script) {
+    throw new Error(
+      `Unit ${yaml.id}: ${yaml.learn ?? "learn.md"} is not a unit script. ` +
+        `Every lesson needs a "::: phase learn" line. See platform/app/AGENTS.md.`,
+    );
+  }
 
   const user = await getSessionUser();
   const isSignedIn = !!user;
@@ -137,151 +189,228 @@ export default async function UnitPage(props: Props) {
   const practiceManifest = manifestRes.state === "ok" ? manifestRes.data : null;
   const practiceServiceDown = manifestRes.state === "unreachable";
 
+  /**
+   * The student's latest verdict on this unit, and from it the unit's own gate
+   * state for the exit card. Derived, and said here plainly: the gates reader
+   * tracks the two milestone gate rules only, so a unit-to-unit unlock like
+   * 3.2.1 -> 3.2.2 has no gate state to read on this page. The strongest
+   * available signal is the latest verdict on this unit's submissions, the
+   * same rule the progress map uses to call a unit passed. No verdict on
+   * record, or the reader is down, means not passed; the card never fakes it.
+   */
+  let latestVerdict: "pass" | "not-yet" | "grading" | null = null;
+  if (studentId !== null) {
+    const submissionsRes = await fetchStudentSubmissions(studentId);
+    if (submissionsRes.state === "ok") {
+      const own = submissionsRes.data.submissions
+        .filter((s) => s.unit_id === unitId)
+        .sort(
+          (a, b) =>
+            (parseDbTimestamp(b.created_at)?.getTime() ?? 0) -
+            (parseDbTimestamp(a.created_at)?.getTime() ?? 0),
+        );
+      const latest = own[0] ?? null;
+      if (latest?.overall === "pass") latestVerdict = "pass";
+      else if (latest?.overall === "fail") latestVerdict = "not-yet";
+      else if (latest) latestVerdict = "grading";
+    }
+  }
+  const gatePassed = latestVerdict === "pass";
+
+  /** Distinct retrieval drills passed, or null when no drill attempts exist. */
+  const retrievalPassedCount =
+    retrievalAttempts.length > 0
+      ? new Set(retrievalAttempts.filter((a) => a.passed).map((a) => a.seed_index)).size
+      : null;
+
+  const phaseEntry =
+    loadCurriculumMap().phases.find((p) => p.phase === yaml.phase) ?? null;
+
+  /**
+   * The apparatus a script can place, keyed by the name it uses in a `::: ` marker.
+   *
+   * Built here rather than inside the renderer so every data prop stays exactly
+   * where the page already fetched it, and so the script parser never has to know
+   * that React exists. A unit that is not a script ignores this entirely.
+   */
+  const slots: Record<string, ReactNode> = {
+    route: (
+      <PracticeRouteStrip
+        routeData={routeData}
+        isEnrolled={isEnrolled}
+        isSignedIn={isSignedIn}
+        serviceDown={practiceServiceDown}
+      />
+    ),
+    "worked-example": (
+      <WorkedExampleCard workedExample={workedExample} routeData={routeData} />
+    ),
+    workbench: (
+      <CompletionWorkbenchCard
+        unitId={yaml.id}
+        completionProblem={completionProblem}
+        manifest={practiceManifest}
+        initialAttempts={practiceAttempts}
+        isEnrolled={isEnrolled}
+        isSignedIn={isSignedIn}
+        serviceDown={practiceServiceDown}
+      />
+    ),
+    retrieval: (
+      <RetrievalDrillCard
+        unitId={yaml.id}
+        retrievalSeeds={yaml.practice.retrieval_seeds}
+        initialRetrievalAttempts={retrievalAttempts}
+        dueSeedIndices={dueSeedIndices}
+        isEnrolled={isEnrolled}
+        isSignedIn={isSignedIn}
+        serviceDown={practiceServiceDown}
+      />
+    ),
+    deliverable: <DeliverableCallout unit={yaml} />,
+    submission: <SubmissionContractCard unit={yaml} contract={contract} />,
+    "prove-it": <ProveItCard curriculum={curriculum} />,
+    "grading-modes": <GradingModesCard unit={yaml} />,
+    checks: <AutomatedChecksCard checks={checks} />,
+    rubric: <RubricCard rubric={rubric} />,
+    unstuck: <UnstuckList unit={yaml} faq={faq} />,
+    ask: (
+      <ConciergePanel
+        unitId={yaml.id}
+        isEnrolled={isEnrolled}
+        isSignedIn={isSignedIn}
+        serviceDown={practiceServiceDown}
+        routeData={routeData}
+        initialTurns={conciergeTurns}
+        embedded
+      />
+    ),
+  };
+
   return (
-    <article>
-      {/* Header & Context HUD */}
-      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-mono tracking-wider text-zinc-500 uppercase mb-4">
-            <Link href="/curriculum" className="hover:text-zinc-300 transition-colors">
-              CURRICULUM
-            </Link>
-            <span className="text-zinc-700">/</span>
-            <Link href={`/curriculum#phase-${yaml.phase}`} className="hover:text-zinc-300 transition-colors">
-              PHASE {yaml.phase}
-            </Link>
-            <span className="text-zinc-700">/</span>
-            <span className="text-sky-400 font-semibold">UNIT {yaml.id}</span>
-          </nav>
-
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="space-y-3 max-w-3xl">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-zinc-900 border border-zinc-800 text-zinc-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                  UNIT {yaml.id} SPECIFICATION
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-emerald-950/50 border border-emerald-800/60 text-emerald-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  GRADING PIPELINE ACTIVE
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-zinc-900 border border-zinc-800 text-zinc-400">
-                  TIER: {unit.rubric ? unit.rubric.judge.model_tier.toUpperCase() : "DETERMINISTIC"}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-zinc-100 font-mono">
-                {lesson?.title ?? curriculum?.title ?? `Unit ${yaml.id}`}
-              </h1>
-
-              <p className="text-sm text-zinc-400 font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span>PHASE {yaml.phase}</span>
-                <span className="text-zinc-700">·</span>
-                <span>{yaml.est_hours ? `~${yaml.est_hours} HOURS` : "CORE DELIVERABLE"}</span>
-                <span className="text-zinc-700">·</span>
-                <span className="text-zinc-300">MERIDIAN MUTUAL CORPUS</span>
-              </p>
-            </div>
-
-            {/* Spec HUD Cards */}
-            <dl className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-xs font-mono min-w-[240px] bg-zinc-900/60 border border-zinc-800/80 rounded-lg p-3">
-              <Spec
-                label="Prerequisites"
-                value={yaml.prereq_units.length > 0 ? yaml.prereq_units.join(", ") : "ENTRY POINT"}
-                highlight={yaml.prereq_units.length === 0}
-              />
-              <Spec
-                label="Unlocks"
-                value={yaml.gate.unlocks.length > 0 ? yaml.gate.unlocks.join(", ") : "PHASE GATE"}
-              />
-              <Spec
-                label="Corpus Variant"
-                value={yaml.build.data_variant}
-              />
-            </dl>
-          </div>
-
-          {subtitleParts.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-4 mt-4 border-t border-zinc-900">
-              {subtitleParts.map((part) => (
-                <span
-                  key={part}
-                  className="px-2.5 py-1 rounded text-xs font-mono text-zinc-400 bg-zinc-900/80 border border-zinc-800/80"
-                >
-                  {part}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </header>
-
-      {/* Sticky section nav */}
-      <nav
-        aria-label="Unit sections"
-        className="sticky top-14 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md"
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto py-2.5 gap-4 scrollbar-none">
-          <div className="flex items-center gap-1 sm:gap-2 min-w-max">
-            {SECTION_ANCHORS.map((anchor, idx) => (
-              <a
-                key={anchor.id}
-                href={`#${anchor.id}`}
-                className="px-3 py-1.5 rounded-md text-xs font-mono font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all flex items-center gap-1.5"
-              >
-                <span className="text-zinc-600">0{idx + 1}.</span>
-                <span>{anchor.label}</span>
-              </a>
-            ))}
-          </div>
-          <Link
-            href="/submit"
-            className="text-xs font-mono px-3 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border border-zinc-700/80 transition-colors whitespace-nowrap hidden sm:inline-flex items-center gap-1.5"
-          >
-            <span>Submission Guide →</span>
-          </Link>
-        </div>
-      </nav>
-
-      {/* Five unit sections */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-16">
-        <LearnSection lesson={lesson} curriculum={curriculum} lastVerified={yaml.last_verified} />
-        <PracticeSection
-          unitId={yaml.id}
-          workedExample={workedExample}
-          completionProblem={completionProblem}
-          retrievalSeeds={yaml.practice.retrieval_seeds}
-          manifest={practiceManifest}
-          initialAttempts={practiceAttempts}
-          initialRetrievalAttempts={retrievalAttempts}
-          dueSeedIndices={dueSeedIndices}
-          routeData={routeData}
-          isEnrolled={isEnrolled}
-          isSignedIn={isSignedIn}
-          serviceDown={practiceServiceDown}
-        />
-        <BuildSection unit={yaml} contract={contract} />
-        <VerifySection unit={yaml} checks={checks} rubric={rubric} curriculum={curriculum} />
-        <UnstuckSection unit={yaml} faq={faq} />
-        <ConciergePanel
-          unitId={yaml.id}
-          isEnrolled={isEnrolled}
-          isSignedIn={isSignedIn}
-          serviceDown={practiceServiceDown}
-          routeData={routeData}
-          initialTurns={conciergeTurns}
-        />
-      </div>
+    <article className="min-h-screen pb-24">
+      <MermaidRuntime />
+      <CodeFigureRuntime />
+      <ChapterOpener
+        unitId={yaml.id}
+        phase={yaml.phase}
+        title={script.title}
+        specs={unitSpecs(yaml, checks?.length ?? 0, rubric?.criteria.length ?? 0, script.estMinutes)}
+        beats={script.phases.flatMap((phase) =>
+          phase.contents.map((entry) => ({ id: entry.id, name: entry.name, estMinutes: entry.estMinutes })),
+        )}
+      />
+      <UnitScript
+        phases={script.phases}
+        preamble={script.preamble}
+        slots={slots}
+        checked={oldestVerified(yaml.last_verified)}
+      />
+      {/*
+        The designed exit (lesson-flow spec U1), only for script units: it sits
+        after this throw-guarded point, so a fixed-layout unit can never reach
+        it. Fills the content track like the other apparatus.
+      */}
+      <UnitExitCard
+        unitId={yaml.id}
+        deliverable={yaml.build.deliverable}
+        isSignedIn={isSignedIn}
+        isEnrolled={isEnrolled}
+        gatePassed={gatePassed}
+        nextUnitId={yaml.gate.unlocks[0] ?? null}
+        curriculumHref={phaseEntry ? `/curriculum#${phaseEntry.id}` : "/curriculum"}
+        practiceAttemptCount={practiceAttempts.length}
+        retrievalPassedCount={retrievalPassedCount}
+        retrievalSeedCount={yaml.practice.retrieval_seeds.length}
+        latestVerdict={latestVerdict}
+        dueReviewCount={dueSeedIndices.length}
+      />
     </article>
   );
 }
 
-function Spec({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+/**
+ * The unit's measurable facts, phrased for the opener's one mono line.
+ *
+ * Every cell is self-describing, because there is no label column to read them
+ * against: "UNLOCKS 3.2.2" rather than a "Unlocks" heading over "3.2.2".
+ */
+function unitSpecs(yaml: Unit["yaml"], checkCount: number, criterionCount: number, estMinutes?: number): string[] {
+  const specs = [
+    `PHASE ${yaml.phase}`,
+    yaml.est_hours
+      ? `~${yaml.est_hours} ${yaml.est_hours === 1 ? "HOUR" : "HOURS"}`
+      : "CORE DELIVERABLE",
+    gradedOn(checkCount, criterionCount),
+    yaml.prereq_units.length > 0 ? `NEEDS ${yaml.prereq_units.join(", ")}` : "ENTRY POINT",
+    yaml.gate.unlocks.length > 0 ? `UNLOCKS ${yaml.gate.unlocks.join(", ")}` : "PHASE GATE",
+    "OMNISUPPLY OPERATIONS DATA",
+  ];
+  if (estMinutes && estMinutes > 0) {
+    // Insert reading time after hours, so scanner sees workload then read length.
+    specs.splice(2, 0, `~${estMinutes} MIN READ`);
+  }
+  return specs;
+}
+
+/**
+ * What this unit is actually graded on. A conceptual unit has no automated
+ * checks, and "0 CHECKS" read as a gap in the platform rather than as the truth
+ * about the unit, so each combination gets named for what it is.
+ */
+function gradedOn(checkCount: number, criterionCount: number): string {
+  const criteria = `${criterionCount} ${criterionCount === 1 ? "CRITERION" : "CRITERIA"}`;
+  if (checkCount > 0 && criterionCount > 0) return `${checkCount} CHECKS, ${criteria}`;
+  if (checkCount > 0) return `${checkCount} CHECKS`;
+  if (criterionCount > 0) return `RUBRIC REVIEW, ${criteria}`;
+  return "NOT GRADED YET";
+}
+
+/** The page for a unit that is mapped but not written yet. No enrollment, no fake sections. */
+function PlannedUnit({ phase, module }: { phase: MapPhase; module: MapModule }) {
   return (
-    <div className="flex items-center justify-between py-1 border-b border-zinc-800/40 last:border-0">
-      <dt className="text-zinc-500 uppercase tracking-wider">{label}</dt>
-      <dd className={`font-semibold ${highlight ? "text-sky-400" : "text-zinc-200"}`}>{value}</dd>
-    </div>
+    <article className="shell section">
+      <nav
+        aria-label="Breadcrumb"
+        className="flex items-center gap-2 font-code-mono text-[12px] tracking-wider text-moss-70"
+      >
+        <Link href="/curriculum" className="transition-colors hover:text-phosphor-white">
+          CURRICULUM
+        </Link>
+        <span className="opacity-40">/</span>
+        <Link
+          href={`/curriculum#${phase.id}`}
+          className="transition-colors hover:text-phosphor-white"
+        >
+          PHASE-{phase.phase}
+        </Link>
+        <span className="opacity-40">/</span>
+        <span className="text-phosphor-white">UNIT-{module.id}</span>
+      </nav>
+
+      <div className="mt-8 max-w-[68ch]">
+        <span className="chip chip-outline">PLANNED</span>
+        <h1 className="heading-xl mt-5">{module.title}</h1>
+        <p className="mt-5 text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          {module.description}
+        </p>
+        <p className="mt-6 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          This unit is mapped and its place in the build is fixed, but the lesson, the practice set
+          and the rubric are not written yet. Nothing here is enrollable and nothing is hidden
+          behind a payment: when the unit opens, this page becomes the unit.
+        </p>
+        <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          It sits in Phase {phase.phase}, {phase.title}. {phase.outcome}
+        </p>
+        <div className="mt-9 flex flex-wrap gap-4">
+          <Link href={`/curriculum#${phase.id}`} className="btn btn-primary btn-sm">
+            See the rest of this phase
+          </Link>
+          <Link href="/curriculum" className="btn btn-ghost btn-sm">
+            Units open today
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }

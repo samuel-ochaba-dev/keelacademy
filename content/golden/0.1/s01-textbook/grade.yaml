@@ -1,0 +1,10 @@
+submission: s01-textbook
+expected: pass
+criteria:
+  jargon-free-problem-statement: pass
+  three-stakeholder-definitions: pass
+  operational-workflow-mapping: pass
+overall: pass
+grader_notes: "Reference-quality submission. Clear operational framing with zero AI jargon, distinct stakeholder metrics, and thorough workflow mapping."
+graded_by: human
+graded_on: 2026-08-25

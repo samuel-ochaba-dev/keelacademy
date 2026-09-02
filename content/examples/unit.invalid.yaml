@@ -17,9 +17,9 @@ practice:
   retrieval_seeds:
     - "why schema-constrained output beats prompt-promise JSON"
 build:
-  deliverable: "Build a claim-notes extractor"
+  deliverable: "Build a dispute-notes extractor"
   submission: repo
-  data_variant: meridian@v3
+  data_variant: omnisupply@v3
 gate:
   unlocks: ["3.2.2"]
 unstuck:

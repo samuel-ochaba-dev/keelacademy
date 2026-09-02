@@ -1,17 +1,37 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { getSessionUser, isAdminUser } from "@/lib/auth";
 import { fetchAnalyticsSummary, fetchMacroFunnel, fetchDropoffBreakdown } from "@/lib/analytics";
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
-import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Per-Unit Drop-Off & Curriculum Analytics | Keel Academy",
-  description: "Curriculum drop-off rates, retrieval check failure modes, retry loops, and AI concierge question volume.",
+  title: "Curriculum telemetry",
+  description:
+    "Operational summary, enrollment funnel, and per-unit friction metrics. Staff view.",
+  robots: { index: false },
 };
 
 export default async function AdminAnalyticsPage() {
   const user = await getSessionUser();
   const isAdmin = isAdminUser(user);
+
+  // Cohort-wide telemetry is staff data. Nothing is fetched for anyone else.
+  if (!isAdmin) {
+    return (
+      <div className="shell section">
+        <div className="card-dark max-w-[62ch]">
+          <h1 className="heading-lg">This page is for staff</h1>
+          <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            It shows cohort-wide numbers, so it is not open on student accounts. Your own progress
+            and your own grading records are on your dashboard.
+          </p>
+          <Link href="/me" className="btn btn-primary btn-sm mt-7">
+            Go to your dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const [summaryRes, funnelRes, dropoffRes] = await Promise.all([
     fetchAnalyticsSummary(),
@@ -24,18 +44,17 @@ export default async function AdminAnalyticsPage() {
   const dropoff = dropoffRes.state === "ok" ? dropoffRes.data : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {!isAdmin && (
-          <div className="mb-6 rounded-lg border border-amber-800/60 bg-amber-950/20 p-4 text-xs font-mono text-amber-300 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
-              <span>Preview Mode: Viewing author friction telemetries in public preview.</span>
-            </div>
-            <Badge variant="warning">Staff & Author Telemetry</Badge>
-          </div>
-        )}
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <p className="eyebrow">Staff view</p>
+        <h1 className="heading-xl mt-4">Curriculum telemetry</h1>
+        <p className="lead mt-5 max-w-[68ch]">
+          Where students slow down, where they stop, and what they ask about. Read it before
+          rewriting a unit.
+        </p>
+      </header>
 
+      <div className="shell py-12">
         <AnalyticsDashboard
           initialSummary={summary}
           initialFunnel={funnel}

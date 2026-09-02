@@ -1,422 +1,384 @@
 import Link from "next/link";
-import { loadCurriculumMap } from "@/lib/content";
+import {
+  listUnits,
+  loadCurriculumMap,
+  loadPlacementDiagnostic,
+  loadUnit,
+} from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  const curriculumMap = loadCurriculumMap();
+  const units = listUnits();
+  const first = units[0];
+  const firstUnit = first ? loadUnit(first.id) : null;
+  const rubricCriteria = firstUnit?.rubric?.criteria ?? [];
 
-  // Key phases highlighted for the curriculum showcase
-  const highlightPhaseNums = [0, 1, 3, 5, 11];
-  const highlightPhases = curriculumMap.phases.filter((p) =>
-    highlightPhaseNums.includes(p.phase)
-  );
+  // Every figure on this page is read from content/, so the landing claims
+  // cannot drift from the curriculum they describe.
+  const map = loadCurriculumMap();
+  const phaseCount = map.phases.length;
+  const totalHours = map.phases.reduce((sum, p) => sum + p.est_hours, 0);
+  const placement = loadPlacementDiagnostic("placement-phase-1");
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* 1. Hero Section */}
-      <section className="relative overflow-hidden border-b border-zinc-800/80 bg-gradient-to-b from-zinc-900/50 via-zinc-950 to-zinc-950 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:px-8">
-        {/* Subtle grid background pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a15_1px,transparent_1px),linear-gradient(to_bottom,#27272a15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-
-        <div className="relative mx-auto max-w-6xl">
-          {/* Status Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-mono font-medium text-emerald-400 mb-8 shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span>Zero-Staff School • Automated Verification • 150+ Production Units</span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left: Copy & Actions */}
-            <div className="lg:col-span-7 space-y-6">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-zinc-50 font-mono">
-                The Self-Operating School for AI Engineers
-              </h1>
-              
-              <p className="text-lg sm:text-xl text-zinc-300 leading-relaxed max-w-2xl font-sans">
-                No video lectures. No teaching assistants. Ship real autonomous systems against automated test suites, an LLM rubric judge, and defend-your-work interviews.
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <Link
-                  href="/curriculum"
-                  className="rounded-md border border-zinc-200 bg-zinc-100 px-6 py-3 text-sm font-semibold text-zinc-950 shadow-sm transition-all hover:bg-zinc-200 active:scale-[0.98] font-mono inline-flex items-center gap-2"
-                >
-                  Explore Curriculum
-                  <span className="text-zinc-500">&rarr;</span>
-                </Link>
-                
-                <a
-                  href="#how-it-works"
-                  className="rounded-md border border-zinc-800 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800 font-mono"
-                >
-                  How Verification Works
-                </a>
-              </div>
-
-              <div className="pt-2">
-                <Link
-                  href="/pricing"
-                  className="text-xs font-mono text-zinc-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  View Transparent Pricing & Rebates (Earn up to 30% back) &rarr;
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-zinc-800/80 max-w-lg text-xs font-mono text-zinc-400">
-                <div>
-                  <div className="text-zinc-100 font-semibold text-sm">700–950h</div>
-                  <div>Rigorous total load</div>
-                </div>
-                <div>
-                  <div className="text-zinc-100 font-semibold text-sm">13 Phases</div>
-                  <div>Foundations to capstone</div>
-                </div>
-                <div>
-                  <div className="text-zinc-100 font-semibold text-sm">4 Layers</div>
-                  <div>Automated evaluation</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Live Sandbox Grading Terminal Preview */}
-            <div className="lg:col-span-5">
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/90 shadow-2xl overflow-hidden font-mono text-xs">
-                {/* Terminal Header */}
-                <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-500/80 inline-block" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80 inline-block" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80 inline-block" />
-                    <span className="ml-2 text-zinc-400 text-[11px]">grading-engine // runner-v2</span>
-                  </div>
-                  <span className="text-emerald-400 text-[10px] uppercase font-bold tracking-wider">
-                    VERIFIED PASS
-                  </span>
-                </div>
-
-                {/* Terminal Body */}
-                <div className="p-4 space-y-4 text-zinc-300">
-                  <div className="text-zinc-500">
-                    $ agy grade --unit 3.2.1 --submission ./claim_extractor.py
-                  </div>
-
-                  {/* Layer 1 */}
-                  <div className="space-y-1.5 border-l-2 border-emerald-500/60 pl-3">
-                    <div className="flex items-center justify-between text-zinc-200">
-                      <span className="font-semibold text-emerald-400">[Layer 1] Deterministic Sandbox</span>
-                      <span className="text-zinc-400 text-[11px]">0.42s</span>
-                    </div>
-                    <div className="text-zinc-400 space-y-0.5 text-[11px]">
-                      <div>✓ test_pydantic_schema_validation PASSED</div>
-                      <div>✓ test_edge_case_missing_fields PASSED</div>
-                      <div>✓ test_ambiguous_policy_flags PASSED</div>
-                      <div className="text-emerald-400 font-semibold">Checks: 12/12 passed (100%)</div>
-                    </div>
-                  </div>
-
-                  {/* Layer 2 */}
-                  <div className="space-y-1.5 border-l-2 border-emerald-500/60 pl-3">
-                    <div className="flex items-center justify-between text-zinc-200">
-                      <span className="font-semibold text-emerald-400">[Layer 2] LLM Rubric Judge</span>
-                      <span className="text-zinc-400 text-[11px]">Tier: Frontier</span>
-                    </div>
-                    <div className="text-zinc-300 space-y-1 text-[11px] bg-zinc-950/60 p-2.5 rounded border border-zinc-800/80">
-                      <div className="text-zinc-400">
-                        <span className="text-zinc-200 font-medium">Criterion:</span> Graceful schema failure under adversarial injection
-                      </div>
-                      <div className="text-zinc-300 italic text-[10px] text-zinc-400">
-                        &quot;Extractor isolated policy limits correctly without hallucinations despite malformed claimant notes.&quot;
-                      </div>
-                      <div className="text-emerald-400 font-semibold text-[11px]">Verdict: PASS (Score: 1.0 / 1.0)</div>
-                    </div>
-                  </div>
-
-                  {/* Layer 3 summary badge */}
-                  <div className="pt-1 flex items-center justify-between text-[11px] text-zinc-400 border-t border-zinc-800/80">
-                    <span>Layer 3 Interview: <span className="text-zinc-200">Defend Your Work unlocked</span></span>
-                    <span className="text-emerald-400 font-mono">Ready &rarr;</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Three Core Architectural Pillars */}
-      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800/80 bg-zinc-950">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center space-y-3 mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-              Architectural Engine
-            </span>
-            <h2 className="text-3xl font-bold font-mono tracking-tight sm:text-4xl text-zinc-50">
-              How Keel Trains Engineers Without TAs
-            </h2>
-            <p className="text-base text-zinc-400 max-w-2xl mx-auto">
-              We replaced human graders and vague lecture videos with an automated verification infrastructure and an end-to-end production thread.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Pillar 1 */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8 space-y-4 hover:border-zinc-700 transition-colors">
-              <div className="h-10 w-10 rounded-md border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center font-mono font-bold text-emerald-400 text-sm">
-                01
-              </div>
-              <h3 className="text-lg font-bold font-mono text-zinc-100">
-                Layered Verification Engine
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Four layers of progressive proof. Your code runs in isolated sandboxes against private test suites, undergoes LLM rubric judgment with cited evidence, passes interactive voice/text defense drills, and culminates in unscripted video walkthroughs.
-              </p>
-              <div className="pt-2 text-xs font-mono text-emerald-400/90 space-y-1 border-t border-zinc-800">
-                <div>• L1: Deterministic Pytest Sandboxes</div>
-                <div>• L2: LLM Rubric Judge with Quoted Evidence</div>
-                <div>• L3: Interactive Defense Drills</div>
-                <div>• L4: Capstone System Walkthrough</div>
-              </div>
-            </div>
-
-            {/* Pillar 2 */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8 space-y-4 hover:border-zinc-700 transition-colors">
-              <div className="h-10 w-10 rounded-md border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center font-mono font-bold text-emerald-400 text-sm">
-                02
-              </div>
-              <h3 className="text-lg font-bold font-mono text-zinc-100">
-                The Meridian Production Thread
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Instead of disjointed toy exercises, you build one continuous, multi-agent insurance claims platform for <em>Meridian Mutual</em> across 12 technical phases. Every drill compounds into an enterprise system handling intake, grounding, routing, and audit trails.
-              </p>
-              <div className="pt-2 text-xs font-mono text-emerald-400/90 space-y-1 border-t border-zinc-800">
-                <div>• Single coherent production codebase</div>
-                <div>• Multi-tool triage & cost routers</div>
-                <div>• Adversarial security & tamper-evident logs</div>
-                <div>• Fast, reproducible local Docker execution</div>
-              </div>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8 space-y-4 hover:border-zinc-700 transition-colors">
-              <div className="h-10 w-10 rounded-md border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center font-mono font-bold text-emerald-400 text-sm">
-                03
-              </div>
-              <h3 className="text-lg font-bold font-mono text-zinc-100">
-                Earned Completion Rebates
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Skin in the game that pays you back. Pay transparent tuition upfront, and earn automatic cash refunds when you pass major integration milestones on schedule. We keep our incentives aligned with your graduation.
-              </p>
-              <div className="pt-2 text-xs font-mono text-emerald-400/90 space-y-1 border-t border-zinc-800">
-                <div>• 15% rebate at Phase 5 Agent Integration Gate</div>
-                <div>• 15% rebate at Capstone System Graduation</div>
-                <div>• Up to 30% ($600) cash returned automatically</div>
-                <div>• Zero hidden subscription traps</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. The "Why Zero-TA" Philosophy Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800/80 bg-zinc-900/30">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center space-y-3 mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-              Honest Comparison
-            </span>
-            <h2 className="text-3xl font-bold font-mono tracking-tight sm:text-4xl text-zinc-50">
-              Why Traditional AI Bootcamps Fail
-            </h2>
-            <p className="text-base text-zinc-400 max-w-2xl mx-auto">
-              Most bootcamps charge $15,000+ to have underpaid teaching assistants skim superficial Jupyter notebooks. We built a school around objective verification.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Standard Bootcamps / Video Courses */}
-            <div className="rounded-lg border border-red-900/30 bg-red-950/10 p-6 sm:p-8 space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/20 text-red-400 font-mono font-bold text-sm">
-                  ✕
-                </span>
-                <h3 className="text-lg font-bold font-mono text-zinc-100">
-                  Standard Video Bootcamps
-                </h3>
-              </div>
-              <ul className="space-y-4 text-sm text-zinc-400">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-400 font-bold mt-0.5">•</span>
-                  <span><strong>Vanity completion metrics:</strong> Watching 40 hours of videos gives an illusion of mastery without production building competence.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-400 font-bold mt-0.5">•</span>
-                  <span><strong>Subjective, delayed grading:</strong> Overwhelmed TAs skim code without running edge cases, giving passing marks to brittle prompt scripts.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-400 font-bold mt-0.5">•</span>
-                  <span><strong>Toy copy-paste demos:</strong> 10 disconnected 20-line scripts using wrapper frameworks that break the moment production traffic hits.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-400 font-bold mt-0.5">•</span>
-                  <span><strong>$15,000–$25,000 bloated cost:</strong> You subsidize expensive mentor payrolls and sales teams rather than curriculum rigor.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Keel Academy Model */}
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/10 p-6 sm:p-8 space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-sm">
-                  ✓
-                </span>
-                <h3 className="text-lg font-bold font-mono text-zinc-100">
-                  Keel Academy Platform
-                </h3>
-              </div>
-              <ul className="space-y-4 text-sm text-zinc-300">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold mt-0.5">•</span>
-                  <span><strong>Deterministic verification:</strong> Private golden sets and sandboxes execute your code immediately upon commit or submit.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold mt-0.5">•</span>
-                  <span><strong>Evidence-backed rubric judges:</strong> LLM judges evaluate architectural trade-offs, quoting exact lines from your submission.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold mt-0.5">•</span>
-                  <span><strong>One deep enterprise codebase:</strong> 150+ incremental units forming an end-to-end multi-agent claims system you can defend in any interview.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold mt-0.5">•</span>
-                  <span><strong>Transparent pricing & rebates:</strong> Fraction of legacy cost, with up to 30% returned to your card when you clear gates on schedule.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Curriculum Phase Overview & Quick Jump */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800/80 bg-zinc-950">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-                Full Roadmap
-              </span>
-              <h2 className="text-3xl font-bold font-mono tracking-tight sm:text-4xl text-zinc-50 mt-1">
-                Curriculum Highlights
-              </h2>
-              <p className="text-sm text-zinc-400 mt-2 max-w-xl">
-                13 structured phases covering software engineering, model mechanics, agent loops, production observability, and client business acquisition.
-              </p>
-            </div>
-            <Link
-              href="/curriculum"
-              className="text-xs font-mono font-semibold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1"
-            >
-              View Full 13-Phase Syllabus &rarr;
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {highlightPhases.map((phase) => (
-              <div
-                key={phase.id}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 flex flex-col justify-between hover:border-zinc-700 transition-colors"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-emerald-400 font-semibold">Phase {phase.phase}</span>
-                    <span className="text-zinc-500">{phase.est_hours}h load</span>
-                  </div>
-                  <h3 className="text-base font-bold font-mono text-zinc-100">
-                    {phase.title}
-                  </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3">
-                    {phase.why}
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-500">{phase.modules.length} Modules</span>
-                  <Link
-                    href={`/curriculum#phase-${phase.phase}`}
-                    className="text-emerald-400 hover:underline"
-                  >
-                    View Units &rarr;
-                  </Link>
-                </div>
-              </div>
-            ))}
-
-            {/* Extra Card: Live Units & Interactive Map */}
-            <div className="rounded-lg border border-dashed border-emerald-500/40 bg-emerald-950/10 p-6 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-emerald-400 font-semibold">Active Pipeline</span>
-                  <span className="text-emerald-400/80">Interactive</span>
-                </div>
-                <h3 className="text-base font-bold font-mono text-zinc-100">
-                  Interactive Meridian Map
-                </h3>
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Explore how every unit connects across the claims lifecycle. Track your prerequisites, gate locks, and submission verification status in real time.
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
-                <span className="text-zinc-400">150+ Planned Units</span>
-                <Link
-                  href="/map"
-                  className="rounded bg-emerald-500/20 px-2.5 py-1 text-emerald-300 font-semibold hover:bg-emerald-500/30 transition-colors"
-                >
-                  Open Map &rarr;
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Call to Action Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-zinc-950 via-zinc-900/40 to-zinc-950 text-center">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-            No Fluff • No Video Lecturing
-          </span>
-          <h2 className="text-3xl font-bold font-mono tracking-tight sm:text-4xl text-zinc-50">
-            Ready to Build Systems That Survive Production?
-          </h2>
-          <p className="text-base text-zinc-300 max-w-2xl mx-auto font-sans leading-relaxed">
-            Start Phase 0 in your local containerized environment today. Submit against automated test runners and build unshakeable competence.
+    <div>
+      {/* Hero */}
+      <section className="shell grid items-center gap-16 pb-24 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24">
+        <div>
+          <p className="eyebrow">Applied AI engineering program</p>
+          <h1 className="display-heading mt-5">
+            <span className="text-lime-pulse">Learn AI engineering</span> by
+            shipping one real system.
+          </h1>
+          <p className="lead mt-6">
+            Across {phaseCount} phases you build an invoice reconciliation and
+            dispute triage pipeline for OmniSupply Operations, a simulated B2B
+            distributor, from first commit to deployed system. Every submission
+            runs against real tests and a published rubric. It passes only when
+            the work holds up.
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link
-              href="/sign-up"
-              className="rounded-md border border-zinc-200 bg-zinc-100 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-sm transition-all hover:bg-zinc-200 active:scale-[0.98] font-mono"
-            >
-              Get Started Now
+          <div className="mt-9 flex flex-wrap gap-4">
+            <Link href="/sign-up" className="btn btn-accent">
+              Start building
             </Link>
-            <Link
-              href="/curriculum"
-              className="rounded-md border border-zinc-800 bg-zinc-900 px-8 py-3.5 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800 font-mono"
-            >
-              Review Full Curriculum
+            <Link href="/curriculum" className="btn btn-ghost">
+              See the curriculum
             </Link>
           </div>
+          <p className="mt-5 text-[14px] text-[color:var(--text-faint-on-dark)]">
+            Enroll per unit, clear milestone gates, earn a rebate as you go.
+          </p>
+        </div>
 
-          <div className="pt-4 text-xs font-mono text-zinc-500">
-            Self-paced • 365-day access window • Up to 30% earned rebates
+        {/* Grading preview panel: the real rubric, loaded live from content */}
+        {rubricCriteria.length > 0 ? (
+          <aside
+            aria-label="What passing looks like"
+            className="code-block code-window"
+          >
+            <span className="code-title" aria-hidden>
+              rubric-{first.id}.yaml
+            </span>
+            <div className="flex items-center justify-between gap-4">
+              <p className="eyebrow">What passing looks like</p>
+              <span className="chip chip-outline">Unit {first.id}</span>
+            </div>
+            <p className="mt-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              Every unit publishes its rubric before you build. Your submission
+              is graded against each criterion, and each verdict has to quote
+              the lines of your own code that earned it.
+            </p>
+            <ul className="mt-6 space-y-5">
+              {rubricCriteria.slice(0, 4).map((criterion) => (
+                <li key={criterion.id} className="flex gap-3.5">
+                  <svg
+                    aria-hidden
+                    className="mt-1 shrink-0"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <circle cx="8" cy="8" r="7" stroke="var(--color-lime-pulse)" strokeWidth="1.4" />
+                    <path
+                      d="M4.8 8.2l2.1 2.1 4.3-4.6"
+                      stroke="var(--color-lime-pulse)"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div>
+                    <p className="font-goga text-[15px] font-medium text-phosphor-white">
+                      {criterion.id
+                        .split("-")
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(" ")}
+                    </p>
+                    <p className="mt-1 text-[13.5px] leading-relaxed text-[color:var(--text-faint-on-dark)]">
+                      {criterion.description.split(".")[0]}.
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-7 border-t border-[color:var(--line-on-dark)] pt-4 text-[12.5px] text-[color:var(--text-faint-on-dark)]">
+              The published rubric for Unit {first.id}, loaded live from the
+              curriculum. {firstUnit?.checks?.length ?? 0} automated checks run
+              on every submission first.
+            </p>
+          </aside>
+        ) : null}
+      </section>
+
+      {/* Stats */}
+      <section aria-label="Program at a glance" className="shell pb-24">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
+          <div>
+            <p className="stat-number">{phaseCount}</p>
+            <p className="stat-label">Phases, one system</p>
+          </div>
+          <div>
+            <p className="stat-number">{totalHours}</p>
+            <p className="stat-label">Hours of real build work</p>
+          </div>
+          <div>
+            <p className="stat-number">3</p>
+            <p className="stat-label">Ways every milestone is checked</p>
+          </div>
+          <div>
+            <p className="stat-number">15%</p>
+            <p className="stat-label">Rebate at each milestone gate</p>
+          </div>
+        </div>
+      </section>
+
+      {/* How a unit works */}
+      <section className="section" id="how-it-works">
+        <div className="shell">
+          <div className="max-w-[62ch]">
+            <p className="eyebrow">How a unit works</p>
+            <h2 className="heading-xl mt-4">
+              Six steps, the same loop in every unit.
+            </h2>
+            <p className="lead mt-5">
+              Each unit is a small engineering engagement: learn the concept,
+              practice on a parallel task, build the deliverable, get it graded,
+              unblock yourself fast when stuck, and move on.
+            </p>
+          </div>
+
+          <ol className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                step: "01",
+                title: "Learn",
+                body: "One written lesson, read start to finish. It works the concept, then the client's numbers, then the exact thing you are about to produce, with checkpoints you answer before you read an answer.",
+              },
+              {
+                step: "02",
+                title: "Practice",
+                body: "Study a fully worked example of a parallel task, then fill the gaps in a completion problem that is auto-graded on every save.",
+              },
+              {
+                step: "03",
+                title: "Build",
+                body: "Ship the deliverable to your own git repository. The deliverable and the submission contract are published up front.",
+              },
+              {
+                step: "04",
+                title: "Verify",
+                body: "Your push triggers the checks and the rubric review. Every verdict quotes evidence from your code, so you know exactly what to fix.",
+              },
+              {
+                step: "05",
+                title: "Unstuck",
+                body: "Every unit lists its common failure modes with the specific fix, and an assistant scoped to that unit answers questions any hour.",
+              },
+              {
+                step: "06",
+                title: "Move on",
+                body: "Passing a unit unlocks the next. Passing a milestone gate earns a 15% rebate. Progress is measured only in verified work.",
+              },
+            ].map((item) => (
+              <li
+                key={item.step}
+                className="card-dark p-7"
+              >
+                <span className="text-[12px] font-medium tracking-[0.12em] text-moss-70">
+                  STEP {item.step}
+                </span>
+                <h3 className="heading-md mt-3">
+                  {item.title}
+                </h3>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Grading */}
+      <section className="section" id="grading">
+        <div className="shell">
+          <div className="max-w-[62ch]">
+            <p className="eyebrow">Graded for real</p>
+            <h2 className="heading-xl mt-4">
+              A pass means the work was checked, not watched.
+            </h2>
+            <p className="lead mt-5">
+              Most courses grade what you watched. This program grades what you
+              shipped. Every deliverable is checked three ways, and the bar is
+              published before you write a line.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                num: "1",
+                title: "Automated checks",
+                body: "Your code runs in a clean, isolated environment against the unit's test suite and data. The results name every check that passed or failed, with the command output to read.",
+              },
+              {
+                num: "2",
+                title: "Rubric review",
+                body: "A language model grades your submission against the unit's published criteria, and every verdict has to quote the lines of your own code that earned it. No evidence, no pass.",
+              },
+              {
+                num: "3",
+                title: "Defend the build",
+                body: "Milestone work is defended in conversation, once to a technical reviewer and once to the budget holder. Both are AI following a written brief, and your side of the transcript is scored against a rubric you can read first.",
+              },
+            ].map((stage) => (
+              <article key={stage.num} className="card-dark p-8">
+                <div className="flex items-baseline gap-4">
+                  <span className="font-goga text-[28px] font-medium text-phosphor-white">
+                    {stage.num}
+                  </span>
+                  <h3 className="font-goga text-[20px] font-medium text-phosphor-white">
+                    {stage.title}
+                  </h3>
+                </div>
+                <p className="mt-3 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                  {stage.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Support */}
+      <section className="shell section-tight" id="support">
+        <div className="card-dark p-8 lg:p-12">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr]">
+            <div>
+              <p className="eyebrow">Support on every unit</p>
+              <h2 className="heading-lg mt-4">
+                Help that shows up at 2am, scoped to the exact lesson.
+              </h2>
+              <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                Stuck is normal. What matters is how fast you get unstuck. Each
+                unit carries its own failure-mode list, and an assistant that
+                knows the lesson answers questions whenever you have them.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link href="/curriculum" className="btn btn-primary">
+                  Browse the units
+                </Link>
+                <Link href="/faq" className="btn btn-ghost">
+                  Read the FAQ
+                </Link>
+              </div>
+            </div>
+            <ul className="space-y-7">
+              {[
+                {
+                  title: "An assistant scoped to the unit",
+                  body: "Ask why a concept works, request another practice exercise, or get unblocked on an error. It knows the curriculum, not the internet.",
+                },
+                {
+                  title: "Planned failure modes, published",
+                  body: "Every unit lists what usually breaks, with the specific fix linked. Most stuck moments end in one click.",
+                },
+                {
+                  title: "A pod that ships with you",
+                  body: "You post what shipped, what broke, and what is next, every week. Peers review milestone work against the same rubric the platform uses.",
+                },
+                {
+                  title: "A public gallery of real work",
+                  body: "Passed projects can be published with their verification attached. Your portfolio proves itself.",
+                },
+              ].map((item) => (
+                <li key={item.title} className="flex gap-4">
+                  <span
+                    aria-hidden
+                    className="mt-[9px] h-2 w-2 shrink-0 rounded-full bg-lime-pulse"
+                  />
+                  <div>
+                    <h3 className="font-goga text-[17px] font-medium text-phosphor-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                      {item.body}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Units */}
+      <section className="shell section" id="units">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-[56ch]">
+            <p className="eyebrow">Curriculum Units</p>
+            <h2 className="heading-lg mt-4">
+              Units open for enrollment.
+            </h2>
+            <p className="mt-4 text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              Each unit page shows the full lesson, the practice set, the
+              deliverable, and the exact rubric before you pay.
+            </p>
+          </div>
+          <Link href="/curriculum" className="btn btn-ghost btn-sm">
+            All {phaseCount} phases
+          </Link>
+        </div>
+
+        {units.length > 0 ? (
+          <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {units.map((u) => {
+              const unit = loadUnit(u.id);
+              return (
+                <li key={u.id} className="card-dark flex flex-col p-7">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="chip chip-outline">Unit {u.id}</span>
+                    <span className="text-[13px] text-[color:var(--text-faint-on-dark)]">
+                      Phase {u.phase}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 font-goga text-[19px] font-medium leading-snug text-phosphor-white">
+                    {unit?.script?.title ?? unit?.curriculum?.title ?? `Unit ${u.id}`}
+                  </h3>
+                  <p className="mt-2 line-clamp-3 text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                    {unit?.yaml.build.deliverable}
+                  </p>
+                  <div className="mt-6 flex-1" />
+                  <Link href={`/units/${u.id}`} className="btn btn-ghost btn-sm self-start">
+                    Open the unit
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </section>
+
+      {/* Final CTA */}
+      <section className="shell pb-8">
+        <div className="card-dark flex flex-col items-start justify-between gap-8 p-12 md:flex-row md:items-center">
+          <div>
+            <h2 className="heading-lg">Your first submission is one push away.</h2>
+            <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              Create an account
+              {placement ? `, take the ${placement.est_minutes}-minute placement check,` : ","} and
+              open your first unit the same session.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-4">
+            <Link href="/sign-up" className="btn btn-primary">
+              Start building
+            </Link>
+            <Link href="/pricing" className="btn btn-ghost">
+              See pricing
+            </Link>
           </div>
         </div>
       </section>

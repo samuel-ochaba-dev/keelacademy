@@ -10,8 +10,8 @@ class ClaimExtraction(BaseModel):
     extraction_failed: bool = False
     failure_reason: str | None = None
 
-KEYWORDS = {"fire": "fire", "flood": "water", "leak": "water",
-            "collision": "auto", "crash": "auto", "slip": "liability"}
+KEYWORDS = {"damaged": "damage", "broken": "damage", "short": "shortage",
+            "missing": "shortage", "late": "late_delivery", "overbilled": "overbilling"}
 
 def extract(rec):
     text = rec["notes"].lower()

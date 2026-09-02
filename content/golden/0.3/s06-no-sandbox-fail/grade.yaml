@@ -1,0 +1,10 @@
+submission: s06-no-sandbox-fail
+expected: fail
+criteria:
+  containerized-sandbox-rationale: fail
+  spend-limit-safeguards: pass
+  api-secret-management-discipline: pass
+overall: fail
+grader_notes: "Fails because it omits any explanation of containerized sandbox execution, environment divergence, or resource limits."
+graded_by: human
+graded_on: 2026-08-25

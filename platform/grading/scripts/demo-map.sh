@@ -2,7 +2,7 @@
 # NOTE: the copy greps below assert the CURRENT PLACEHOLDER copy (pre-redesign).
 # A UI session that rewrites copy updates these greps to the new strings and
 # re-runs this demo green — see the 2026-08-27 copy-unfreeze decision in build-state.md.
-# demo-map.sh — S2.8 end-to-end proof: progress dashboard v1, "the growing Meridian map".
+# demo-map.sh — S2.8 end-to-end proof: progress dashboard v1, "the growing progress map".
 #
 # Modes:
 #   setup     Scratch postgres (0001..0006), offline fake Stripe, enroll service,
@@ -187,13 +187,20 @@ check() {
     fi
 }
 
-html_has() {
-    local jar="$1" path="$2" needle="$3"
+html_has() {  # html_has <cookie-jar-or-"-"> <path> <needle>
+    # The body is captured and then matched with a bash pattern rather than
+    # piped into `grep -q`. grep exits on its first match, so on a page larger
+    # than the pipe buffer the writer is still writing when the pipe closes,
+    # dies of SIGPIPE, and `set -o pipefail` turns a found needle into a
+    # failed assertion.
+    local jar="$1" path="$2" needle="$3" body
     if [ "$jar" = "-" ]; then
-        curl -sf --max-time 30 "http://127.0.0.1:${APP_PORT}${path}"
+        body="$(curl -sf --max-time 30 "http://127.0.0.1:${APP_PORT}${path}")" || return 1
     else
-        curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:${APP_PORT}${path}"
-    fi | grep -qF "$needle"
+        body="$(curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:${APP_PORT}${path}")" || return 1
+    fi
+    case "$body" in *"$needle"*) return 0 ;; esac
+    return 1
 }
 
 action_id() {
@@ -297,12 +304,12 @@ do_prove() {
     JESSE_ID="$(student_id_by_email jesse@keel.test)"
     check "jesse has student row in database" [ -n "$JESSE_ID" ]
 
-    check "/map renders the Meridian Progress Map header" \
-        html_has "$JAR_JESSE" /map "The Meridian Interactive System Map"
+    check "/map renders the progress map header" \
+        html_has "$JAR_JESSE" /map "The whole system, phase by phase"
     check "/map shows all 13 phases" \
         html_has "$JAR_JESSE" /map "phase-12"
     check '/map shows Unit 3.2.1 open with Enroll button' \
-        html_has "$JAR_JESSE" /map 'ENROLL ($12.34)'
+        html_has "$JAR_JESSE" /map 'Enroll ($12.34)'
     check "/map shows Phase 5 integration gate locked" \
         html_has "$JAR_JESSE" /map "Phase 5 integration gate"
     check "/map shows Capstone gate locked" \
@@ -316,9 +323,9 @@ do_prove() {
     check "enrollment activated in database" \
         test "$(psql_sql "SELECT count(*) FROM enrollments WHERE student_id=$JESSE_ID AND unit_id='3.2.1';")" = "1"
 
-    check "/map shows unit 3.2.1 as enrolled with workbench button" \
-        html_has "$JAR_JESSE" /map "OPEN BENCH"
-    check "/map workbench links to /units/3.2.1" \
+    check "/map shows unit 3.2.1 as enrolled with an open-unit link" \
+        html_has "$JAR_JESSE" /map "Open unit"
+    check "/map open-unit link points at /units/3.2.1" \
         html_has "$JAR_JESSE" /map 'href="/units/3.2.1"'
 
     echo
@@ -364,8 +371,8 @@ do_prove() {
 
     check "capstone gate remains locked in db" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='gate.passed' AND payload->>'gate_id'='capstone';")" = "0"
-    check "/map shows Unit 12.1 retry needed" \
-        html_has "$JAR_JESSE" /map "RETRY"
+    check "/map shows Unit 12.1 as not yet passed" \
+        html_has "$JAR_JESSE" /map "NOT YET"
     check "/map Phase 5 gate still cleared" \
         html_has "$JAR_JESSE" /map "GATE CLEARED"
 
@@ -381,7 +388,7 @@ do_prove() {
     KIM_ID="$(student_id_by_email kim@keel.test)"
 
     check '/map for kim shows Unit 3.2.1 open for enrollment' \
-        html_has "$JAR_KIM" /map 'ENROLL ($12.34)'
+        html_has "$JAR_KIM" /map 'Enroll ($12.34)'
     check "/map for kim shows zero gates cleared" \
         test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/map" | grep -oF "0 / 2" | wc -l)" -ge 1
     check '/map for kim shows $0 rebates earned' \

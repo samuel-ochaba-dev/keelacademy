@@ -74,20 +74,20 @@ def get_initial_greeting(persona_id: str) -> str:
     if persona_id == "discovery-call":
         return (
             "Hi, thanks for hopping on. As I mentioned in my note, I'm Sarah Jenkins, "
-            "VP of Operations here at Meridian Mutual. We're getting slammed with claim volume "
+            "VP of Operations here at OmniSupply. We're getting slammed with invoice and return dispute volume "
             "and our leadership is pushing us to look into AI automation. What would you like to know about our setup?"
         )
     if persona_id == "technical-stakeholder":
         return (
             "Hello. I'm Marcus Vance, Staff AI Architect. I've reviewed your high-level architecture diagram, "
-            "but I evaluate systems on empirical proof, not promises. How do you know this claims triage pipeline is "
+            "but I evaluate systems on empirical proof, not promises. How do you know this dispute triage pipeline is "
             "reliable, secure, and cost-effective in production?"
         )
     if persona_id == "business-owner":
         return (
-            "Thanks for meeting with me. I'm Elena Rostova. I oversee our claims operation and P&L. "
+            "Thanks for meeting with me. I'm Elena Rostova. I oversee our wholesale distribution operations and P&L. "
             "I've seen dozens of AI pitches that promise the moon and deliver costly maintenance headaches. "
-            "What does your system actually save Meridian, and what happens when it makes a mistake?"
+            "What does your system actually save OmniSupply, and what happens when it makes a mistake?"
         )
     return f"Hello, I am ready to start our conversation regarding {persona_id}."
 
@@ -101,33 +101,33 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
         if any(w in msg_lower for w in ["works well", "great accuracy", "very reliable", "users love it", "prompt is robust", "super accurate", "high accuracy", "vibe"]):
             return (
                 "That sounds like a vibe, not an engineering metric. What is your exact golden evaluation "
-                "dataset size, what is your benchmark accuracy on policy exclusion edge cases, and what is your CI regression score threshold?"
+                "dataset size, what is your benchmark accuracy on supplier contract edge cases, and what is your CI regression score threshold?"
             )
         # 2. Security, Injection & Failure Modes trigger
         if any(w in msg_lower for w in ["injection", "delimiter", "guardrail", "sanitization", "canary token", "untrusted inputs", "pdf"]):
             return (
-                "Incoming policyholder PDFs are untrusted inputs. How do you defend against indirect prompt injection, "
-                "what happens when an upstream provider throws a 500/429 error, and what is your human-in-the-loop threshold for high-value claim approvals?"
+                "Merchant-submitted PDFs are untrusted inputs. How do you defend against indirect prompt injection, "
+                "what happens when an upstream provider throws a 500/429 error, and what is your human-in-the-loop threshold for high-value credit approvals?"
             )
         # 3. Cost & Latency Probing trigger
         if any(w in msg_lower for w in ["cost", "latency", "budget", "token economics", "p99", "router", "pricing", "$0.04", "haiku", "sonnet"]):
             return (
-                "At 3,000 claims a month, frontier model calls will demolish our unit economics. What is your "
-                "estimated cost per claim, how does your dynamic model router cascade to cheaper tiers, and what is your p99 latency budget?"
+                "At 4,000 transactions a month, frontier model calls will demolish our unit economics. What is your "
+                "estimated cost per transaction, how does your dynamic model router cascade to cheaper tiers, and what is your p99 latency budget?"
             )
         # 4. Architecture justification trigger
         if any(w in msg_lower for w in ["rag", "fine-tuning", "finetuning", "hybrid search", "bm25", "vector", "architecture"]):
             return (
-                "Why RAG vs Fine-tuning for policy rules? How did you justify the retrieval latency of hybrid BM25 and vector search over pure keyword matching?"
+                "Why RAG vs Fine-tuning for supplier contract rules? How did you justify the retrieval latency of hybrid BM25 and vector search over pure keyword matching?"
             )
         # 5. Technical Grounding / Defense synthesis trigger
         if any(w in msg_lower for w in ["golden set", "golden evaluation", "regression", "cascading router", "human-in-the-loop", "hit rate"]):
             return (
                 "Now we're talking engineering. That golden set methodology and cascading router architecture "
-                "gives me confidence this won't blow our budget or hallucinate payouts in production."
+                "gives me confidence this won't blow our budget or hallucinate credit memos in production."
             )
         return (
-            "Understood. How do your automated CI regression barriers guarantee that a prompt or model change won't regress coverage accuracy?"
+            "Understood. How do your automated CI regression barriers guarantee that a prompt or model change won't regress credit decision accuracy?"
         )
 
 
@@ -135,35 +135,35 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
         # 1. Technical Jargon pushback trigger
         if any(w in msg_lower for w in ["embedding", "temperature", "vector db", "vector database", "semantic chunk", "rag pipeline", "langchain", "llama", "transformer"]):
             return (
-                "Stop right there. Explain what that means in dollars, adjuster hours, and operational risk. "
-                "I don't run a computer science lab; I run an insurance operation."
+                "Stop right there. Explain what that means in dollars, specialist hours, and operational risk. "
+                "I don't run a computer science lab; I run a commercial supply chain operation."
             )
         # 2. Financial ROI & Hours Saved trigger
         if any(w in msg_lower for w in ["save", "dollars", "roi", "hours", "payback", "cost reduction", "efficiency", "margin"]):
             return (
-                "Give me the concrete numbers: across our 3,000 monthly claims, how many adjuster hours does this eliminate per week, "
+                "Give me the concrete numbers: across our 4,000 monthly transactions, how many specialist hours does this eliminate per week, "
                 "what is the net annual cost reduction, and what is our expected payback timeline?"
             )
         # 3. $50k Error Fallback & Risk Mitigation trigger
         if any(w in msg_lower for w in ["50k", "$50,000", "50,000", "error", "mistake", "liability", "compliance", "escalat", "audit trail"]):
             return (
-                "What exact fallback protocol kicks in when your system encounters an ambiguous $50,000 commercial claim? "
-                "If an ungrounded rule pays an uncovered claim, who is liable and how does my compliance team audit the decision?"
+                "What exact fallback protocol kicks in when your system encounters an ambiguous $50,000 damage claim? "
+                "If an ungrounded rule issues an unsupported credit, who eats the margin and how does my compliance team audit the decision?"
             )
         # 4. Implementation Feasibility & Scope trigger
         if any(w in msg_lower for w in ["timeline", "rollout", "training", "fixed fee", "fixed-fee", "scope", "not-included", "weeks", "phases"]):
             return (
-                "What is your proposed implementation timeline, how will my adjusters be trained during change management, "
+                "What is your proposed implementation timeline, how will my specialists be trained during change management, "
                 "and what is explicitly not included in your fixed-fee scope?"
             )
         # 5. Plain language defense synthesis trigger
-        if any(w in msg_lower for w in ["150,000", "150k", "net savings", "human escalation", "underwriting guardrails", "payback in"]):
+        if any(w in msg_lower for w in ["150,000", "150k", "net savings", "human escalation", "contract guardrails", "payback in"]):
             return (
                 "That is the clear, risk-controlled financial case I needed to see. The operational numbers and "
                 "human escalation safeguards make this a compelling rollout for our executive committee."
             )
         return (
-            "I see. From an operational standpoint, how does this improve our customer claim turnaround time without creating compliance liability?"
+            "I see. From an operational standpoint, how does this improve our merchant dispute turnaround time without creating compliance liability?"
         )
 
     # Discovery Call Persona (default)
@@ -174,20 +174,20 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
     ]):
         return (
             "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured "
-            "coverage verification piece with a verifiable audit trail without my team having to redo the work, "
+            "supplier contract verification piece with a verifiable audit trail without my team having to redo the work, "
             "we have a real project."
         )
 
-    # 2. Root problem / compliance / policy verification probing trigger
+    # 2. Root problem / compliance / contract verification probing trigger
     if any(w in msg_lower for w in [
-        "policy", "coverage", "exclusion", "audit", "compliance", "hallucinat",
+        "contract", "supplier", "vendor", "purchase order", "audit", "compliance", "hallucinat",
         "root cause", "underlying"
     ]):
         return (
-            "The real nightmare isn't just extracting OCR fields — we can scan PDFs. "
-            "The hard part is verifying policy coverage accurately against complex exclusionary clauses. "
-            "If an automated system mistakenly approves an uncovered loss or fails a compliance audit, "
-            "the liability is on us. We need zero-hallucination policy grounding."
+            "The real nightmare isn't just extracting OCR fields, we can scan PDFs. "
+            "The hard part is verifying line items and credits accurately against complex supplier master agreements. "
+            "If an automated system issues a credit our contract does not support, or fails a compliance audit, "
+            "the margin loss is on us. We need zero-hallucination contract grounding."
         )
 
     # 3. Premature pitch trigger
@@ -198,19 +198,19 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
     ]):
         return (
             "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT "
-            "and it hallucinated coverage rules. I'm not looking for another science experiment "
-            "that makes my adjusters double-check everything. How does that help us?"
+            "and it hallucinated supplier discount rules. I'm not looking for another science experiment "
+            "that makes my specialists double-check everything. How does that help us?"
         )
 
     # 4. Metric / volume probing trigger
     if any(w in msg_lower for w in [
-        "volume", "how many", "per month", "claims per", "turnaround", "how long",
-        "adjuster time", "hours", "cost", "error rate"
+        "volume", "how many", "per month", "transactions per", "disputes per", "turnaround", "how long",
+        "specialist time", "hours", "cost", "error rate"
     ]):
         return (
-            "Right now we're processing around 3,000 claims a month across auto and homeowners. "
-            "Triage takes 2 to 3 business days per claim. Our senior adjusters are spending roughly "
-            "60% of their day just reading through incident reports and matching them against policy exclusions."
+            "Right now we're processing around 4,000 transactions a month across our commercial suppliers. "
+            "Triage takes 2 to 3 business days per dispute. Our senior specialists are spending roughly "
+            "60% of their day just reading packing slips and damage reports and matching them against purchase orders and return terms."
         )
 
     # Default conversational reply
@@ -247,7 +247,7 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
             "cost-and-latency-engineering": {
                 "passed": c2_pass,
                 "score": 90.0 if c2_pass else 35.0,
-                "feedback": "Quantified per-claim cost and established p99 latency budgets with cascading model routing." if c2_pass else "Did not model token costs or p99 latency budgets.",
+                "feedback": "Quantified per-transaction cost and established p99 latency budgets with cascading model routing." if c2_pass else "Did not model token costs or p99 latency budgets.",
                 "evidence": "Outlined token economics and dynamic routing" if c2_pass else "No cost/latency budgets provided",
             },
             "security-and-failure-governance": {
@@ -268,7 +268,7 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
         c1_pass = any(w in student_text for w in ["dollar", "save", "roi", "hours", "150,000", "150k", "cost reduction", "payback", "annual"])
         # zero jargon: fail if student used jargon without translating to business terms
         used_jargon = any(w in student_text for w in ["vector db", "vector database", "embedding", "temperature", "rag pipeline", "langchain", "llama", "semantic chunk"])
-        c2_pass = not used_jargon or any(w in student_text for w in ["translate", "meaning", "in business terms", "dollars", "adjuster hours"])
+        c2_pass = not used_jargon or any(w in student_text for w in ["translate", "meaning", "in business terms", "dollars", "specialist hours"])
         c3_pass = any(w in student_text for w in ["50k", "50,000", "human-in-the-loop", "escalat", "audit", "compliance", "liability", "guardrail", "fallback"])
         c4_pass = any(w in student_text for w in ["timeline", "weeks", "phases", "training", "fixed fee", "fixed-fee", "scope", "not-included", "rollout"])
 
@@ -276,7 +276,7 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
             "quantified-business-value": {
                 "passed": c1_pass,
                 "score": 95.0 if c1_pass else 30.0,
-                "feedback": "Articulated clear dollar ROI, labor hours saved, and operational payback." if c1_pass else "Did not quantify dollar savings or adjuster hours eliminated.",
+                "feedback": "Articulated clear dollar ROI, labor hours saved, and operational payback." if c1_pass else "Did not quantify dollar savings or specialist hours eliminated.",
                 "evidence": "Calculated net cost savings and triage reduction" if c1_pass else "No quantified business metrics provided",
             },
             "zero-jargon-communication": {
@@ -300,8 +300,8 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
         }
     else:
         # Discovery Call Evaluation
-        c1_pass = any(w in student_text for w in ["root", "underlying", "coverage", "compliance", "exclusion", "audit", "liability", "why did chatgpt fail"])
-        c2_pass = any(w in student_text for w in ["volume", "how many", "3000", "3,000", "turnaround", "days", "hours", "metrics", "bottleneck"])
+        c1_pass = any(w in student_text for w in ["root", "underlying", "contract", "supplier", "vendor", "purchase order", "compliance", "audit", "liability", "why did chatgpt fail"])
+        c2_pass = any(w in student_text for w in ["volume", "how many", "4000", "4,000", "turnaround", "days", "hours", "metrics", "bottleneck"])
         first_student_turn = next((t.get("content", "").lower() for t in transcript if t.get("role") == "student"), "")
         pitched_first = any(w in first_student_turn for w in ["we build", "langchain", "rag pipeline", "solution for you", "deploy an agent"])
         c3_pass = not pitched_first
@@ -311,14 +311,14 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
             "uncovered-underlying-problem": {
                 "passed": c1_pass,
                 "score": 100.0 if c1_pass else 30.0,
-                "feedback": "Successfully uncovered unstructured policy coverage verification and compliance risk." if c1_pass else "Did not probe deeply into the root compliance/coverage risk.",
-                "evidence": "Explored root cause of past automation failures and policy verification" if c1_pass else "No deep probing on compliance or policy verification",
+                "feedback": "Successfully uncovered unstructured supplier contract verification and compliance risk." if c1_pass else "Did not probe deeply into the root compliance or contract verification risk.",
+                "evidence": "Explored root cause of past automation failures and contract verification" if c1_pass else "No deep probing on compliance or contract verification",
             },
             "explored-process-metrics": {
                 "passed": c2_pass,
                 "score": 100.0 if c2_pass else 40.0,
-                "feedback": "Gathered clear metrics on claim volume (3,000/mo) and turnaround latency (2-3 days)." if c2_pass else "Did not ask about claim volumes or turnaround latency.",
-                "evidence": "Inquired about volume, turnaround times, and adjuster bottleneck" if c2_pass else "No volume metrics requested",
+                "feedback": "Gathered clear metrics on transaction volume (4,000/mo) and turnaround latency (2-3 days)." if c2_pass else "Did not ask about transaction volumes or turnaround latency.",
+                "evidence": "Inquired about volume, turnaround times, and specialist bottleneck" if c2_pass else "No volume metrics requested",
             },
             "avoided-premature-pitching": {
                 "passed": c3_pass,
@@ -329,8 +329,8 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
             "accurate-problem-summary": {
                 "passed": c4_pass,
                 "score": 100.0 if c4_pass else 35.0,
-                "feedback": "Synthesized an accurate summary of Meridian's triage and audit bottleneck." if c4_pass else "Did not synthesize a problem summary before concluding the call.",
-                "evidence": "Summarized the bottleneck as policy coverage grounding with audit trail" if c4_pass else "No synthesis provided",
+                "feedback": "Synthesized an accurate summary of OmniSupply's triage and audit bottleneck." if c4_pass else "Did not synthesize a problem summary before concluding the call.",
+                "evidence": "Summarized the bottleneck as supplier contract grounding with audit trail" if c4_pass else "No synthesis provided",
             },
         }
 

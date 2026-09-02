@@ -10,13 +10,13 @@ Verifies:
    - Hand-wavy accuracy claims -> Pushback ("Show me the exact test suite size and golden eval accuracy").
    - Vague token budget -> Pushback ("What is your p99 latency and token expenditure?").
    - Prompt injection inquiry -> Demands concrete sanitization and structural isolation.
-   - Grounded responses (94.2% accuracy on 500 cases, $0.04/claim, regex sanitization) -> Score >= 70%, passed = true.
+   - Grounded responses (94.2% accuracy on 500 cases, $0.04 per transaction, regex sanitization) -> Score >= 70%, passed = true.
 3. Business Owner (Elena Rostova) Multi-Turn Defense & Behavioral Triggers:
    - Initial greeting interrupts jargon, demands dollar savings and liability bounds.
    - AI Jargon ("embeddings", "vector DB") -> Pushback ("Stop using jargon. What does this save the department in real dollars?").
-   - $50k catastrophic error liability -> Pushback ("What is the fallback when a $50,000 claim is misclassified?").
+   - $50k catastrophic error liability -> Pushback ("What is the fallback when a $50,000 damage claim is misclassified?").
    - Vague ROI -> Pushback ("What is the net dollar payback period?").
-   - Grounded business responses ($420k net annual savings, 1.8 hrs/claim saved, hard rule human adjuster review for claims > $10,000) -> Score >= 70%, passed = true.
+   - Grounded business responses ($420k net annual savings, 1.8 hrs/claim saved, hard rule human specialist review for claims > $10,000) -> Score >= 70%, passed = true.
 4. Failing Scenarios:
    - Fluffy hand-waving on technical defense -> Score < 70%, passed = false.
    - Jargon-heavy, hand-waving on business defense -> Score < 70%, passed = false.
@@ -118,7 +118,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_tech_101_id,
         "student_id": 101,
-        "message": "We evaluated our claims triage system against a golden set of 500 labeled historical cases, achieving 94.2% precision and 92.8% recall on policy clause verification.",
+        "message": "We evaluated our dispute triage system against a golden set of 500 labeled historical cases, achieving 94.2% precision and 92.8% recall on supplier contract clause verification.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "p99" in last_persona_msg or "latency" in last_persona_msg or "budget" in last_persona_msg:
@@ -130,10 +130,10 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_tech_101_id,
         "student_id": 101,
-        "message": "Our average cost per claim is $0.04 using an aggressive prompt cache and a tiered model router where 80% of volume runs through Claude 3.5 Haiku at 320ms p99 latency, cascading to Sonnet only for high-complexity disputes.",
+        "message": "Our average cost per transaction is $0.04 using an aggressive prompt cache and a tiered model router where 80% of volume runs through Claude Haiku 4.5 at 320ms p99 latency, cascading to Sonnet only for high-complexity disputes.",
     })
     last_persona_msg = data["turns"][-1]["content"]
-    if "injection" in last_persona_msg or "security" in last_persona_msg or "guardrail" in last_persona_msg or "unit economics" in last_persona_msg or "cost per claim" in last_persona_msg:
+    if "injection" in last_persona_msg or "security" in last_persona_msg or "guardrail" in last_persona_msg or "unit economics" in last_persona_msg or "cost per transaction" in last_persona_msg:
         record_pass("Marcus Vance probed latency, economics, and prompt injection defense")
     else:
         record_fail("Marcus Vance turn 2 response did not match expected behavioral flow", last_persona_msg)
@@ -142,7 +142,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_tech_101_id,
         "student_id": 101,
-        "message": "We enforce strict structural separation of user claim text using delimiter boundary tags, regex pre-scanners for prompt injection attempts, and human-in-the-loop fallback whenever the model confidence score is below 0.85.",
+        "message": "We enforce strict structural separation of merchant-submitted claim text using delimiter boundary tags, regex pre-scanners for prompt injection attempts, and human-in-the-loop fallback whenever the model confidence score is below 0.85.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "injection" in last_persona_msg or "pdf" in last_persona_msg or "architecture" in last_persona_msg or "rag" in last_persona_msg or "pipeline" in last_persona_msg or "tradeoff" in last_persona_msg or "engineering" in last_persona_msg:
@@ -215,10 +215,10 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_biz_101_id,
         "student_id": 101,
-        "message": "This deployment saves Meridian $420,000 net annually by eliminating 1.8 hours of manual document review per claim across 3,000 monthly claims.",
+        "message": "This deployment saves OmniSupply $420,000 net annually by eliminating 1.8 hours of manual document review per dispute across 4,000 monthly transactions.",
     })
     last_persona_msg = data["turns"][-1]["content"]
-    if "$50,000" in last_persona_msg or "wrong" in last_persona_msg or "liability" in last_persona_msg or "error" in last_persona_msg or "adjuster hours" in last_persona_msg or "concrete numbers" in last_persona_msg:
+    if "$50,000" in last_persona_msg or "wrong" in last_persona_msg or "liability" in last_persona_msg or "error" in last_persona_msg or "specialist hours" in last_persona_msg or "concrete numbers" in last_persona_msg:
         record_pass("Elena Rostova acknowledged dollar ROI and probed operational numbers and risk")
     else:
         record_fail("Elena Rostova turn 1 response did not match expected behavioral flow", last_persona_msg)
@@ -227,7 +227,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_biz_101_id,
         "student_id": 101,
-        "message": "When an ambiguous $50,000 commercial claim is encountered, the system never auto-denies or auto-pays; it routes the complete draft dossier with highlighted clauses directly to a senior adjuster for human signoff.",
+        "message": "When an ambiguous $50,000 damage claim is encountered, the system never auto-denies or auto-approves credit; it routes the complete draft dossier with highlighted supplier contract clauses directly to a senior operations specialist for human signoff.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "feasibility" in last_persona_msg or "timeline" in last_persona_msg or "rollout" in last_persona_msg or "team" in last_persona_msg or "protocol" in last_persona_msg or "fallback" in last_persona_msg:
@@ -239,7 +239,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_biz_101_id,
         "student_id": 101,
-        "message": "The rollout requires a 4-week shadow mode pilot in parallel with existing adjusters, with zero disruption to current core claims databases.",
+        "message": "The rollout requires a 4-week shadow mode pilot in parallel with existing specialists, with zero disruption to current core order management databases.",
     })
 
     # Conclude and Score Business Defense

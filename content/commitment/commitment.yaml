@@ -5,13 +5,13 @@ workload:
   months_max: 15
   hours_per_week_min: 12
   hours_per_week_max: 15
-  summary: "700–950 total hours across 13 phases. At 12–15 hours per week, expected duration is 9–15 months (faster full-time)."
+  summary: "700 to 950 total hours across 13 phases. At 12 to 15 hours per week, expected duration is 9 to 15 months (faster full-time)."
 
 format:
   style: "Self-directed, text-first curriculum authored in-house."
   finish_line: "A production-grade, audited AI system deployed on real client data, plus sendable proposals and signed verification."
-  teaching_delivery: "Zero video lectures, zero mentor hand-holding. Automated Layer 1 sandboxes, calibrated LLM rubric judges, and Socratic concierge unblocking."
-  summary: "Text-first engineering curriculum grounded in building the Meridian Mutual claims intelligence pipeline. Progress is measured exclusively by verified working deliverables."
+  teaching_delivery: "There are no video lectures and no live instructor. Your work is executed by automated checks in a sandbox, the code you push is scored by rubric review, and a concierge asks you questions to unblock you rather than writing your answer."
+  summary: "Text-first engineering curriculum grounded in building the OmniSupply Operations invoice and dispute pipeline. Progress is measured exclusively by verified working deliverables."
 
 guarantees:
   client_guarantee: "We cannot and do not guarantee you clients or employment upon completion."
@@ -20,7 +20,7 @@ guarantees:
 
 acknowledgments:
   - id: "workload_hours"
-    label: "I understand this program requires 700–950 hours of intensive hands-on engineering work over 9–15 months."
+    label: "I understand this program requires 700 to 950 hours of intensive hands-on engineering work over 9 to 15 months."
     required: true
   - id: "text_first_format"
     label: "I understand there are no video lectures or live instructors; learning is self-directed and text-first."

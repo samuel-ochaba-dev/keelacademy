@@ -1,253 +1,192 @@
-# Unit 3.2.1 — JSON mode and function-calling-style structured outputs
+# Unit 3.2.1: Structured extraction with JSON mode and Pydantic
 
-*Phase 3 · Prompt engineering as a discipline · Estimated 6 hours*
+::: phase learn
 
-**Where you are in the Meridian system:** your Phase 1/2 claim extractor answers the
-question "what is in this claim?" — but it answers in prose. Everything downstream of
-it (routing, reserves, the adjuster dashboard) needs *fields*, not sentences. This unit
-is where your extractor starts speaking in structures a machine can trust.
+Your Phase 2 extractor works. Feed it a merchant dispute report and it hands back a summary you can read in four seconds. That is genuinely useful, and it is also the last thing in this pipeline that a person is ever going to read.
 
-**How to read this lesson.** It has three layers, and they age at different speeds:
+Everything after it wants fields. The routing rule wants a claim type it can switch on. The credit calculation wants an amount it can multiply. The specialist queue wants a severity it can sort by. Not one of them can read a sentence.
 
-1. **Concept core** — why free-text output is unusable for downstream systems. True in
-   2020, true today, true in five years. Read it slowly; everything else rests on it.
-2. **Applied context** — the same ideas, concretized in the Meridian claim pipeline.
-3. **Tool specifics** — the current provider APIs and Pydantic patterns you'll actually
-   type. This layer goes stale; it is freshness-audited on the date above.
+So the extractor has to stop answering in prose. That part is obvious. The part that costs people a week is the next question: where does the promise to answer in fields actually get kept, and who is keeping it?
 
----
+> **Predict, then check.** You add `Respond ONLY with JSON: {"claim_type": ..., "severity": ...}` to the end of your prompt and `json.loads(response)` to the end of your code. It works on the first six claims you try, so you point it at a hundred real dispute reports.
+>
+> How many distinct ways does it come apart?
 
-## Concept core
+At least five, and not one of them is the model malfunctioning. It opens with "Here is the JSON you requested:". It wraps the object in a markdown fence. It emits a trailing comma, or single quotes, or an unescaped newline inside a string. It appends "Let me know if you would like the claim number in a different format." And the expensive one: it returns valid JSON of the wrong shape, `claim_type` where your code reads `claimType`, so `json.loads` succeeds and something crashes three functions later, nowhere near the cause.
 
-### The receiving program cannot read
+Hold on to that last one. We come back to it.
 
-An LLM produces a stream of tokens. When those tokens spell out English prose, *you*
-can read the answer — but your program is not you. Somewhere between "the model
-responded" and "the database row was written," a piece of code has to turn tokens into
-typed values: this substring is the claim type; that substring is the dollar amount;
-this date-shaped thing is the loss date.
+## Why free text cannot be parsed reliably by downstream systems
 
-That conversion step is where free-text systems die, for a reason that is easy to state
-and worth internalizing: **natural language is a interface designed for lossy,
-error-correcting human readers, and programs are neither lossy nor error-correcting.**
-When a human reads "the fire damage looks like maybe $40k, could be more once the
-adjuster visits," they silently normalize: *amount ≈ 40000, confidence = low*. A program
-doing `response.split(":")[1]` gets `" maybe $40k, could be more once the adjuster
-visits\n"` and writes garbage downstream — or crashes.
+### What your program actually receives
 
-So the real question of this unit is not "how do I make the model output JSON." It is:
-**where is the contract between the model and my system, and who enforces it?**
+A model produces a stream of tokens. When those tokens spell out English, you can read the answer. Your program is not you.
 
-### Parsing fragility: the contract that lives in the prompt
+Somewhere between "the model responded" and "the row was written", some piece of code has to turn tokens into typed values: this substring is the claim type, that one is a dollar amount, this date-shaped thing is a delivery date. That conversion step is where free-text systems die, and the reason is worth saying slowly.
 
-The naive approach: put "Respond ONLY with JSON in this format: {...}" in the prompt
-and call `json.loads` on the output. This feels like it works — in the demo. Then it
-meets the real world:
+**Natural language is an interface built for lossy, error-correcting readers, and your program is neither lossy nor error-correcting.**
 
-- The model opens with "Here is the JSON you requested:" — `json.loads` fails on the
-  first token.
-- The model wraps the JSON in markdown fences ```` ```json ... ``` ```` — fails.
-- The model emits valid JSON *with a trailing comma*, or single quotes, or an unescaped
-  newline inside a string — fails, or worse, "succeeds" on the wrong bytes.
-- The model, being helpfully conversational, appends "Let me know if you'd like the
-  claim number in a different format!" — fails.
-- The model produces *valid JSON of the wrong shape*: `{"claim_type": "fire"}` when
-  your code expects `{"claimType": "fire"}`. `json.loads` succeeds; your code crashes
-  three functions later, far from the cause.
+Read this the way the operations person who typed it meant it:
 
-Notice the pattern: with a prompt-level promise, **the contract exists only as a
-request**. Every failure mode above is the model behaving *within normal variation* for
-a text generator. You are not catching the model misbehaving; you are catching it
-behaving like a text generator while hoping it wouldn't.
+> two pallets crushed, looks like maybe $40k of stock, could be more once the warehouse counts it
 
-A useful exercise before reading on: take any prompt-promised-JSON extractor you've
-written and run it 100 times on the same input. Plot the distinct output *shapes* you
-get (keys present, their types). For most models and most prompts, you'll find more
-than one shape. That variation is not a bug you can prompt away; it is the medium you
-are working in.
+You normalised that without noticing. Amount around 40000. Confidence low. Someone should check. A program running `response.split(":")[1]` gets the string `" maybe $40k of stock, could be more once the warehouse counts it"` and either writes it into a numeric column or raises. Neither outcome is the model's fault. The prose was never a machine interface; you used it as one.
 
-### Schema contracts: move the promise out of the prompt and into the interface
+### Why schema-constrained generation beats a prompt-promised contract
 
-The fix is architectural, not rhetorical. A **schema contract** says: the consumer
-expects exactly this structure — these fields, these types, these constraints — and
-the *interface* enforces it, not the request. Enforcement can happen at two points,
-and mature systems use both:
+Look again at the five failures above and notice what they share. Every one is the model behaving inside normal variation for a text generator. You are not catching a model misbehaving. You are catching it behaving exactly as advertised, while you hoped it would not.
 
-1. **At generation (constrained decoding).** The provider samples the model so that
-   only tokens satisfying the schema can be produced. This is what provider "JSON
-   mode" and function-calling-style / structured-output APIs do. The promise moves
-   from the prompt into the API call.
-2. **At ingestion (validation).** Whatever the provider hands back, your code parses
-   it against an explicit schema and either gets a typed object or a *named, typed
-   failure*. This is what Pydantic gives you.
+That is the real defect. With a prompt-level promise, the contract exists only as a request. Nothing enforces it, and nothing is even checking.
 
-Why both? Because they fail differently, and defense in depth is cheap here:
+Here is an experiment worth running on code you have already written. Take a prompt-promised JSON extractor, run it a hundred times against one unchanged input, and count the distinct output shapes that come back: which keys are present, what type each value has. For most models and most prompts the answer is more than one. That variation is not a bug you can prompt your way out of. It is the medium.
 
-- Constrained decoding guarantees *syntax and shape* against the schema the provider
-  saw — but the schema you send a provider is usually a subset of what you actually
-  mean (providers accept JSON Schema; they don't know your business rules), and
-  providers change behavior, models get swapped, proxies get misconfigured. Never let
-  a downstream system trust a guarantee you didn't check yourself.
-- Validation at ingestion guarantees *your* definition of correct, at the boundary
-  where data enters *your* system — and it produces a failure you can handle at the
-  moment it happens, with the offending input still in hand.
+Schema-constrained generation wins because it moves the same request out of the prose and into the API call, where the sampler is obliged to honour it. Nothing about your wording got better. The enforcement point moved.
 
-The mental model to keep: **the model is an unreliable network endpoint that happens
-to speak fluent JSON.** You wouldn't build a payments system that `eval`s whatever a
-third-party API returns; don't build a claims pipeline that trusts whatever a model
-returns. Same discipline, same place: validate at the boundary.
+::: aside Can I not just strip the fences and retry?
+You can, and plenty of shipped code does: a regex that peels off the fence, a `try` around `json.loads`, and a second attempt with "just the object this time" bolted on.
 
-### Graceful degradation: failure is a state, not an exception
+It buys a few percentage points and costs you the thing you needed most, which is knowing which run you got. A retry loop turns a shape error into a latency spike and a larger bill, and it still cannot tell you that `estimated_amount_usd` came back as the string `"8-12k"`. Fences are the easiest failure on that list of five and the only one a regex touches. Move the contract instead, once.
+:::
 
-Once you validate, you must answer the question the naive approach got to ignore:
-*what happens when validation fails?*
+### Two enforcement points, and why you want both
 
-There are exactly four options, and three of them are wrong for production:
+A schema contract says: the consumer expects exactly this structure, these fields, these types, these constraints, and the interface enforces it rather than politely requesting it. There are two places to enforce it, and grown-up systems use both.
 
-1. **Crash.** An unhandled exception takes the whole batch down because claim #7 of 20
-   was malformed. One bad input has become an availability incident.
-2. **Silently drop.** `try/except: continue`. The pipeline reports 19 outputs for 20
-   inputs and *nobody notices for six weeks* — until an auditor asks why claim
-   #CLM-88231 was never routed. In insurance, in finance, in anything regulated,
-   silent drops are the worst failure mode on this list, because they are invisible
-   and they are data loss.
-3. **Silently pass through bad data.** Skip validation and forward the raw output.
-   Now garbage is in the database wearing the costume of a validated record.
-4. **Degrade gracefully — the only production answer.** Validation failure produces a
-   *defined fallback value* (a valid object in every place a real one would be, but
-   explicitly marked as failed extraction), and the failure is *logged with the input
-   identity and the reason*, so a human or a retry process can find it later.
+**At generation, by constraining decoding.** The provider samples the model so that only tokens satisfying the schema can be produced. This is what JSON mode and the structured-output and tool-calling APIs do.
 
-Write this pattern into memory now, because it recurs in every unit from here on:
+**At ingestion, by validating.** Whatever arrives, your own code parses it against an explicit schema and gets back either a typed object or a named, typed failure. This is Pydantic's job.
 
-```
-inputs → [ generate → validate → success? pass through : fallback + log ] → outputs
+Why both, when the first already sounds like a guarantee? Because they fail differently, and here the redundancy is nearly free.
+
+Constrained generation guarantees syntax and shape against the schema **the provider saw**. That schema is almost always a subset of what you actually mean, because providers accept JSON Schema and know nothing about your business rules. Providers also change behaviour, models get swapped for cheaper ones, and proxies get misconfigured by people who are not you.
+
+Validating at ingestion guarantees **your** definition of correct, at the boundary where data enters your system, and it hands you a failure you can act on while the offending input is still in your hand.
+
+The mental model I would keep: **the model is an unreliable network endpoint that happens to speak fluent JSON.** You would not build a payments system that runs `eval` on whatever a third party returns. Do not build a claims pipeline that trusts whatever a model returns.
+
+::: aside Why validate what the provider already constrained?
+Because a guarantee you have not checked is a rumour, and this one has a known edge: the sampler enforces the keywords it supports and quietly ignores the ones it does not.
+
+Send a schema with `"minimum": 0` on the amount and a strict-mode provider may honour the type and skip the bound. Your validation is where `amount >= 0` actually becomes true. It is four lines, it runs in microseconds, and it is the only part of the chain you control end to end.
+:::
+
+### Graceful degradation: fallback objects instead of silent drops
+
+Validating forces a question the naive version never had to answer. What do you do when validation fails? There are four options, and three of them are wrong in production.
+
+1. **Crash.** An unhandled exception takes the batch down because claim 7 of 20 was malformed. One bad input just became an availability incident.
+2. **Drop it silently.** `try/except: continue`. The run reports 19 outputs for 20 inputs and nobody notices for six weeks, until an auditor asks why CLM-88231 was never credited. In distribution, in finance, in anything with a contractual audit trail, this is the worst item on the list, because it is invisible and it is data loss.
+3. **Pass the bad data through.** Skip validation, forward the raw output, and garbage is now in the database wearing the costume of a validated record.
+4. **Degrade gracefully.** A validation failure produces a defined fallback value: a real object in every place a real one would have gone, explicitly marked as a failed extraction, with the failure logged against the input that caused it and the reason it was rejected.
+
+Only the fourth one ships. Learn this shape now, because it recurs in every unit from here on.
+
+```mermaid The shape every guarded extraction step in this unit takes.
+flowchart LR
+  IN["N raw inputs"] --> GEN["Generate under a schema"]
+  GEN --> VAL{"Validates?"}
+  VAL -->|"yes"| OUT["N outputs"]
+  VAL -->|"no"| FB["Defined fallback object"]
+  FB --> LOG[("Failure log: the input, and the reason")]
+  FB --> OUT
 ```
 
-Two properties define it, and both are checkable:
+Two properties define it, and both are things you can write a test for:
 
-- **Conservation:** N inputs yield exactly N outputs (some may be fallbacks). Nothing
-  vanishes.
-- **Accountability:** every fallback has a log record naming the input and the reason.
-  Nothing vanishes *silently*.
+- **Conservation.** N inputs produce exactly N outputs. Some may be fallbacks. Nothing vanishes.
+- **Accountability.** Every fallback has a log record naming the input and the reason. Nothing vanishes quietly.
 
-A fallback is not a hack — it is a design decision that "I could not extract this
-claim" is *information about the claim*, representable in your schema, rather than an
-error in your program. Unit 3.2.2 builds directly on this: the `needs_human_review`
-flag you'll add there is just the fallback made honest and permanent.
+> **Predict, then check.** A nightly job extracts 20 dispute claims and writes them to the review queue. Someone wraps the extraction in `try/except Exception: continue` to stop it paging them at 3am. It works, and the job has not failed once in six weeks.
+>
+> What did that cost, and when does the invoice arrive?
 
-### The one-paragraph summary you must be able to reproduce
+Nineteen claims a night reach the queue and one does not exist anywhere. The cost is unreviewed merchant claims, and the invoice arrives when a merchant stops paying against an account or a rebate deadline expires, whichever comes first, and then a second time when somebody has to reconstruct six weeks of dropped records out of provider logs. The exception was never the problem. The silence was.
 
-Free-text model output is unusable downstream because parsing it means hoping the
-model kept a promise that existed only in a prompt, and hope is not a contract. Move
-the contract into the interface: constrain generation (provider structured-output
-APIs) *and* validate ingestion (a schema enforced in your code, at the boundary).
-When validation fails — and over enough messy input, it will — degrade gracefully:
-emit a defined fallback and log the failure with its input and reason. N inputs, N
-outputs, zero silent drops.
+**A fallback is not a hack.** It is a decision that "I could not extract this claim" is information about the claim, representable in your schema, rather than an error in your program. Unit 3.2.2 builds directly on this: the `needs_human_review` flag you add there is this fallback made permanent and honest.
 
----
+### The version you should be able to say out loud
 
-## Applied context
+Free-text model output cannot be parsed reliably by downstream systems, because parsing it means trusting a promise that only ever existed in a prompt. Move the contract into the interface: constrain generation with a schema, then validate ingestion against a schema enforced by your own code, at the boundary. When validation fails, and over enough messy input it will, degrade gracefully. Emit a defined fallback object, log the failure with its input and its reason, and keep the count honest. N inputs, N outputs, zero silent drops.
 
-Now the same ideas, wearing Meridian Mutual's badge.
+::: recap The contract in one line
+Free text is unparseable because the promise lives only in prose. Move it into the interface: constrain generation with a schema, validate ingestion with your own code at the boundary, and for every failure emit a logged fallback. That keeps N inputs → N outputs with zero silent drops.
+:::
 
-### The situation
+## The same idea on OmniSupply's actual traffic
 
-Meridian's intake team pastes claim reports into a web form. The raw notes are exactly
-the "messy real-world-style claim texts" the curriculum promises: typos, mixed
-formats, occasional missing fields, and the odd note that isn't a claim at all. Your
-Phase 1/2 extractor reads a claim record and summarizes it. The Phase 3.2 upgrade:
-`extract_claim(record) -> ClaimExtraction` — a typed, validated object, every time.
+Concepts hold up better once you have watched one fail on real input, so here is ours.
 
-Here is the schema you'll build against (you'll refine it in 3.2.2):
+### The contract you are building against
 
-```python
+OmniSupply's operations team pastes merchant dispute reports into a web form. The notes read like what they are, typed by people between phone calls: typos, mixed formats, missing fields, and the occasional note that is not a claim at all. Your Phase 2 extractor reads one and summarises it. What you are building now is `extract_claim(record)`, which returns a typed, validated object every single time.
+
+```python extract_claims.py
 from datetime import date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class ClaimExtraction(BaseModel):
     claim_id: str
-    claim_type: str          # "fire" | "water" | "auto" | "liability" | "other"
-    severity: str            # "low" | "medium" | "high"
+    claim_type: str                    # damage | shortage | overbilling | late_delivery | other
+    severity: str                      # low | medium | high
     estimated_amount_usd: float | None = None
-    loss_date: date | None = None
-    extraction_failed: bool = False
-    failure_reason: str | None = None
+    delivery_date: date | None = None
+    extraction_failed: bool = False    # look at these two
+    failure_reason: str | None = None  # they are the whole trick
 ```
 
-Look closely at the last two fields — they are the fallback, *encoded in the schema*.
-That is the trick worth stealing: a fallback isn't `None` or an exception, it's a
-first-class value of the output type. Every consumer of a `ClaimExtraction` can check
-`extraction_failed` without knowing anything about how the extraction happened.
+Those last two fields are the fallback, encoded in the schema, and they are the idea worth stealing from this unit. A fallback is not `None` and it is not an exception. It is a first-class value of the output type. Every consumer of a `ClaimExtraction` can check `extraction_failed` without knowing the first thing about how the extraction happened, or that a model was involved at all.
 
-### The pipeline, end to end
+You refine this model in 3.2.2. For now it is the contract.
 
-```
-raw claim record
-   │
-   ▼
-prompt (task + schema description)          ── still needed: the model must know
-   │                                           WHAT to extract and what values mean
-   ▼
-provider call with structured output         ── the contract: generation constrained
-   │                                           to the schema's shape
-   ▼
-json.loads ──► ClaimExtraction.model_validate ── the contract enforced again, by you
-   │                                              with business rules (amount >= 0,
-   │                                              dates are real dates, ids match
-   │                                              the input's id)
-   ├── success ──► validated ClaimExtraction
-   └── ValidationError ──► fallback ClaimExtraction (extraction_failed=True,
-                           failure_reason=...) ──► logged with claim_id
+### The path one claim takes
+
+```mermaid How one claim moves from a raw record to either a validated object or a logged fallback.
+flowchart TB
+  RAW["Raw dispute record"] --> PROMPT["Prompt: the task, and what the values mean"]
+  PROMPT --> CALL["Provider call with structured output"]
+  CALL --> VALIDATE["ClaimExtraction.model_validate"]
+  VALIDATE -->|"valid"| OK["ClaimExtraction"]
+  VALIDATE -->|"ValidationError"| FALLBACK["Fallback ClaimExtraction, extraction_failed=True"]
+  FALLBACK --> LOGGED[("One log line, keyed by claim_id")]
 ```
 
-### A concrete failure, walked through
+Three of those boxes are doing work worth naming:
 
-One of the twenty texts in your data variant reads something like:
+- **The prompt is still needed.** The model has to know what to extract, and what "high" means for a severity on this traffic.
+- **The provider call is the contract at generation.** Decoding is constrained to the schema's shape, so what comes back is an object rather than prose.
+- **`model_validate` is the contract again, enforced by you**, with your rules rather than the provider's: amount at or above zero, real dates, `claim_id` taken from the input record instead of from the model.
 
-> "CLM-20841 — kitchen fire, tenant says smoke damage mostly cabinets. Probably
-> 8-12k?? received 3rd. landlord report pending"
+### One claim that fails, walked through
 
-Watch each layer do its job:
+One of the twenty notes in this unit's corpus reads close to this:
 
-- **Generation constraint** guarantees the model returns a JSON *object* — not prose,
-  not fences. Good.
-- The model, reasonably, returns `{"estimated_amount_usd": "8-12k"}` — a *string*,
-  because the amount genuinely is ambiguous. Syntax-valid, shape-wrong.
-- **Pydantic** rejects it: `estimated_amount_usd` must be a number or null. This is
-  not a failure of the system — this is the system *working*. A claim with a
-  genuinely ambiguous amount should not quietly become `estimated_amount_usd: 10.0`
-  (the model guessing a midpoint) or crash the batch.
-- Your **fallback path** produces:
-  `ClaimExtraction(claim_id="CLM-20841", claim_type="fire", severity="medium",
-  estimated_amount_usd=None, extraction_failed=True, failure_reason="estimated_amount_usd: Input should be a valid number")`
-  and appends a log line: `2026-08-21T14:03:11 FALLBACK claim_id=CLM-20841 reason='estimated_amount_usd: Input should be a valid number'`.
-- Net result: 20 inputs in, 20 objects out, 1 flagged for review with its reason on
-  record. The adjuster who opens CLM-20841 sees a flagged extraction, not a crash and
-  not a confident guess. In 3.2.2 you'll sharpen exactly this distinction.
+> CLM-20841, two pallets of kettles crushed under a freight strap, merchant says most of the cartons are unsellable. Probably 8-12k?? delivered 3rd. dock photos pending
 
-### Why Meridian specifically cares
+Watch each enforcement point do exactly its own job and no more.
 
-Meridian is an insurer. Every claim is a regulated financial obligation with audit
-trails. If your pipeline silently drops malformed claims, those claims still exist in
-the real world — they're just claims nobody has looked at, which is how regulatory
-findings and bad-faith lawsuits happen. "Fail loudly per-record, never silently" is
-not a style preference here; it's the difference between a demo and something an
-insurance-operations team would let touch production. When you write your Build for
-this unit, the Prove-it bar — *20 texts in, 20 valid objects out, failures logged not
-dropped* — is encoding exactly this property.
+- **The generation constraint** guarantees an object comes back rather than prose or a fenced block. That part holds.
+- The model returns `{"estimated_amount_usd": "8-12k"}`, a string, because the amount genuinely is ambiguous and a string is the only honest way to say "8-12k". Syntax valid, shape wrong.
+- **Pydantic rejects it.** `estimated_amount_usd` has to be a number or null. This is not the system failing, this is the system working. A claim whose amount is genuinely unknown must not quietly become `10.0` because something split the difference, and it must not take the other nineteen claims down with it either.
+- **Your fallback path** builds `ClaimExtraction(claim_id="CLM-20841", claim_type="damage", severity="medium", estimated_amount_usd=None, extraction_failed=True, failure_reason="estimated_amount_usd: Input should be a valid number")` and writes one line to the log:
 
-### What you'll reuse from earlier phases
+```text
+2026-08-21T14:03:11 FALLBACK claim_id=CLM-20841 reason='estimated_amount_usd: Input should be a valid number'
+```
 
-- **2.4.2 (provider abstraction):** your multi-model wrapper is where the structured
-  output call plugs in — one config change to switch models, same schema contract.
-- **1.5.1 (pytest):** the conservation property (N in → N out) is a *test*, and you'll
-  write it. Properties you don't test are properties you don't have.
+Twenty in, twenty out, one of them flagged with its reason on record. The specialist who opens CLM-20841 sees a flagged extraction and a note about the amount, instead of a crash, a gap, or a confident number nobody can source.
 
----
+### Why OmniSupply cares about this specifically
 
-## Tool specifics
+Every merchant claim is money OmniSupply either owes or does not owe, under a supplier contract somebody can be asked to produce. Drop a malformed claim silently and the claim still exists out in the world. It is just a claim nobody has looked at. That is how merchants stop paying against a whole account, and how rebate deadlines expire with nobody watching.
+
+So "fail per record, never in silence" is not a style preference in this domain. It is the line between a demo and something an operations team would let near production. The bar on your deliverable, twenty texts in and twenty valid objects out with failures logged rather than dropped, is that property written down as a number.
+
+### What you are reusing from earlier phases
+
+- **2.4.2, the provider abstraction.** Your multi-model wrapper is where the structured-output call plugs in. One config change to swap models, and the same schema contract on both sides of the swap.
+- **1.5.1, pytest.** Conservation is a test and you are the one who writes it. A property you have not tested is a property you do not have.
+
+## The APIs and patterns you will actually type
 
 <!-- FRESHNESS-AUDITED LAYER: The APIs, library versions, and code patterns in this
      section are current as of last_verified.tool_specifics above. Provider APIs
@@ -255,189 +194,244 @@ dropped* — is encoding exactly this property.
      past its audit date. The concept core and applied context layers do not have
      this problem. -->
 
-Everything below is the layer you type today. APIs named here will drift; the
-contracts they implement (constrain generation, validate ingestion, degrade
-gracefully) won't. When something below doesn't match current docs, trust the
-contract, update the call.
+Everything below is what you type today, and it is the part with a shelf life. The API surfaces named here will drift. The contracts they implement, constrain generation, validate ingestion, degrade gracefully, will not. When something here stops matching the current provider docs, trust the contract and update the call.
 
-### Provider structured-output mechanisms (as of the audit date)
+### JSON mode vs structured outputs: what each actually guarantees
 
-The major hosted providers all offer some form of schema-constrained generation,
-falling into two families:
+Every major hosted provider offers some form of schema-constrained generation, and the offerings fall into two families that guarantee genuinely different things. Knowing which one you are holding is the difference between a boundary and a hope.
 
-**JSON mode** — the model is constrained to emit syntactically valid JSON, but *no
-particular schema*. You get "guaranteed parseable," not "guaranteed the right shape."
-Better than prompt-promising, insufficient alone: shape errors (wrong keys, string
-where you expect number) still happen and must be caught by validation.
+**JSON mode** constrains the model to emit syntactically valid JSON, and no particular schema. You get "guaranteed parseable". You do not get "guaranteed the right shape". Wrong keys and a string where you wanted a number both still happen, and validation is still the thing that catches them.
 
 ```python
-# OpenAI-style: response_format={"type": "json_object"} (family: JSON mode)
+# JSON mode family: syntax only.
 response = client.chat.completions.create(
     model="gpt-4o-mini",
-    response_format={"type": "json_object"},   # guarantees valid JSON syntax only
+    response_format={"type": "json_object"},   # valid JSON, nothing about keys
     messages=[{"role": "user", "content": prompt}],
 )
-data = json.loads(response.choices[0].message.content)
+data = json.loads(response.choices[0].message.content)   # parses. shape unchecked.
 ```
 
-**Structured outputs / tool-calling style** — you pass a JSON Schema (directly, or as
-a "tool"/"function" definition) and the provider constrains decoding so the output
-satisfies it. This is the stronger family and the default choice for pipelines:
+**Structured outputs, including tool-calling used as structured output,** take a JSON Schema, either directly or as a tool definition, and constrain decoding so the result satisfies it. This is the stronger family and the default choice for a pipeline.
 
 ```python
-# OpenAI-style: strict structured outputs (family: schema-constrained)
+# Schema-constrained family: shape too.
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-4o-2024-08-06",
     response_format={
         "type": "json_schema",
         "json_schema": {
             "name": "claim_extraction",
+            "schema": CLAIM_EXTRACTION_JSON_SCHEMA,
             "strict": True,
-            "schema": CLAIM_EXTRACTION_JSON_SCHEMA,   # JSON Schema dict
         },
     },
     messages=[{"role": "user", "content": prompt}],
 )
-data = json.loads(response.choices[0].message.content)
 ```
 
 ```python
-# Anthropic-style: tool-calling used as structured output. You define a "tool"
-# whose input_schema IS your schema; forcing the tool makes the model's tool_use
-# block carry schema-constrained arguments.
+# Anthropic style: a tool whose input_schema IS your schema, and forcing that tool
+# so the model cannot answer any other way. The arguments arrive already shaped.
 response = client.messages.create(
     model="claude-sonnet-4-5",
+    max_tokens=1024,
     tools=[{
         "name": "emit_claim_extraction",
-        "description": "Return the extracted claim fields",
+        "description": "Record the structured fields extracted from a dispute claim.",
         "input_schema": CLAIM_EXTRACTION_JSON_SCHEMA,
     }],
     tool_choice={"type": "tool", "name": "emit_claim_extraction"},
-    max_tokens=1024,
     messages=[{"role": "user", "content": prompt}],
 )
-data = response.content[0].input   # the tool_use block's arguments
+data = response.content[0].input   # a dict, not a string you have to parse
 ```
 
-Practical notes that bite people:
+**Name the guarantee.** Your call uses JSON mode, your code calls `json.loads` and nothing else, and back comes `{"claim_type": "damage", "estimated_amount_usd": "8-12k"}`. Which part of that response is guaranteed, and which part merely happened to work?
 
-- **Strict mode has rules.** OpenAI's `strict: True` requires `additionalProperties:
-  false` on every object and *all* fields in `required` (make genuinely-optional
-  fields nullable unions, e.g. `["anyOf", ...]` with `"type": "null"`), and it
-  supports a subset of JSON Schema keywords. Constraints like `minimum` may be
-  ignored by the sampler — another reason your own validation stays.
-- **Enum-constrain categorical fields in the schema** (`claim_type` as an enum of
-  your five values) so "FIRE DAMAGE" never reaches Pydantic in the first place.
-- **The prompt still matters.** The schema says what shape to emit; the prompt says
-  what the values *mean* ("`severity: high` means structural damage or habitability
-  loss, not a big dollar figure alone"). Constrained decoding fixes the shape of the
-  answer, not the correctness of its contents.
-- **You still describe the schema in the prompt when using JSON mode**, since nothing
-  else tells the model what keys to use. With schema-constrained APIs you can keep
-  the prompt about meaning only.
-- Free/open-weight models served locally (e.g. via vLLM, Ollama) commonly expose a
-  `json_schema` / `guided_json` parameter implementing the same idea; the parameter
-  name varies by server, the contract doesn't.
+One good answer: the guarantee is that the bytes parse as JSON, and that is the entire promise JSON mode makes. Both keys being the ones you wanted is luck. `claim_type` holding one of your five permitted values is luck. `estimated_amount_usd` arriving as a string rather than a number is JSON mode working exactly as documented. Nothing in that response is wrong by its own contract. It is wrong by yours, and yours is not being checked anywhere.
 
-### Getting the JSON Schema from Pydantic (single source of truth)
+### The notes that bite people
 
-Write your schema once — as a Pydantic model — and derive the JSON Schema you send
-the provider from it. One definition, used at both enforcement points:
+- **Strict mode has rules.** OpenAI's `strict: True` wants `additionalProperties: false` on every object and every field listed in `required`, so a genuinely optional field becomes a nullable union rather than an absent key. It supports a subset of JSON Schema keywords, and a constraint like `minimum` may be ignored by the sampler even when accepted. That is one more reason your own validation stays.
+- **Enum-constrain your categoricals.** Put `claim_type` in the schema as an enum of your five values and `"FREIGHT DAMAGE"` never reaches Pydantic at all. Free-form strings for a closed set is a decision to do the cleanup later, by hand.
+- **The prompt still carries meaning.** The schema says what shape to emit. The prompt says what the values mean: `severity: high` means the merchant cannot sell the shipment at all, not just that the number is large. Constrained decoding fixes the shape of an answer and never the correctness of its contents.
+- **With JSON mode you still describe the keys in the prompt,** because nothing else tells the model what to call them. With a schema-constrained API you can keep the prompt about meaning only, which is a genuine simplification of the prompt.
+- **Local servers do this too.** Open-weight models served through vLLM or Ollama generally expose a `json_schema` or `guided_json` parameter implementing the same constraint. The parameter name varies by server. The contract does not.
 
-```python
-from pydantic import BaseModel, Field
+### One schema, both enforcement points
 
-class ClaimExtraction(BaseModel):
-    claim_type: str = Field(description="fire|water|auto|liability|other")
-    severity: Literal["low", "medium", "high"]
-    estimated_amount_usd: float | None = Field(default=None, ge=0)
-    loss_date: date | None = None
-    extraction_failed: bool = False
-    failure_reason: str | None = None
+Write the schema once, as a Pydantic model, and derive the JSON Schema you hand the provider from it.
 
-# JSON Schema for the provider call — generated, never hand-maintained:
-CLAIM_EXTRACTION_JSON_SCHEMA = ClaimExtraction.model_json_schema()
-```
+```python extract_claims.py
+from datetime import date
+from typing import Literal
+from pydantic import BaseModel, ConfigDict, Field
 
-Keep a single source of truth and derive everything else. Hand-maintaining a JSON
-Schema *and* a Pydantic model guarantees they drift apart, and the drift always lands
-in production.
-
-### Pydantic v2 validation patterns you'll use in this unit
-
-```python
-# 1. Validation — the boundary check (raises pydantic.ValidationError on bad shape)
-try:
-    extraction = ClaimExtraction.model_validate(data)
-except ValidationError as exc:
-    # exc.errors() is a list of dicts: loc, msg, type, (input)
-    reason = "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in exc.errors())
-    fallback = ClaimExtraction(
-        claim_id=record_id, extraction_failed=True, failure_reason=reason
-    )
-    log_fallback(record_id, reason)
-    return fallback
-
-# 2. Extra keys — reject them so a model adding "helpful" fields fails loudly:
 class ClaimExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-# 3. Constrained fields — business rules live in the schema, not in if-statements:
+    claim_id: str
+    claim_type: Literal["damage", "shortage", "overbilling", "late_delivery", "other"]
+    severity: Literal["low", "medium", "high"] = "medium"
     estimated_amount_usd: float | None = Field(default=None, ge=0)
+    delivery_date: date | None = None
+    extraction_failed: bool = False
+    failure_reason: str | None = None
 
-# 4. Custom coercion guard — Pydantic v2 coerces "40000" (str) to 40000.0 (float).
-#    That's usually good. If you need strict typing at the boundary:
-    model_config = ConfigDict(strict=True)   # decide deliberately, not by accident
+# Generated, never hand-maintained. This is what goes into the provider call.
+CLAIM_EXTRACTION_JSON_SCHEMA = ClaimExtraction.model_json_schema()
 ```
 
-Also know: `model_validate_json(text)` parses and validates in one step (and is
-faster than `json.loads` + `model_validate`); `TypeAdapter(list[ClaimExtraction])`
-validates a whole batch; `model_dump()` / `model_dump_json()` serialize back out.
+Hand-maintain a JSON Schema and a Pydantic model side by side and they will drift apart. The drift always surfaces in production, because production is the only place both are exercised against real input at the same time.
 
-### Fallback + logging, concretely
+### Pydantic v2: model_validate as an enforcement boundary
 
-```python
-import json, logging, uuid
+`model_validate` is the call to internalise, and it helps to stop reading it as a dataclass constructor. It is a boundary. On the far side of it everything is typed and checked; on this side, nothing is.
+
+```python extract_claims.py
 from pydantic import ValidationError
 
-logger = logging.getLogger("meridian.extraction")
+try:
+    extraction = ClaimExtraction.model_validate(data)
+except ValidationError as exc:
+    # exc.errors() returns dicts with loc, msg, type and input. Join them into
+    # something a human reading the log can act on.
+    reason = "; ".join(
+        f"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}" for e in exc.errors()
+    )
+```
 
-FALLBACK_TEMPLATE = "claim {cid}: extraction failed ({reason}) — flagged for review"
+Four behaviours worth knowing before you rely on it:
+
+- `ConfigDict(extra="forbid")` refuses unexpected keys, so a model that helpfully adds `"confidence"` fails loudly instead of having the field dropped on the floor.
+- `Field(default=None, ge=0)` puts a business rule in the schema rather than in an `if` statement three functions downstream. The schema is where rules belong, because it is the thing every caller already goes through.
+- Pydantic v2 coerces by default. The string `"40000"` becomes `40000.0`, which is usually what you want from a model. When it is not, say so on purpose with `ConfigDict(strict=True)` and get a validation error instead of a silent conversion.
+- `model_validate_json(text)` parses and validates in one step and is the better call when you are holding a JSON string. `TypeAdapter(list[ClaimExtraction])` validates a whole batch at once. `model_dump()` and `model_dump_json()` take you back out to plain data.
+
+### Fallback and logging, end to end
+
+```python extract_claims.py
+import json
+import logging
+from pydantic import ValidationError
+
+logger = logging.getLogger("omnisupply.extraction")
+
+FALLBACK_TEMPLATE = "FALLBACK claim_id=%s reason=%r"
 
 def extract(record: dict) -> ClaimExtraction:
-    raw = call_model(record["notes"])                  # your 2.4.2 wrapper
+    """One record in, one ClaimExtraction out. Never raises, never returns None."""
+    raw = call_model(record["notes"])            # your 2.4.2 provider wrapper
     try:
         data = json.loads(raw)
-        data["claim_id"] = record["claim_id"]          # conservation: id from input
+        data["claim_id"] = record["claim_id"]    # id comes from the input, not the model
         return ClaimExtraction.model_validate(data)
     except (json.JSONDecodeError, ValidationError) as exc:
         reason = str(exc)[:500]
-        logger.error(FALLBACK_TEMPLATE.format(cid=record["claim_id"], reason=reason))
+        logger.error(FALLBACK_TEMPLATE, record["claim_id"], reason)
         return ClaimExtraction(
             claim_id=record["claim_id"],
+            claim_type="other",
             extraction_failed=True,
             failure_reason=reason,
         )
 ```
 
-And the test that makes the Prove-it bar a property, not a hope (reuse from 1.5.1):
+Notice where `claim_id` comes from. The input record, never the model. That single line is what makes conservation checkable, because it means you can always say which input produced which output, including for the outputs that failed.
 
-```python
+And here is the bar turned into a property, using pytest from 1.5.1:
+
+```python tests/test_build.py
 def test_twenty_in_twenty_out_no_silent_drops(messy_claims):
-    results = [extract(r) for r in messy_claims]       # 20 messy inputs
-    assert len(results) == 20                           # conservation
+    results = [extract(record) for record in messy_claims]     # 20 messy inputs
+
+    assert len(results) == 20                                  # conservation
     assert all(isinstance(r, ClaimExtraction) for r in results)
+
     failed = [r for r in results if r.extraction_failed]
-    # accountability: every fallback has a recorded reason
+    # accountability: every fallback names itself and says why
     assert all(r.failure_reason and r.claim_id for r in failed)
 ```
 
-### What you now do (Practice → Build)
+::: aside Where does the retry go, then?
+Not inside `extract`. A retry belongs one level up, driven by the log, where it can be rate-limited, capped, and counted.
 
-1. **Practice:** run the worked example (an invoice-notes extractor — same structure,
-   different domain, so you can't copy it into your Build), then complete the gap
-   version until its checks pass.
-2. **Build:** rebuild *your* Meridian claim extractor to return a validated
-   `ClaimExtraction` every time, with the defined fallback above, and prove it: 20
-   messy claim texts from your data variant in → 20 valid schema objects out, every
-   failure logged, none dropped.
+The moment `extract` retries internally it stops being a function of its input, its latency becomes unpredictable, and the fallback rate you measure stops meaning anything. Keep the boundary honest: one input, one output, one log line when it degrades. Whether a failed claim gets a second attempt is a decision for whatever owns the batch, not for the function that validates a single record.
+:::
+
+::: phase practice
+
+## Working one before you build one
+
+You know what has to be true now. Knowing it and typing it are different skills, and the gap between them is where an evening usually goes.
+
+So we do it once on something smaller first, where the answer already exists and you can check yourself against it, before you point any of this at your own extractor.
+
+::: route
+
+Read the worked example the way you would read a colleague's pull request. It is a vendor-invoice extractor: the same structure as yours, a neighbouring task, and deliberately not copyable into your deliverable. At each step, decide what you would have written before you look at what it did.
+
+::: worked-example
+
+Now you write the part that carries the weight. The imports, the provider call and the fixtures are already there. What is missing is the boundary: the validation, the fallback object, and the log line that makes that fallback findable a week later.
+
+The checks that run here are the same ones that run on your submission, so a pass here means the pattern is right before you turn it loose on messier input.
+
+::: workbench
+
+One more thing before you build, and this one asks you to close the lesson.
+
+The drills below want the ideas back in your own words, from memory, with nothing in front of you. That feels harder than re-reading because it is harder, and that is the point. Retrieval is what moves an idea from "I followed that" to "I can use that at eleven at night when something is broken". Anything you get wrong comes back to you in a few days.
+
+::: retrieval
+
+::: phase build
+
+## Your extractor, on twenty real reports
+
+That was a vendor invoice, and it was tidy. Yours is a merchant dispute report typed between phone calls, and there are twenty of them waiting.
+
+::: deliverable
+
+Same pattern, harder input. The corpus is doing the real work here: it holds claims with ambiguous amounts, claims missing a delivery date, and at least one note that is not a claim at all. If your extractor returns twenty valid objects against that, the pattern holds and you own it.
+
+::: submission
+
+::: phase verify
+
+## How this gets graded
+
+Read this part before you write a line of the deliverable. I would rather you know exactly where the bar is than guess at it and find out at submission.
+
+::: prove-it
+
+::: grading-modes
+
+The checks below are the ones that run against your commit, verbatim. Nothing is held back, and you can run every one of them locally and get the same answer.
+
+::: checks
+
+The rubric is the document a reviewer works from, criterion by criterion. There is nothing behind it.
+
+::: rubric
+
+::: phase unstuck
+
+## When it breaks
+
+Three things break here, and they break for almost everybody, so they are written down rather than left for you to find at midnight.
+
+::: unstuck
+
+If yours is not on that list, the way back is usually mechanical. Run the checks locally. Read the first failure in full rather than the last one. And print the raw provider response before it reaches `model_validate`, because most of the confusion in this unit turns out to be a shape nobody has actually looked at.
+
+::: phase ask
+
+## Ask about this unit
+
+There is an assistant on this page that has read this lesson and nothing else, so it answers about invoice extraction and validation boundaries rather than about programming in general. Ask why something works, ask for another exercise, or paste an error and say what you expected instead.
+
+It is an AI, not a person, and it will not write your deliverable. Once you have finished the practice route above it stops handing over answers and works questions through with you instead, which is irritating at the time and is the only version of this that leaves you able to do the work.
+
+::: ask

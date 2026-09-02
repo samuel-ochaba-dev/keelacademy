@@ -15,7 +15,23 @@ type ConciergePanelProps = {
   serviceDown?: boolean;
   routeData: PracticeRouteData | null;
   initialTurns: ConciergeTurn[];
+  /**
+   * A unit script places this panel inside its own phase section and introduces
+   * it in its own words, so it takes the section wrapper and the built-in heading
+   * off. Both stay on for any unit still rendering the fixed layout.
+   */
+  embedded?: boolean;
 };
+
+/**
+ * The service sends its own reason string for its own records. The student reads
+ * this instead, so internal wording never reaches the page.
+ */
+function reasonFor(mode: ConciergeMode): string {
+  return mode === "guard"
+    ? "You have finished the practice route for this unit, so questions get worked through with you rather than answered outright. It will not write the deliverable for you."
+    : "You are still on the practice route, so it explains freely and will write you extra exercises on request.";
+}
 
 export function ConciergePanel({
   unitId,
@@ -24,6 +40,7 @@ export function ConciergePanel({
   serviceDown = false,
   routeData,
   initialTurns,
+  embedded = false,
 }: ConciergePanelProps) {
   const [turns, setTurns] = useState<ConciergeTurn[]>(initialTurns);
   const [question, setQuestion] = useState("");
@@ -35,15 +52,13 @@ export function ConciergePanel({
   // Derive initial mode and reason from server-provided route state
   const initialMode: ConciergeMode =
     routeData?.status === "completed" ? "guard" : "teach";
-  const initialReason =
-    routeData?.status === "completed"
-      ? "Practice route completed (build context): Socratic unblocking active; deliverable generation refused."
-      : `Practice route in progress (${routeData?.recommended_step ?? "practice"} context): free explanation and micro-exercises active.`;
 
   const [currentMode, setCurrentMode] = useState<ConciergeMode>(
     turns.length > 0 ? turns[turns.length - 1].mode : initialMode,
   );
-  const [modeReason, setModeReason] = useState<string>(initialReason);
+  const [modeReason, setModeReason] = useState<string>(
+    reasonFor(turns.length > 0 ? turns[turns.length - 1].mode : initialMode),
+  );
   const [latestAnswer, setLatestAnswer] = useState<string | null>(
     turns.length > 0 ? turns[turns.length - 1].answer : null,
   );
@@ -73,17 +88,16 @@ export function ConciergePanel({
         if (res.status === 429) {
           setIsBudgetExhausted(true);
           setErrorMsg(
-            "Token budget exhausted (HTTP 429). The concierge cannot process further questions until your token budget is replenished.",
+            "Your grading and question budget for this unit is used up, so no more questions can go through right now. Your dashboard shows the budget.",
           );
           return;
         }
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          const code = errData.error || `HTTP ${res.status}`;
           setErrorMsg(
             errData.message ||
-              `Concierge request failed (${code}). Check connection.`,
+              "That question did not go through. Nothing was charged. Try it again in a moment.",
           );
           return;
         }
@@ -102,13 +116,13 @@ export function ConciergePanel({
 
         setTurns((prev) => [...prev, newTurn]);
         setCurrentMode(data.mode);
-        setModeReason(data.mode_reason);
+        setModeReason(reasonFor(data.mode));
         setLatestAnswer(data.answer);
         setLatestTokens(data.tokens_charged);
         setQuestion("");
       } catch (err) {
         setErrorMsg(
-          `Concierge service unreachable: ${
+          `That question did not reach the assistant, so nothing was charged. ${
             err instanceof Error ? err.message : String(err)
           }`,
         );
@@ -116,111 +130,76 @@ export function ConciergePanel({
     });
   };
 
-  return (
-    <section
-      id="concierge"
-      data-keel-section="concierge"
-    >
-      <div>
+  const panel = (
+      <div className="card-dark space-y-6">
         {/* Header */}
-        <div>
-          <div>
-            <div>
-              <span>
-                SECTION 06
-              </span>
-              <span>/</span>
-              <span>
-                ALWAYS-ON TA BENCH
-              </span>
-            </div>
-            <h2>
-              AI Concierge
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-phosphor-blue-black pb-5">
+          {embedded ? null : (
+          <div className="space-y-2 max-w-[62ch]">
+            <h2 className="heading-lg text-phosphor-white">
+              Ask about this unit
             </h2>
-            <p>
-              Curriculum-scoped assistant with structural mode switching. In
-              teach mode, it explains concepts and generates micro-exercises. In
-              guard mode, it provides Socratic unblocking without writing the
-              deliverable.
+            <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              An assistant that has read this unit and nothing else. Ask why a concept works, ask
+              for another exercise, or get unblocked on an error at any hour. It is an AI, not a
+              person, and it will not write your deliverable.
             </p>
           </div>
-
-          {/* Mode Badge */}
-          <div>
+          )}
+          {/* How it is answering right now */}
+          <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border space-y-1.5 shrink-0 max-w-[280px]">
             {currentMode === "teach" ? (
-              <div>
-                <span>TEACH MODE</span>
-              </div>
+              <span className="chip chip-live text-[11px]">EXPLAINS FREELY</span>
             ) : (
-              <div>
-                <span>GUARD MODE</span>
-              </div>
+              <span className="chip chip-outline text-[11px]">WORKS IT THROUGH WITH YOU</span>
             )}
-            <span>
+            <p className="text-[12px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               {modeReason}
-            </span>
+            </p>
           </div>
-        </div>
-
-        {/* Guard mode contract notice */}
-        <div>
-          <div>
-            <span>
-              Guard mode contract: In build context the concierge unblocks. It
-              does not write the deliverable.
-            </span>
-          </div>
-          <span>
-            Derivation: server-side via adaptive route state
-          </span>
         </div>
 
         {/* Service State Gate */}
         {serviceDown ? (
-          <div>
-            Concierge service offline or unreachable. Check grading server
-            connection.
+          <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border text-[14px] text-phosphor-white">
+            The assistant is not answering just now. Nothing you asked earlier is lost. Try again in
+            a moment.
           </div>
         ) : !isSignedIn ? (
-          <div>
-            <p>
-              Sign in with your student account to access the AI concierge.
+          <div className="p-6 rounded-lg bg-carbon-veil border border-circuit-border space-y-3">
+            <p className="text-[15px] text-phosphor-white">
+              Sign in to ask about this unit.
             </p>
             <Link
               href={`/sign-in?next=/units/${unitId}#concierge`}
+              className="btn btn-primary btn-sm"
             >
-              Sign In to Ask Concierge
+              Sign in
             </Link>
           </div>
         ) : !isEnrolled ? (
-          <div>
-            <p>
-              Active enrollment required for Unit {unitId} to use the AI
-              concierge.
+          <div className="p-6 rounded-lg bg-carbon-veil border border-circuit-border space-y-3">
+            <p className="text-[15px] text-phosphor-white">
+              Questions on Unit {unitId} open up when you enroll in it.
             </p>
-            <Link
-              href={`/pricing`}
-            >
-              View Enrollment Tiers
+            <Link href={`/units/${unitId}#build`} className="btn btn-primary btn-sm">
+              See what enrolling includes
             </Link>
           </div>
         ) : (
-          <div>
+          <div className="space-y-6">
             {/* Question Input Box */}
             <form
               onSubmit={handleSubmit}
+              className="space-y-4"
             >
-              <div>
+              <div className="flex items-center justify-between gap-4">
                 <label
                   htmlFor="concierge-question"
+                  className="eyebrow text-[11px]"
                 >
-                  <span>Ask a Question</span>
+                  Your question
                 </label>
-                <span>
-                  {currentMode === "teach"
-                    ? "Teach context active"
-                    : "Guard context active"}
-                </span>
               </div>
 
               <textarea
@@ -230,58 +209,50 @@ export function ConciergePanel({
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder={
                   currentMode === "teach"
-                    ? "Ask why a concept works, request a micro-exercise, or ask for clarification on lesson mechanics..."
-                    : "Ask for unblocking help on stack traces, environment configuration, or requirement interpretation..."
+                    ? "Ask why a concept works, ask for another exercise, or ask what a line of the lesson means."
+                    : "Paste the error, say what you expected, and say what you have already tried."
                 }
                 disabled={isPending || isBudgetExhausted}
+                className="field-input text-[14.5px]"
               />
 
               {errorMsg ? (
-                <div>
-                  <span>{errorMsg}</span>
-                </div>
+                <p
+                  role="alert"
+                  className="rounded-lg border border-circuit-border bg-carbon-veil p-3.5 text-[13.5px] leading-relaxed text-phosphor-white"
+                >
+                  {errorMsg}
+                </p>
               ) : null}
 
-              <div>
-                <span>
-                  Delimited student input with prompt injection defense.
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-[12px] text-[color:var(--text-faint-on-dark)]">
+                  Answers come from an AI. Check anything it tells you against the lesson.
                 </span>
                 <button
                   type="submit"
                   disabled={!question.trim() || isPending || isBudgetExhausted}
+                  className="btn btn-accent btn-sm"
                 >
-                  {isPending ? (
-                    <>
-                      
-                      <span>Thinking...</span>
-                    </>
-                  ) : (
-                    <span>Ask Concierge</span>
-                  )}
+                  {isPending ? <span>Thinking...</span> : <span>Ask</span>}
                 </button>
               </div>
             </form>
 
             {/* Latest Reply */}
             {latestAnswer ? (
-              <div>
-                <div>
-                  <div>
-                    <span>
-                      CONCIERGE REPLY
-                    </span>
-                    <span
-                    >
-                      {currentMode.toUpperCase()}
-                    </span>
+              <div className="p-6 rounded-lg bg-carbon-veil border border-lime-pulse/40 space-y-3">
+                <div className="flex items-center justify-between border-b border-phosphor-blue-black pb-2">
+                  <div className="flex items-center gap-2 font-code-mono text-[11px]">
+                    <span className="text-lime-pulse font-medium">ANSWER</span>
                   </div>
                   {latestTokens !== null ? (
-                    <span>
-                      Charged: {latestTokens} tokens
+                    <span className="font-code-mono text-[11px] text-moss-70">
+                      {latestTokens} tokens used
                     </span>
                   ) : null}
                 </div>
-                <div>
+                <div className="text-[14.5px] leading-relaxed text-phosphor-white whitespace-pre-wrap">
                   {latestAnswer}
                 </div>
               </div>
@@ -289,38 +260,30 @@ export function ConciergePanel({
 
             {/* Turn History */}
             {turns.length > 0 ? (
-              <div>
+              <div className="space-y-4 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowHistory((prev) => !prev)}
+                  aria-expanded={showHistory}
+                  className="font-code-mono text-[12px] text-moss-70 hover:text-phosphor-white transition-colors"
                 >
-                  <div>
-                    <span>
-                      Conversation History ({turns.length}{" "}
-                      {turns.length === 1 ? "turn" : "turns"})
-                    </span>
-                  </div>
+                  Everything you have asked here ({turns.length}){" "}
+                  <span aria-hidden>{showHistory ? "▲" : "▼"}</span>
                 </button>
 
                 {showHistory ? (
-                  <div>
+                  <div className="space-y-3">
                     {turns.map((turn, index) => (
-                      <div key={turn.id ?? index}>
-                        <div>
-                          <span>
-                            Q: {turn.question}
+                      <div key={turn.id ?? index} className="p-4 rounded-lg bg-ground-iron border border-circuit-border space-y-2">
+                        <div className="flex items-center justify-between gap-3 font-code-mono text-[12px]">
+                          <span className="text-phosphor-white font-medium truncate">
+                            {turn.question}
                           </span>
-                          <div>
-                            <span
-                            >
-                              {turn.mode.toUpperCase()}
-                            </span>
-                            <span>
-                              {turn.tokens_charged} tok
-                            </span>
-                          </div>
+                          <span className="shrink-0 text-[11px] text-moss-70">
+                            {turn.tokens_charged} tokens
+                          </span>
                         </div>
-                        <div>
+                        <div className="text-[13.5px] leading-relaxed text-[color:var(--text-muted-on-dark)] whitespace-pre-wrap">
                           {turn.answer}
                         </div>
                       </div>
@@ -332,6 +295,17 @@ export function ConciergePanel({
           </div>
         )}
       </div>
+  );
+
+  if (embedded) return panel;
+
+  return (
+    <section
+      id="concierge"
+      data-keel-section="concierge"
+      className="scroll-mt-28"
+    >
+      {panel}
     </section>
   );
 }

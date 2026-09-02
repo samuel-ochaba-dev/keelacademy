@@ -1,0 +1,1 @@
+The course grades student submissions using automated unit tests (Layer 1) and LLM judges (Layer 2). Layer 1 checks run first so broken code doesn't get sent to the LLM judge. Phase 11 runs in parallel so students learn how to sell.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://keelacademy.dev/schemas/map.schema.json",
   "title": "Curriculum map skeleton",
-  "description": "The 13-phase curriculum map skeleton: phases, estimated hours, outcomes, Meridian system role, gates, and planned vs authored module structure.",
+  "description": "The 13-phase curriculum map skeleton: phases, estimated hours, outcomes, the role each phase plays in the OmniSupply pipeline, gates, and planned vs authored module structure.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -28,7 +28,7 @@
           "est_hours",
           "why",
           "outcome",
-          "meridian_role",
+          "pipeline_role",
           "modules"
         ],
         "properties": {
@@ -57,7 +57,7 @@
             "type": "string",
             "minLength": 1
           },
-          "meridian_role": {
+          "pipeline_role": {
             "type": "string",
             "minLength": 1
           },

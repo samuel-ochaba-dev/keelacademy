@@ -1,0 +1,10 @@
+submission: s04-missing-layers-fail
+expected: fail
+criteria:
+  verification-stages-analysis: fail
+  checks-before-review-rationale: pass
+  parallel-business-track-rationale: pass
+overall: fail
+grader_notes: "Fails because it only describes automated checks and rubric review, omitting defend your work and the recorded walkthrough."
+graded_by: human
+graded_on: 2026-08-25

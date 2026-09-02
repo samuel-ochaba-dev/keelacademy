@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { ensureStudent } from "@/lib/enroll";
@@ -8,8 +9,7 @@ import { SimulationWorkbench } from "@/components/simulation/simulation-workbenc
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Business Owner Defense — Keel Academy",
-  description: "Defend your system's financial ROI, zero-jargon communication, and $50k error risk mitigation with Elena Rostova (Section 14.4).",
+  title: "Defend it to the budget holder",
   robots: { index: false },
 };
 
@@ -25,7 +25,7 @@ export default async function BusinessOwnerPage() {
   let initialSession: SimulationSession | null = null;
   if (studentId > 0) {
     const listRes = await listStudentSimulations(studentId);
-    if (listRes.state === "ok" && listRes.data.length > 0) {
+    if (listRes.state === "ok") {
       const latestSummary = listRes.data.find((s) => s.persona_id === "business-owner");
       if (latestSummary) {
         const detailRes = await getSimulation(latestSummary.id, studentId);
@@ -37,31 +37,32 @@ export default async function BusinessOwnerPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            SECTION 14.4 • BUSINESS OWNER DEFENSE
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-            Business Owner Defense Workbench
-          </h1>
-          <p className="text-xs text-zinc-400 font-sans">
-            Defend your dollar ROI, labor hours saved, error fallback handling for $50k claims, and implementation timeline in plain language with Managing Director Elena Rostova.
-          </p>
-        </div>
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <nav
+          aria-label="Breadcrumb"
+          className="text-[13px] text-[color:var(--text-faint-on-dark)]"
+        >
+          <Link href="/simulations" className="hover:text-phosphor-white">
+            Practice conversations
+          </Link>
+          <span className="px-2">/</span>
+          <span className="text-[color:var(--text-muted-on-dark)]">Budget holder</span>
+        </nav>
+        <h1 className="heading-xl mt-7 max-w-[28ch]">Defend it to the budget holder</h1>
+        <p className="lead mt-5 max-w-[68ch]">
+          The other defence the capstone needs. She signs the invoice and she does not care how
+          it works. Say what it saves, in hours and in money, and what it costs to run.
+        </p>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 mx-auto max-w-5xl w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="shell py-12">
         <SimulationWorkbench
           initialSession={initialSession}
           studentId={studentId}
           personaId="business-owner"
         />
-      </main>
+      </div>
     </div>
   );
 }

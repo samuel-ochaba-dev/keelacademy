@@ -86,13 +86,15 @@ export function PracticeWorkbench({
         };
         setAttempts((prev) => [newSummary, ...prev]);
       } else if (res.state === "unreachable") {
-        setErrorBanner("Practice grading service is currently unreachable.");
+        setErrorBanner(
+          "The checks did not run because the grading service did not answer. Your work in the editor is still here. Try again in a moment.",
+        );
       } else if (res.state === "rejected") {
         setErrorBanner(
           res.message ||
             (res.code === "not_enrolled"
-              ? "Active enrollment required to run practice checks."
-              : `Request failed: ${res.code}`),
+              ? "Running the checks needs an active enrollment in this unit."
+              : "The checks did not run. Nothing was charged. Try again in a moment."),
         );
       }
     });
@@ -100,12 +102,11 @@ export function PracticeWorkbench({
 
   if (serviceDown || !manifest) {
     return (
-      <div>
-        <div>
-          <p>
-            Practice grading service is currently unreachable.
-          </p>
-        </div>
+      <div className="rounded-lg border border-circuit-border bg-carbon-veil p-5">
+        <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          The practice editor is not loading just now, so there is nothing to type into yet. The
+          lesson and the worked example above are unaffected. Reload in a moment.
+        </p>
       </div>
     );
   }
@@ -113,14 +114,12 @@ export function PracticeWorkbench({
   return (
     <div data-keel-practice-workbench className="space-y-6">
       {/* Workbench panel */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-sm">
+      <div className="card-dark p-0 overflow-hidden border border-circuit-border">
         {/* Header bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/80">
+        <div className="flex items-center justify-between gap-4 p-3.5 bg-carbon-veil border-b border-phosphor-blue-black">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-            <span className="text-xs font-mono text-zinc-400 font-semibold ml-2">
+            <span className="h-2 w-2 rounded-full bg-lime-pulse" />
+            <span className="font-code-mono text-[12px] font-medium text-phosphor-white">
               practice-workbench
             </span>
           </div>
@@ -130,7 +129,7 @@ export function PracticeWorkbench({
               type="button"
               onClick={handleResetAll}
               disabled={isPending}
-              className="text-xs font-mono text-zinc-400 hover:text-zinc-200 px-2.5 py-1 rounded bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 transition-colors disabled:opacity-50"
+              className="text-[12px] font-code-mono text-moss-70 hover:text-phosphor-white transition-colors"
             >
               Reset all files
             </button>
@@ -138,37 +137,34 @@ export function PracticeWorkbench({
         </div>
 
         {/* File tabs */}
-        <div className="flex items-center gap-1 px-3 pt-2 border-b border-zinc-800/80 bg-zinc-900/40 overflow-x-auto">
-          {editableFiles.map((fname) => {
-            const isActive = activeFile === fname;
-            return (
-              <button
-                key={fname}
-                type="button"
-                onClick={() => setActiveFile(fname)}
-                className={`px-3 py-1.5 rounded-t text-xs font-mono transition-colors border-t border-x ${
-                  isActive
-                    ? "bg-zinc-950 text-sky-400 border-zinc-800 font-semibold"
-                    : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/60"
-                }`}
-              >
-                {fname}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-1 p-2 bg-ground-iron border-b border-phosphor-blue-black overflow-x-auto">
+          {editableFiles.map((fname) => (
+            <button
+              key={fname}
+              type="button"
+              onClick={() => setActiveFile(fname)}
+              className={`px-3.5 py-1.5 rounded text-[13px] font-code-mono transition-colors ${
+                activeFile === fname
+                  ? "bg-carbon-veil text-lime-pulse font-medium"
+                  : "text-moss-70 hover:text-phosphor-white"
+              }`}
+            >
+              {fname}
+            </button>
+          ))}
         </div>
 
         {/* Code editor area */}
-        <div className="p-4 space-y-3 bg-zinc-950">
-          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+        <div className="p-4 bg-void-black/80 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-code-mono text-moss-70">
             <span>
-              Editing: <span className="text-zinc-200">{activeFile}</span>
+              Editing: <span className="text-phosphor-white">{activeFile}</span>
             </span>
             <button
               type="button"
               onClick={() => handleResetFile(activeFile)}
               disabled={isPending}
-              className="text-zinc-500 hover:text-zinc-300 underline"
+              className="hover:text-phosphor-white transition-colors"
             >
               Reset this file
             </button>
@@ -179,39 +175,40 @@ export function PracticeWorkbench({
             value={fileContents[activeFile] ?? ""}
             onChange={(e) => handleFileChange(activeFile, e.target.value)}
             disabled={isPending || !isEnrolled}
-            rows={18}
+            rows={16}
             spellCheck={false}
-            className="w-full rounded-lg bg-zinc-900/90 border border-zinc-800 p-4 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-sky-500/80 leading-relaxed resize-y"
+            className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
           />
         </div>
 
         {/* Submit action strip */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-800 bg-zinc-900/60">
-          <div className="text-xs font-sans text-zinc-400">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-carbon-veil border-t border-phosphor-blue-black">
+          <div className="text-[13px] text-[color:var(--text-muted-on-dark)]">
             {!isSignedIn ? (
               <p>
                 <Link
                   href={`/sign-in?next=/units/${unitId}#practice`}
-                  className="text-sky-400 hover:underline font-mono"
+                  className="text-fern-link underline hover:text-phosphor-white"
                 >
                   Sign in
                 </Link>{" "}
-                and enroll to run checks in the sandbox.
+                and enroll to run the checks here.
               </p>
             ) : !isEnrolled ? (
               <p>
-                Active enrollment required to run checks.{" "}
+                Running the checks needs an active enrollment in this unit.{" "}
                 <Link
                   href={`/map`}
-                  className="text-sky-400 hover:underline font-mono"
+                  className="text-fern-link underline hover:text-phosphor-white"
                 >
-                  Enroll via the Progress Map
+                  Enroll from your progress map
                 </Link>
                 .
               </p>
             ) : (
-              <p className="font-mono text-zinc-400">
-                Deterministic Layer-1 checks run in an isolated sandbox. Fast, free, retryable.
+              <p>
+                These are the same automated checks that grade a submission. They run in a clean
+                environment, cost you nothing, and you can run them as often as you like.
               </p>
             )}
           </div>
@@ -221,17 +218,15 @@ export function PracticeWorkbench({
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !isEnrolled}
-              className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-zinc-950 font-mono text-xs font-semibold tracking-wide transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm flex items-center gap-2"
+              className="btn btn-accent btn-sm"
             >
               {isPending ? (
                 <>
-                  <span className="w-3 h-3 rounded-full border-2 border-zinc-950 border-t-transparent animate-spin" aria-hidden />
-                  Grading in sandbox...
+                  <span className="h-2 w-2 rounded-full bg-void-black animate-pulse" />
+                  Running the checks...
                 </>
               ) : (
-                <>
-                  Run practice checks →
-                </>
+                "Run the checks"
               )}
             </button>
           </div>
@@ -240,30 +235,36 @@ export function PracticeWorkbench({
 
       {/* Error banner */}
       {errorBanner ? (
-        <div>
+        <p
+          role="alert"
+          className="rounded-lg border border-circuit-border bg-carbon-veil p-4 text-[14px] leading-relaxed text-phosphor-white"
+        >
           {errorBanner}
-        </div>
+        </p>
       ) : null}
 
       {/* Latest attempt results */}
       {latestResult ? (
-        <div>
-          <div>
-            <div>
+        <div className="card-dark space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-phosphor-blue-black pb-4">
+            <div className="flex items-center gap-3">
               <span
+                className={`chip ${
+                  latestResult.passed ? "chip-live" : "chip-alert"
+                }`}
               >
-                {latestResult.passed ? "All checks passed" : "Checks failed"}
+                {latestResult.passed ? "ALL CHECKS PASSED" : "NOT YET"}
               </span>
-              <span>
+              <span className="font-code-mono text-[13px] text-phosphor-white">
                 {`${latestResult.pass_count} / ${latestResult.total_checks} checks passing`}
               </span>
             </div>
-            <span>
+            <span className="font-code-mono text-[12px] text-moss-70">
               {`Attempt #${latestResult.attempt_id}`}
             </span>
           </div>
 
-          <div>
+          <div className="space-y-3">
             {latestResult.checks.map((check) => (
               <CheckCard key={check.id} check={check} />
             ))}
@@ -273,28 +274,31 @@ export function PracticeWorkbench({
 
       {/* Attempt history */}
       {attempts.length > 0 ? (
-        <div>
-          <h4>
+        <div className="card-dark space-y-4">
+          <h4 className="eyebrow text-[12px]">
             {`Practice attempt history (${attempts.length})`}
           </h4>
 
-          <div>
+          <div className="space-y-2.5">
             {attempts.map((att) => (
               <div
                 key={att.id}
+                className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-lg bg-carbon-veil border border-circuit-border font-code-mono text-[12.5px]"
               >
-                <div>
-                  <span>
-                    {att.passed ? "PASS" : "FAIL"}
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`chip ${att.passed ? "chip-live" : "chip-outline"} text-[10px]`}
+                  >
+                    {att.passed ? "PASSED" : "NOT YET"}
                   </span>
-                  <span>
+                  <span className="text-phosphor-white">
                     {`${att.pass_count} / ${att.total_checks} passing`}
                   </span>
-                  <span>
+                  <span className="text-moss-70">
                     {`attempt #${att.id}`}
                   </span>
                 </div>
-                <span>
+                <span className="text-moss-70 text-[11px]">
                   {formatUtc(att.created_at)}
                 </span>
               </div>
@@ -307,35 +311,41 @@ export function PracticeWorkbench({
 }
 
 function CheckCard({ check }: { check: PracticeCheckResult }) {
+  const isPass = check.status === "pass";
   return (
     <div
+      className={`p-4 rounded-lg border bg-carbon-veil space-y-2 ${
+        isPass ? "border-lime-pulse/40" : "border-circuit-border"
+      }`}
     >
-      <div>
-        <div>
-          <code>{check.id}</code>
-          <span>{check.type}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 font-code-mono text-[12px]">
+        <div className="flex items-center gap-2">
+          <code className="text-phosphor-white font-medium">{check.id}</code>
+          <span className="chip chip-outline text-[10px]">{check.type}</span>
         </div>
 
-        <div>
+        <div className="flex items-center gap-3">
           {check.wall_s !== null ? (
-            <span>
+            <span className="text-moss-70">
               {check.wall_s.toFixed(2)}s
             </span>
           ) : null}
-          <span>
+          <span
+            className={`chip ${isPass ? "chip-live" : "chip-alert"} text-[10px]`}
+          >
             {check.status.toUpperCase()}
           </span>
         </div>
       </div>
 
-      <p>{check.note}</p>
+      <p className="text-[13.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">{check.note}</p>
 
       {check.output_tail ? (
-        <details>
-          <summary>
-            View sandbox output
+        <details className="pt-2 text-[12px] font-code-mono">
+          <summary className="cursor-pointer text-moss-70 hover:text-phosphor-white transition-colors">
+            See the output
           </summary>
-          <pre>
+          <pre className="mt-2 p-3 rounded bg-void-black text-moss-80 border border-circuit-border overflow-x-auto text-[11.5px] whitespace-pre-wrap">
             {check.output_tail}
           </pre>
         </details>

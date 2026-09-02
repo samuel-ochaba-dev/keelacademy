@@ -180,7 +180,8 @@ authored_on_disk = set()
 for p in units_dir.glob("phase-*"):
     for u in p.glob("*/unit.yaml"):
         authored_on_disk.add(u.parent.name)
-check("only unit 3.2.1 is authored on disk today", authored_on_disk == {"3.2.1"})
+# Update this pin whenever new units are authored (C1a added phase-0; C1b will add phase-1)
+check("authored unit set on disk matches expectation", authored_on_disk == {"0.1", "0.2", "0.3", "3.2.1"}, str(sorted(authored_on_disk)))
 
 # ----------------------------------------------------------------------
 print("== (3) enrollment activation & baseline available states ==")

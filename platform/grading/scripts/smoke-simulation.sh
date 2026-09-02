@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # smoke-simulation.sh — S4.5 deterministic proof: Business Simulation Engine,
-# discovery-call practice persona (Sarah Jenkins at Meridian Mutual),
+# discovery-call practice persona (Sarah Jenkins at OmniSupply Operations),
 # multi-turn dialogue state persistence, behavioral pushback against premature pitching,
 # evaluation judge scoring against the 11.5.1 discovery checklist,
 # atomic spine events ('simulation.started', 'simulation.turn_completed', 'simulation.scored'),

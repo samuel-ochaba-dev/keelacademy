@@ -4,18 +4,18 @@
 For each rubric:
   1. validate the parsed YAML against content/schemas/rubric.schema.json, and
   2. check filename/version-field consistency (v<N>.yaml must declare
-     top-level `version: N`) — the resolution rule (highest version is
+     top-level `version: N`). The resolution rule (highest version is
      ACTIVE) depends on it.
 
 Layout rule (S2.1): every .yaml under content/rubrics/ must live exactly one
-level down (rubrics/<unit>/v<N>.yaml). A file at any other shape — top-level,
-nested deeper, or not named v<N>.yaml — is a FAIL naming the file: it would
+level down (rubrics/<unit>/v<N>.yaml). A file at any other shape (top-level,
+nested deeper, or not named v<N>.yaml) is a FAIL naming the file: it would
 otherwise be silently unvalidated AND invisible to resolve_active_rubric.
 
 Deps: Python stdlib + PyYAML only. The schema is interpreted by a small
 validator supporting the keywords rubric.schema.json actually uses (type,
 required, properties, items, additionalProperties, enum, pattern, minLength,
-minimum, minItems) — enough to keep this tool dependency-free.
+minimum, minItems), enough to keep this tool dependency-free.
 
 Exit 0 iff every rubric is valid; else 1 with each failing file named.
 """
@@ -90,7 +90,7 @@ def main() -> int:
         reason = ("filename must be v<N>.yaml" if path.parent.parent == RUBRICS_DIR
                   else f"must live at rubrics/<unit>/v<N>.yaml, not {path.parent.relative_to(RUBRICS_DIR)}/")
         print(f"FAIL {rel}")
-        print(f"    layout: {reason} — unvalidated and invisible to the resolver")
+        print(f"    layout: {reason}. Unvalidated and invisible to the resolver")
     if not rubric_files and not failures:
         print(f"error: no rubrics found under {RUBRICS_DIR}", file=sys.stderr)
         return 1

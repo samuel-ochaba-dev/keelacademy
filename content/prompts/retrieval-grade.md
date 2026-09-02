@@ -26,7 +26,7 @@ Your goal is to determine whether the student's answer demonstrates genuine unde
    - Feedback: One or two concise sentences explaining why the answer satisfies the concept or what critical mechanism was missing.
    - Evidence: A short direct quote from the lesson text or the student's answer that supports your verdict.
 
-## Output Format — return ONLY a single valid JSON object
+## Output format: return ONLY a single valid JSON object
 ```json
 {
   "verdict": "pass" | "fail",
@@ -35,3 +35,11 @@ Your goal is to determine whether the student's answer demonstrates genuine unde
 }
 ```
 Do not include markdown code fences, markdown formatting around the JSON, or any commentary before or after.
+
+## Style of the text you write
+
+`feedback` is shown to the student word for word.
+
+- Plain declarative sentences. No em dashes or en dashes: use commas, colons,
+  or separate sentences.
+- No exclamation marks, no praise, no encouragement.

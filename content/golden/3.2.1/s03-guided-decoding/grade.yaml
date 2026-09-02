@@ -7,6 +7,6 @@ criteria:
   failures-logged: pass
   conservation-tested: pass
 overall: pass
-grader_notes: "Open-weight path (guided_json) with the same boundary discipline; model call mocked in tests — good reproducibility habit. All criteria met."
+grader_notes: "Open-weight path (guided_json) with the same boundary discipline; model call mocked in tests: good reproducibility habit. All criteria met."
 graded_by: human
 graded_on: 2026-08-21

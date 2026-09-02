@@ -3,8 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { StudentGalleryProject } from "@/lib/gallery";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 type GalleryShowcaseProps = {
   submissionId: number;
@@ -27,14 +25,9 @@ export function GalleryShowcase({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form fields
-  const [title, setTitle] = useState(
-    initialProject?.title || `Unit ${unitId} Implementation Deliverable`,
-  );
-  const [description, setDescription] = useState(
-    initialProject?.description ||
-      `Production-grade implementation of Unit ${unitId} with full test coverage and automated rubric verification.`,
-  );
+  // Empty by default. Nothing writes a description on the student's behalf.
+  const [title, setTitle] = useState(initialProject?.title || "");
+  const [description, setDescription] = useState(initialProject?.description || "");
   const [repoUrl, setRepoUrl] = useState(initialProject?.repo_url || defaultRepoUrl || "");
   const [demoUrl, setDemoUrl] = useState(initialProject?.demo_url || "");
   const [walkthroughVideoUrl, setWalkthroughVideoUrl] = useState(
@@ -65,9 +58,9 @@ export function GalleryShowcase({
       if (res.ok) {
         setProject(data);
         setIsEditing(false);
-        setSuccessMsg("Deliverable successfully published to the Public Build Gallery!");
+        setSuccessMsg("This is live in the gallery now.");
       } else {
-        setErrorMsg(data.message || data.error || "Failed to publish to gallery.");
+        setErrorMsg(data.message || data.error || "The gallery would not accept that.");
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Network error");
@@ -95,9 +88,9 @@ export function GalleryShowcase({
       const data = await res.json();
       if (res.ok) {
         setProject((prev) => (prev ? { ...prev, published: false } : null));
-        setSuccessMsg("Project unpublished from public view.");
+        setSuccessMsg("Taken down. It is no longer in the gallery.");
       } else {
-        setErrorMsg(data.message || data.error || "Failed to unpublish project.");
+        setErrorMsg(data.message || data.error || "That could not be taken down.");
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Network error");
@@ -107,229 +100,184 @@ export function GalleryShowcase({
   };
 
   if (!isPassed) {
-    return (
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-500 font-mono text-sm">🔒</span>
-            <h2 className="text-sm font-mono font-semibold uppercase tracking-wider text-zinc-300">
-              Public Build Gallery Showcase
-            </h2>
-          </div>
-          <Badge variant="outline" className="text-zinc-500 border-zinc-700">
-            VERIFICATION REQUIRED
-          </Badge>
-        </div>
-        <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-          Public showcase publication is locked. Only submissions with a verified PASS verdict from the automated verification engine are eligible for the public gallery.
-        </p>
-      </section>
-    );
+    return null;
   }
 
-  const isPublished = project && project.published;
-
   return (
-    <section className="rounded-lg border border-emerald-500/30 bg-zinc-900/50 p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-zinc-800/80 pb-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-emerald-400">
-              Public Build Gallery Showcase (Opt-In)
-            </h2>
-          </div>
-          <p className="text-xs text-zinc-400 font-sans">
-            Verified passing deliverable for Unit {unitId}. Showcase your architecture and code across cohorts.
-          </p>
-        </div>
-        <div>
-          {isPublished ? (
-            <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-mono">
-              PUBLISHED LIVE
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="border-zinc-700 bg-zinc-800 text-zinc-400 font-mono">
-              DRAFT / UNPUBLISHED
-            </Badge>
-          )}
-        </div>
-      </div>
+    <section aria-labelledby="showcase-title" className="card-dark">
+      <h2 id="showcase-title" className="heading-md">
+        Put this in the gallery
+      </h2>
+      <p className="mt-4 max-w-[70ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        Publishing is your choice and you can take it down again. What goes public is what you
+        write below, your name, and the verdict that passed this submission.
+      </p>
 
-      {errorMsg && (
-        <div className="rounded-md border border-red-500/30 bg-red-950/30 px-4 py-2.5 text-xs font-mono text-red-200">
-          {errorMsg}
-        </div>
-      )}
-
-      {successMsg && (
-        <div className="rounded-md border border-emerald-500/30 bg-emerald-950/30 px-4 py-2.5 text-xs font-mono text-emerald-200">
-          {successMsg}
-        </div>
-      )}
-
-      {isPublished && !isEditing ? (
-        <div className="space-y-4">
-          <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-base font-bold font-mono text-zinc-100">{project.title}</h3>
-                <p className="mt-1 text-xs text-zinc-300 font-sans leading-relaxed">{project.description}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-4 pt-2 text-xs font-mono">
-              {project.repo_url && (
-                <a
-                  href={project.repo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-400 hover:underline inline-flex items-center gap-1"
-                >
-                  <span>Repository</span> &rarr;
-                </a>
-              )}
-              {project.demo_url && (
-                <a
-                  href={project.demo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-400 hover:underline inline-flex items-center gap-1"
-                >
-                  <span>Live Demo</span> &rarr;
-                </a>
-              )}
-              {project.walkthrough_video_url && (
-                <a
-                  href={project.walkthrough_video_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-400 hover:underline inline-flex items-center gap-1"
-                >
-                  <span>Video Walkthrough</span> &rarr;
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 pt-1">
+      {project && project.published && !isEditing ? (
+        <div className="mt-7">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="chip chip-live">PUBLISHED</span>
             <Link
               href={`/gallery/${project.id}`}
-              className="rounded border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-xs font-mono font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors inline-flex items-center gap-1.5"
+              className="text-[14.5px] text-fern-link underline-offset-4 hover:underline"
             >
-              <span>View Public Showcase Page</span>
-              <span>&rarr;</span>
+              See how it looks in the gallery
             </Link>
-            <Button
-              variant="outline"
-              size="sm"
+          </div>
+          <dl className="mt-6">
+            <ShowcaseFact label="Title" value={project.title} />
+            <ShowcaseFact label="Description" value={project.description} />
+            {project.repo_url ? <ShowcaseFact label="Repository" value={project.repo_url} /> : null}
+            {project.demo_url ? <ShowcaseFact label="Demo" value={project.demo_url} /> : null}
+            {project.walkthrough_video_url ? (
+              <ShowcaseFact label="Walkthrough" value={project.walkthrough_video_url} />
+            ) : null}
+          </dl>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <button
+              type="button"
               onClick={() => setIsEditing(true)}
-              className="text-xs font-mono"
+              className="btn btn-ghost btn-sm"
             >
-              Edit Details
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
+              Change what it says
+            </button>
+            <button
+              type="button"
               onClick={handleUnpublish}
               disabled={isSubmitting}
-              className="text-xs font-mono"
+              className="btn btn-ghost btn-sm"
             >
-              {isSubmitting ? "Unpublishing..." : "Unpublish Project"}
-            </Button>
+              {isSubmitting ? "Taking it down..." : "Take it down"}
+            </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={handlePublish} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono text-zinc-300 font-semibold">
-              Project Showcase Title *
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. High-Throughput Insurance Claims Extraction Engine"
-              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3.5 py-2 text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono text-zinc-300 font-semibold">
-              Architecture & System Description *
-            </label>
-            <textarea
-              required
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Explain your design decisions, extraction pipeline architecture, and how edge-case fallbacks were handled."
-              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3.5 py-2 text-xs font-sans text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-mono text-zinc-400">
-                GitHub Repository URL
+        <form onSubmit={handlePublish} className="mt-7">
+          <h3 className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
+            {project?.published ? "Change the listing" : "What the gallery will show"}
+          </h3>
+          <div className="mt-5 space-y-5">
+            <div>
+              <label htmlFor="proj-title" className="field-label">
+                Title
               </label>
               <input
+                id="proj-title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                maxLength={120}
+                placeholder="Invoice reconciliation with a dispute queue"
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label htmlFor="proj-desc" className="field-label">
+                What it does
+              </label>
+              <textarea
+                id="proj-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                required
+                placeholder="A few sentences. What it takes in, what it puts out, and what you would fix next."
+                className="field-input font-inter-variable"
+              />
+            </div>
+            <div>
+              <label htmlFor="proj-repo" className="field-label">
+                Repository URL
+              </label>
+              <input
+                id="proj-repo"
                 type="url"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                placeholder="https://github.com/user/project"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs font-mono text-zinc-100 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none"
+                placeholder="https://github.com/you/keel-3.2.1-your-suffix"
+                className="field-input"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-mono text-zinc-400">
-                Live Demo URL (Optional)
+            <div>
+              <label htmlFor="proj-demo" className="field-label">
+                Demo URL, if it is deployed somewhere
               </label>
               <input
+                id="proj-demo"
                 type="url"
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
-                placeholder="https://my-demo.dev"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs font-mono text-zinc-100 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none"
+                placeholder="Optional"
+                className="field-input"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-mono text-zinc-400">
-                Video Walkthrough URL (Loom / YouTube)
+            <div>
+              <label htmlFor="proj-video" className="field-label">
+                Walkthrough video URL
               </label>
               <input
+                id="proj-video"
                 type="url"
                 value={walkthroughVideoUrl}
                 onChange={(e) => setWalkthroughVideoUrl(e.target.value)}
-                placeholder="https://loom.com/share/..."
-                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs font-mono text-zinc-100 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none"
+                placeholder="Optional. YouTube, Loom and Vimeo links embed on the project page."
+                className="field-input"
               />
             </div>
-          </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button type="submit" disabled={isSubmitting} className="btn btn-accent btn-sm">
+                {isSubmitting
+                  ? "Saving..."
+                  : project?.published
+                    ? "Save the changes"
+                    : "Publish it"}
+              </button>
+              {project?.published ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Cancel
+                </button>
+              ) : null}
+            </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded bg-emerald-600 px-4 py-2 text-xs font-mono font-semibold text-white hover:bg-emerald-500 transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
-            >
-              {isSubmitting ? "Publishing..." : isPublished ? "Update Showcase" : "Publish to Public Gallery"}
-            </button>
-            {isPublished && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(false)}
-                type="button"
-                className="text-xs font-mono"
-              >
-                Cancel
-              </Button>
-            )}
           </div>
         </form>
+
       )}
+
+      {errorMsg ? (
+        <p
+          role="alert"
+          className="mt-6 rounded-lg border border-circuit-border bg-carbon-veil p-4 text-[14.5px] leading-relaxed text-phosphor-white"
+        >
+          {errorMsg}
+        </p>
+      ) : null}
+      {successMsg ? (
+        <p
+          aria-live="polite"
+          className="mt-6 font-code-mono text-[13px] text-lime-pulse"
+        >
+          {successMsg}
+        </p>
+      ) : null}
     </section>
+  );
+}
+
+function ShowcaseFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-t border-[color:var(--line-on-dark-strong)] py-3 first:border-t-0 first:pt-0">
+      <dt className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
+        {label}
+      </dt>
+      <dd className="mt-2 max-w-[74ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        {value}
+      </dd>
+    </div>
   );
 }

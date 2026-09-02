@@ -3,9 +3,9 @@
 
 Two kinds of cases:
 
-  1. Fixture examples under content/examples/ — valid ones must PASS and
-     *.invalid.yaml must FAIL (proves the schemas reject bad content).
-  2. Discovered real content — every file must PASS:
+  1. Fixture examples under content/examples/. Valid ones must PASS and
+      *.invalid.yaml must FAIL (proves the schemas reject bad content).
+  2. Discovered real content. Every file must PASS:
        content/units/**/unit.yaml    vs unit.schema.json
        content/variants/*.yaml       vs variant.schema.json   (may be empty)
        content/personas/*.yaml       vs persona.schema.json   (may be empty)
@@ -20,8 +20,8 @@ Discovered unit files carry two layout-consistency rules (S2.1):
 These make the on-disk layout load-bearing: a unit cannot validate under
 a path that disagrees with its own identity.
 
-A discovered file that does not parse as YAML is a FAIL naming the file —
-the validator never crashes on bad input.
+A discovered file that does not parse as YAML is a FAIL naming the file.
+The validator never crashes on bad input.
 
 Prints PASS/FAIL per file (paths relative to the repo root); exits 1 if
 any result is unexpected, with every offending file named.
@@ -51,7 +51,9 @@ FIXTURE_CASES = [
     ("guard-eval.schema.json", "content/examples/guard-eval.example.yaml", True),
     ("commitment.schema.json", "content/examples/commitment.example.yaml", True),
     ("diagnostic.schema.json", "content/examples/diagnostic.example.yaml", True),
+    ("unit.schema.json", "content/examples/unit-conceptual.example.yaml", True),
     ("unit.schema.json", "content/examples/unit.invalid.yaml", False),
+    ("unit.schema.json", "content/examples/unit-conceptual.invalid.yaml", False),
     ("routing.schema.json", "content/examples/routing.invalid.yaml", False),
     ("guard-eval.schema.json", "content/examples/guard-eval.invalid.yaml", False),
     ("commitment.schema.json", "content/examples/commitment.invalid.yaml", False),
@@ -170,7 +172,7 @@ def main() -> int:
                 print(f"PASS {repo_rel(path)}")
 
     if failures:
-        print(f"\n{failures} invalid or unexpected file(s) — see FAIL lines above.")
+        print(f"\n{failures} invalid or unexpected file(s). See FAIL lines above.")
         return 1
     print("\nAll results as expected.")
     return 0

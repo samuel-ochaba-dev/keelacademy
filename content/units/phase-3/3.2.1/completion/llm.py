@@ -20,7 +20,7 @@ This file is where generation gets constrained. It contains:
   2. The two real-call patterns (commented) you'd swap in for the fake.
 
 WHY fake it: an example (and a test suite) that depends on a live model is
-non-reproducible — it fails on rate limits, model updates, and offline laptops.
+non-reproducible: it fails on rate limits, model updates, and offline laptops.
 Determinism is a property of good pipelines, and it starts with the test harness.
 """
 
@@ -49,7 +49,7 @@ _FAKE_OUTPUTS = [
         "vendor": "Kestrel Paper Supply", "total_amount_usd": 1284.50,
         "due_date": "2026-09-15",
     }),
-    _fenced({  # 1 markdown fences — common even under JSON mode with some providers
+    _fenced({  # 1 markdown fences, common even under JSON mode with some providers
         "invoice_id": "INV-77", "invoice_type": "services",
         "vendor": "Northgate Consulting", "total_amount_usd": 4200.00,
         "due_date": "2026-09-20",
@@ -89,7 +89,7 @@ _FAKE_OUTPUTS = [
         "vendor": "Ferro Steel Supply", "total_amount_usd": 47300.50,
         "due_date": "2026-09-03",
     }),
-    (  # 9 not an invoice — the model answers the question instead of extracting
+    (  # 9 not an invoice: the model answers the question instead of extracting
         'The note asks whether Kestrel issued a credit for damaged pallets before '
         'INV-3092 can be approved. No invoice details are present to extract.'
     ),
@@ -102,7 +102,7 @@ def call_model(note: str, index: int) -> str:
     Swap this function body for a real provider call (your 2.4.2 wrapper); nothing
     else in the example changes. Two real-call patterns:
 
-    A) Schema-constrained ("structured outputs") — decoding is sampled against the
+    A) Schema-constrained ("structured outputs"): decoding is sampled against the
        schema, so shape is guaranteed at generation:
 
         response = client.chat.completions.create(
@@ -122,7 +122,7 @@ def call_model(note: str, index: int) -> str:
         )
         return response.choices[0].message.content
 
-    B) Tool-calling style (e.g. Anthropic) — the schema rides in as a forced tool:
+    B) Tool-calling style (e.g. Anthropic): the schema rides in as a forced tool:
 
         response = client.messages.create(
             model=MODEL,

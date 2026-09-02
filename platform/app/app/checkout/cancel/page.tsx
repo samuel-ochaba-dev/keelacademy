@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Checkout Cancelled — Keel Academy",
+  title: "Checkout cancelled",
   robots: { index: false },
 };
 
@@ -13,12 +13,23 @@ export default async function CheckoutCancelPage() {
   await requireSession("/me");
 
   return (
-    <div>
-      <h1>Checkout Cancelled</h1>
-      <p>nothing was charged to your account.</p>
-      <p>
-        <Link href="/me">Return to Dashboard</Link>
-      </p>
+    <div className="shell section">
+      <div className="card-dark max-w-[62ch]">
+        <span className="chip chip-outline">CANCELLED</span>
+        <h1 className="heading-lg mt-4">Checkout cancelled</h1>
+        <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          You backed out before paying, so nothing was charged to your account. The unit is
+          still there when you want it.
+        </p>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Link href="/pricing" className="btn btn-primary btn-sm">
+            Back to pricing
+          </Link>
+          <Link href="/me" className="btn btn-ghost btn-sm">
+            Back to dashboard
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

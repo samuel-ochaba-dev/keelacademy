@@ -71,7 +71,7 @@ class _Completions:
         m = re.search(r"(\\d+)\\s*$", note.strip())
         n = int(m.group(1)) if m else 0
         if n % 2 == 0:
-            content = json.dumps({"claim_type": "property", "severity": "low"})
+            content = json.dumps({"claim_type": "damage", "severity": "low"})
         else:
             content = "TOTALLY NOT JSON %d" % n
         msg = type("Msg", (), {"content": content})

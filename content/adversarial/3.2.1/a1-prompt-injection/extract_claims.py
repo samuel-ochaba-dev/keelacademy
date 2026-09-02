@@ -15,7 +15,7 @@ class ClaimExtraction(BaseModel):
     claim_type: str
     severity: str
     estimated_amount_usd: float | None = Field(default=None, ge=0)
-    loss_date: str | None = None
+    incident_date: str | None = None
     extraction_failed: bool = False
     failure_reason: str | None = None
 

@@ -1,0 +1,10 @@
+submission: s04-no-spend-limit-fail
+expected: fail
+criteria:
+  containerized-sandbox-rationale: pass
+  spend-limit-safeguards: fail
+  api-secret-management-discipline: pass
+overall: fail
+grader_notes: "Fails because it completely omits any mention of provider spend limits, usage alerts, or recursive loop cost risks."
+graded_by: human
+graded_on: 2026-08-25

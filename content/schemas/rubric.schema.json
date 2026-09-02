@@ -9,8 +9,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^rubric-[0-9]+\\.[0-9]+\\.[0-9]+$",
-      "description": "e.g. rubric-3.2.1"
+      "pattern": "^rubric-[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "e.g. rubric-0.1 or rubric-3.2.1"
     },
     "version": {
       "type": "integer",

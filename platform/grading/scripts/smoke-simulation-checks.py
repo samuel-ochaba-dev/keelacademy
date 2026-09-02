@@ -10,9 +10,9 @@ Verifies:
    - Session starts with initial greeting from Sarah Jenkins.
    - Initial row written with status='in_progress' and 'simulation.started' spine event.
 3. Multi-Turn Dialogue & Behavioral Triggers:
-   - Student premature pitch -> persona pushback ("We already tried ChatGPT and it hallucinated coverage rules").
-   - Student open question about volume & bottlenecks -> persona reveals metrics (3,000 claims/mo, 2-3 days turnaround).
-   - Student question on policy/compliance -> persona reveals unstructured policy verification and compliance audit pain.
+   - Student premature pitch -> persona pushback ("We already tried ChatGPT and it hallucinated supplier discount rules").
+   - Student open question about volume & bottlenecks -> persona reveals metrics (4,000 transactions/mo, 2-3 days turnaround).
+   - Student question on supplier contracts/compliance -> persona reveals unstructured contract verification and compliance audit pain.
    - Student synthesis question -> persona acknowledges and confirms project fit.
    - State persistence: turns array updated and 'simulation.turn_completed' spine event emitted per turn.
    - 403 on another student attempting to execute a turn in session.
@@ -137,8 +137,8 @@ def main() -> None:
         
         # Check initial greeting contains Sarah Jenkins
         init_msg = res.get("initial_message", "")
-        if "Sarah Jenkins" in init_msg and "Meridian Mutual" in init_msg:
-            record_pass("Initial persona greeting correctly introduces Sarah Jenkins at Meridian Mutual")
+        if "Sarah Jenkins" in init_msg and "OmniSupply" in init_msg:
+            record_pass("Initial persona greeting correctly introduces Sarah Jenkins at OmniSupply")
         else:
             record_fail("Initial persona greeting content", f"got {init_msg}")
     else:
@@ -185,7 +185,7 @@ def main() -> None:
         record_fail("Cross-student simulation turn", f"got {code}")
 
     # Turn 2: Alice probes process metrics and volume
-    t2_msg = "Understood. Before talking tools, what is your current monthly claim volume and how long does manual triage take?"
+    t2_msg = "Understood. Before talking tools, what is your current monthly transaction volume and how long does manual triage take?"
     code, t2_res = http_request("/simulation/turn", method="POST", body={
         "simulation_id": sim_id_alice,
         "student_id": 1,
@@ -193,15 +193,15 @@ def main() -> None:
     })
     if code == 200:
         reply2 = t2_res.get("persona_reply", "")
-        if "3,000" in reply2 or "3000" in reply2 or "2 to 3 business days" in reply2 or "turnaround" in reply2:
-            record_pass("Persona revealed volume and latency metrics (3,000 claims/mo, 2-3 days turnaround)")
+        if "4,000" in reply2 or "4000" in reply2 or "2 to 3 business days" in reply2 or "turnaround" in reply2:
+            record_pass("Persona revealed volume and latency metrics (4,000 transactions/mo, 2-3 days turnaround)")
         else:
             record_fail("Persona reply to volume probe", f"got: {reply2}")
     else:
         record_fail("POST /simulation/turn turn 2", f"got {code}: {t2_res}")
 
     # Turn 3: Alice probes the root cause and why past pilots hallucinated
-    t3_msg = "What specifically caused the earlier ChatGPT pilot to hallucinate? Where is the real underlying bottleneck in policy coverage verification?"
+    t3_msg = "What specifically caused the earlier ChatGPT pilot to hallucinate? Where is the real underlying bottleneck in supplier contract verification?"
     code, t3_res = http_request("/simulation/turn", method="POST", body={
         "simulation_id": sim_id_alice,
         "student_id": 1,
@@ -209,15 +209,15 @@ def main() -> None:
     })
     if code == 200:
         reply3 = t3_res.get("persona_reply", "")
-        if "policy coverage" in reply3 or "exclusion" in reply3 or "compliance" in reply3 or "audit" in reply3:
-            record_pass("Persona revealed underlying pain: unstructured policy coverage verification & compliance audit risk")
+        if "supplier master agreements" in reply3 or "contract grounding" in reply3 or "compliance" in reply3 or "audit" in reply3:
+            record_pass("Persona revealed underlying pain: unstructured supplier contract verification and compliance audit risk")
         else:
             record_fail("Persona reply to root cause probe", f"got: {reply3}")
     else:
         record_fail("POST /simulation/turn turn 3", f"got {code}: {t3_res}")
 
     # Turn 4: Alice provides an accurate synthesis/summary of the problem
-    t4_msg = "In summary, it sounds like the core bottleneck is not basic OCR extraction, but deterministic policy coverage verification against exclusionary rules with an audit trail compliance can trust."
+    t4_msg = "In summary, it sounds like the core bottleneck is not basic OCR extraction, but deterministic supplier contract verification against master agreement terms with an audit trail compliance can trust."
     code, t4_res = http_request("/simulation/turn", method="POST", body={
         "simulation_id": sim_id_alice,
         "student_id": 1,

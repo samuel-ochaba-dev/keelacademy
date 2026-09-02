@@ -263,8 +263,8 @@ def main() -> None:
         body={
             "student_id": 2,
             "submission_id": 3,
-            "title": "Autonomous Multi-Tool Claims Triage Agent",
-            "description": "Multi-tool triage agent dynamically evaluating policy coverages and dispatching adjusters.",
+            "title": "Autonomous Multi-Tool Dispute Triage Agent",
+            "description": "Multi-tool triage agent evaluating supplier entitlements and routing disputes to specialist queues.",
             "repo_url": "https://github.com/bob/agent-triage",
             "demo_url": "https://bob-triage.dev",
         },
@@ -282,9 +282,9 @@ def main() -> None:
         body={
             "student_id": 3,
             "submission_id": 4,
-            "title": "Production Insurance Operations Capstone Platform",
-            "description": "Full end-to-end autonomous insurance claim processing system with human-in-the-loop escalation.",
-            "repo_url": "https://github.com/carol/capstone-insurance",
+            "title": "Production Dispute Operations Capstone Platform",
+            "description": "Full end-to-end autonomous dispute resolution pipeline with human-in-the-loop escalation.",
+            "repo_url": "https://github.com/carol/capstone-omnisupply",
             "walkthrough_video_url": "https://youtube.com/watch?v=carol-capstone-demo",
         },
     )

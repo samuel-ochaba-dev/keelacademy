@@ -1,7 +1,7 @@
 """Extract with one retry on validation failure, then a logged fallback."""
 import json, logging
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-logger = logging.getLogger("meridian.claims")
+logger = logging.getLogger("omnisupply.disputes")
 
 class ClaimExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")

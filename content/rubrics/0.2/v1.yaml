@@ -1,0 +1,32 @@
+id: rubric-0.2
+version: 1
+pass_rule: all
+judge:
+  prompt: prompts/judge-0.2.md
+  model_tier: mid
+golden_set: golden/0.2/
+criteria:
+  - id: verification-stages-analysis
+    description: >-
+      The submission accurately explains all four verification stages (automated checks,
+      rubric review, defend your work, recorded walkthrough) and names the specific failure
+      class each stage is designed to catch.
+    evidence: >-
+      Quote the explanation of each of the four stages (automated checks, rubric review,
+      defend your work, recorded walkthrough) and the failure each one catches.
+  - id: checks-before-review-rationale
+    description: >-
+      The submission states why automated checks (containerized tests, schema validation,
+      exit codes) must run and pass in full before rubric review begins: reviewing code that
+      does not execute wastes grading budget and produces confusing feedback about code that
+      cannot run.
+    evidence: >-
+      Quote the reason automated checks must run and pass in full before rubric review starts.
+  - id: parallel-business-track-rationale
+    description: >-
+      The submission explains why Phase 11 (the business and sales track) runs in parallel
+      with the technical phases from week one rather than as an end-of-program afterthought,
+      naming the risk of finishing the technical work with no client pipeline.
+    evidence: >-
+      Quote the explanation of why Phase 11 runs in parallel from week one and what is lost
+      if it is delayed.

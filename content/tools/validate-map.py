@@ -2,7 +2,7 @@
 """Validate curriculum map skeleton: content/curriculum/phases.yaml (S2.8).
 
 The curriculum map is content-as-data: the progress dashboard renders the
-13-phase Meridian pipeline directly from this skeleton joined with authored
+13-phase OmniSupply pipeline directly from this skeleton joined with authored
 units in content/units/ and gate rules in content/gates/.
 
 Checks:

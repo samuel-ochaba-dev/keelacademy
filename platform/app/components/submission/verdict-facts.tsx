@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { budgetCharged, formatUtc, type SubmissionView } from "@/lib/grading";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 export function VerdictFacts({ view }: { view: SubmissionView }) {
   const verdict = view.verdict;
@@ -8,71 +7,61 @@ export function VerdictFacts({ view }: { view: SubmissionView }) {
   const charged = budgetCharged(view);
 
   return (
-    <Card className="border-zinc-800 bg-zinc-950 shadow-md">
-      <CardHeader className="border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded border border-zinc-700 bg-zinc-900 font-mono text-xs font-bold text-zinc-300">
-            TX
-          </div>
-          <div>
-            <CardTitle className="text-base font-semibold text-zinc-100">
-              Audit & Ledger Telemetry
-            </CardTitle>
-            <CardDescription className="text-xs text-zinc-400">
-              Cryptographic audit record, calibrated rubric version, and inference token budget ledger.
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
+    <section
+      id="verdict-record"
+      aria-labelledby="record-title"
+      className="card-dark scroll-mt-24"
+    >
+      <h2 id="record-title" className="heading-md">
+        What this verdict was graded against
+      </h2>
+      <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        The rubric is versioned, so a verdict can always be traced back to the exact wording
+        that produced it.
+      </p>
 
-      <CardContent className="p-6">
-        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Record label="Rubric Version">
-            <dd className="font-mono text-xs text-emerald-400">
-              <Link
-                href={`/units/${view.submission.unit_id}#verify`}
-                className="hover:underline flex items-center gap-1"
-              >
-                <span>{verdict.rubric_id ?? "unknown"}</span>
-                {verdict.rubric_version != null && (
-                  <span className="text-zinc-400">v{verdict.rubric_version}</span>
-                )}
-                <span className="text-zinc-500 text-[10px]">↗</span>
-              </Link>
-            </dd>
-          </Record>
-
-          <Record label="Issued At (UTC)">
-            <dd className="font-mono text-xs text-zinc-300">
-              {formatUtc(verdict.issued_at)}
-            </dd>
-          </Record>
-
-          <Record label="Inference Budget Charged">
-            <dd className="font-mono text-xs text-amber-300/90">
-              {charged
-                ? `${charged.tokens.toLocaleString("en-US")} tokens${
-                    charged.costUsd != null ? ` ($${charged.costUsd.toFixed(4)})` : ""
-                  }`
-                : "0 tokens"}
-            </dd>
-          </Record>
-
-          <Record label="Trace Call ID">
-            <dd className="font-mono text-xs text-zinc-400 truncate" title={verdict.json?.trace?.call_id}>
-              <code>{verdict.json?.trace?.call_id ?? "trace-sandbox-direct"}</code>
-            </dd>
-          </Record>
-        </dl>
-      </CardContent>
-    </Card>
+      <dl className="mt-7 grid gap-px overflow-hidden rounded-lg border border-circuit-border bg-circuit-border sm:grid-cols-2 lg:grid-cols-4">
+        <Record label="Rubric">
+          <dd className="mt-2 text-[15px]">
+            <Link
+              href={`/units/${view.submission.unit_id}#verify`}
+              className="font-code-mono text-[14px] text-fern-link underline underline-offset-4 hover:text-phosphor-white"
+            >
+              {verdict.rubric_id ?? "unknown"}
+              {verdict.rubric_version != null ? ` v${verdict.rubric_version}` : ""}
+            </Link>
+          </dd>
+        </Record>
+        <Record label="Issued (UTC)">
+          <dd className="mt-2 font-code-mono text-[14px] text-phosphor-white">
+            {formatUtc(verdict.issued_at)}
+          </dd>
+        </Record>
+        <Record label="Budget used">
+          <dd className="mt-2 font-code-mono text-[14px] text-phosphor-white">
+            {charged
+              ? `${charged.tokens.toLocaleString("en-US")} tokens${
+                  charged.costUsd != null ? ` ($${charged.costUsd.toFixed(4)})` : ""
+                }`
+              : "0 tokens"}
+          </dd>
+        </Record>
+        <Record label="Run ID">
+          <dd className="mt-2">
+            <code className="font-code-mono text-[13px] break-all text-phosphor-white">
+              {verdict.json?.trace?.call_id ?? "not recorded"}
+            </code>
+          </dd>
+        </Record>
+      </dl>
+    </section>
   );
 }
 
 function Record({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1 rounded-md border border-zinc-800/80 bg-zinc-900/50 p-3">
-      <dt className="font-mono text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
+    <div className="bg-ground-iron p-5">
+      <dt className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
         {label}
       </dt>
       {children}

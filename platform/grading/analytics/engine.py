@@ -39,8 +39,8 @@ from db import db_sql, sql_str
 
 UNIT_RE = re.compile(r"^\d+(\.\d+)+$")
 
-# Canonical Meridian Unit list and sequence
-MERIDIAN_UNITS = [
+# Canonical curriculum unit list and sequence
+CURRICULUM_UNITS = [
     {"id": "0.1", "phase": 0, "title": "Warmup: System Invariant Harness"},
     {"id": "0.2", "phase": 0, "title": "How Grading & Four-Layer Verification Work"},
     {"id": "0.3", "phase": 0, "title": "One-Click Docker Environment Setup"},
@@ -102,7 +102,7 @@ MERIDIAN_UNITS = [
     {"id": "12.1", "phase": 12, "title": "Production Insurance Claims Capstone"},
 ]
 
-MERIDIAN_MAP = {u["id"]: u for u in MERIDIAN_UNITS}
+CURRICULUM_MAP = {u["id"]: u for u in CURRICULUM_UNITS}
 
 
 def get_unit_title(unit_id: str) -> str:
@@ -119,15 +119,15 @@ def get_unit_title(unit_id: str) -> str:
                         return str(m.get("title", f"Unit {unit_id}"))
     except Exception:
         pass
-    if unit_id in MERIDIAN_MAP:
-        return MERIDIAN_MAP[unit_id]["title"]
+    if unit_id in CURRICULUM_MAP:
+        return CURRICULUM_MAP[unit_id]["title"]
     return f"Unit {unit_id}"
 
 
 def get_unit_phase(unit_id: str) -> int:
     """Parse phase integer from unit id e.g. '3.2.1' -> 3."""
-    if unit_id in MERIDIAN_MAP:
-        return MERIDIAN_MAP[unit_id]["phase"]
+    if unit_id in CURRICULUM_MAP:
+        return CURRICULUM_MAP[unit_id]["phase"]
     parts = unit_id.split(".")
     if parts and parts[0].isdigit():
         return int(parts[0])
@@ -591,7 +591,7 @@ ROLLBACK;
                 }
 
     # Merge with full canonical units if no interactions exist yet to guarantee complete reporting
-    all_unit_ids = set(unit_raw_map.keys()) | {u["id"] for u in MERIDIAN_UNITS}
+    all_unit_ids = set(unit_raw_map.keys()) | {u["id"] for u in CURRICULUM_UNITS}
 
     unit_records: list[dict[str, Any]] = []
 

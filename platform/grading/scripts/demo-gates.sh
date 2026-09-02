@@ -203,12 +203,19 @@ check() {  # check <name> <cmd...>
 }
 
 html_has() {  # html_has <cookie-jar-or-"-"> <path> <needle>
-    local jar="$1"
+    # The body is captured and then matched with a bash pattern rather than
+    # piped into `grep -q`. grep exits on its first match, so on a page larger
+    # than the pipe buffer the writer is still writing when the pipe closes,
+    # dies of SIGPIPE, and `set -o pipefail` turns a found needle into a
+    # failed assertion.
+    local jar="$1" body
     if [ "$jar" = "-" ]; then
-        curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2"
+        body="$(curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2")" || return 1
     else
-        curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2"
-    fi | grep -qF "$3"
+        body="$(curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2")" || return 1
+    fi
+    case "$body" in *"$3"*) return 0 ;; esac
+    return 1
 }
 
 action_id() {  # action_id <html-file>
@@ -324,7 +331,7 @@ do_prove() {
     check "rebate machine pledged 2 pending rows from engine events" \
         test "$(psql_sql "SELECT count(*) || ':' || min(amount_cents) FROM rebates WHERE student_id=$JESSE_ID AND status='pending';")" = "2:185"
     check "/me shows the Gates section with both gates locked" \
-        html_has "$JAR_JESSE" /me "CRYPTOGRAPHIC GATE BARRIERS" \
+        html_has "$JAR_JESSE" /me "Milestone gates" \
         && test "$(curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/me" | grep -oF '>LOCKED<' | wc -l)" = "2"
     check "/me locked copy names what clears the gate (content-as-data)" \
         html_has "$JAR_JESSE" /me "A passing verdict on unit 5.1 clears this gate"
@@ -391,7 +398,7 @@ do_prove() {
         && test "$(psql_sql "SELECT count(*) FROM unlocked_units WHERE student_id=$KIM_ID;")" = "0"
     check "/me for kim shows both gates locked and no rebate ledger" \
         test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF '>LOCKED<' | wc -l)" = "2" \
-        && test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF 'REBATE LEDGER' | wc -l)" = "0"
+        && test "$(curl -sf --max-time 30 -b "$JAR_KIM" "$APP/me" | grep -oF 'Completion rebates' | wc -l)" = "0"
 
     echo
     echo "== proof 6: a later fail verdict never reverses the unlock =="

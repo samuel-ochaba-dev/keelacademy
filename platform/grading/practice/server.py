@@ -89,7 +89,7 @@ import analytics.engine as analytics
 MAX_BODY_BYTES = 1 * 1024 * 1024       # 1 MB total request body cap
 MAX_FILE_BYTES = 128 * 1024             # 128 KB per individual file/answer cap
 MAX_FILENAME_LEN = 128
-UNIT_RE = re.compile(r"^\d+\.\d+\.\d+$")
+UNIT_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
 FILENAME_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 DEFAULT_TIMEOUT_S = 60
 
@@ -121,6 +121,14 @@ class MalformedJudgeError(Exception):
     pass
 
 
+class RubricError(Exception):
+    """Unit rubric missing/unreadable — conceptual grading cannot proceed."""
+    pass
+
+
+RUBRIC_INSERT_RE = re.compile(r"<!--\s*RUBRIC_INSERT[^>]*-->", re.IGNORECASE)
+
+
 def app_token() -> str:
     return os.environ.get("KEEL_ENROLL_SECRET", "")
 
@@ -145,6 +153,28 @@ def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
     completion = practice.get("completion_problem")
     if not isinstance(completion, dict):
         return None
+
+    kind = unit_data.get("kind", "code")
+    if kind == "conceptual" or "prompt" in completion:
+        prompt_text = completion.get("prompt", "")
+        instructions = completion.get("instructions", "")
+        we_rel = practice.get("worked_example", "")
+        we_readme_path = root / we_rel / "README.md" if we_rel else None
+        model_answer_md = we_readme_path.read_text(encoding="utf-8") if we_readme_path and we_readme_path.is_file() else ""
+        return {
+            "unit_id": unit_id,
+            "kind": "conceptual",
+            "prompt": prompt_text,
+            "instructions": instructions,
+            "model_answer_markdown": model_answer_md,
+            "base_rel": we_rel,
+            "readme_markdown": model_answer_md,
+            "base_files": {},
+            "editable_files": [],
+            "checks": [{"id": "conceptual-rubric-judge", "type": "llm-judge"}],
+            "checks_path": None,
+            "base_dir": root / we_rel if we_rel else None,
+        }
 
     base_rel = completion.get("base")
     checks_rel = completion.get("checks")
@@ -193,6 +223,7 @@ def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
 
     return {
         "unit_id": unit_id,
+        "kind": "code",
         "base_rel": base_rel.rstrip("/") + "/",
         "readme_markdown": readme_md,
         "base_files": base_files,
@@ -220,7 +251,16 @@ def get_unit_retrieval_seeds(unit_id: str) -> list[str]:
 
 
 def get_unit_learn_text(unit_id: str) -> str:
-    """Read lesson markdown for unit_id from content repo."""
+    """Read lesson markdown for unit_id from content repo.
+
+    A lesson authored as a unit script carries ':::' marker lines telling the
+    page where to place its own apparatus (the workbench, the checks table, the
+    rubric). Those lines are page structure, not teaching, so they are dropped
+    here, at the single point all three lesson-reading paths go through:
+    retrieval grading, recheck and the concierge. The excerpt a judge sees is
+    strictly cleaner for it, and a marker can never be mistaken for content the
+    student was supposed to have read.
+    """
     root = content_root()
     matches = sorted(root.glob(f"units/*/{unit_id}/unit.yaml"))
     if not matches:
@@ -235,7 +275,7 @@ def get_unit_learn_text(unit_id: str) -> str:
     learn_path = root / learn_rel
     if not learn_path.is_file():
         raise RuntimeError(f"learn file not found: {learn_rel}")
-    return learn_path.read_text(encoding="utf-8")
+    return strip_script_markers(learn_path.read_text(encoding="utf-8"))
 
 
 def get_retrieval_prompt_text(unit_id: str) -> str:
@@ -538,6 +578,32 @@ def excerpt_char_budget() -> int:
 
 
 _FENCE_RE = re.compile(r"^\s*(```|~~~)")
+
+_SCRIPT_MARKER_RE = re.compile(r"^:::")
+
+
+def strip_script_markers(markdown_text: str) -> str:
+    """Drop a unit script's ':::' marker lines, keeping the prose around them.
+
+    A lesson authored as a unit script uses those lines to tell the page where to
+    place the app's own apparatus. They are page structure, not teaching, so no
+    judge and no concierge should ever see them. Fence-aware, so a lesson can
+    quote a marker inside a code block while explaining the format. A lesson with
+    no markers comes back unchanged.
+    """
+    if ":::" not in markdown_text:
+        return markdown_text
+    out: list[str] = []
+    in_fence = False
+    for line in markdown_text.splitlines():
+        if _FENCE_RE.match(line):
+            in_fence = not in_fence
+            out.append(line)
+            continue
+        if not in_fence and _SCRIPT_MARKER_RE.match(line):
+            continue
+        out.append(line)
+    return "\n".join(out)
 
 
 def split_lesson_sections(markdown_text: str) -> list[dict[str, Any]]:
@@ -1204,6 +1270,290 @@ def grade_retrieval_answer(
             if attempt == 2:
                 raise MalformedJudgeError(
                     f"judge returned malformed JSON twice: {exc}; last reply: {reply_text[:200]}"
+                ) from exc
+            # One nudge retry
+            current_messages = current_messages + [
+                {"role": "assistant", "content": reply_text},
+                {"role": "user", "content": NUDGE_MSG},
+            ]
+
+def load_unit_rubric(unit_id: str) -> dict[str, Any]:
+    """Load the unit rubric spec (S0.4 contract) for conceptual grading.
+
+    Resolution: unit.yaml verify.rubric (relative to content root), falling back
+    to rubrics/<unit_id>/v1.yaml. A missing, unreadable, or criteria-less rubric
+    is a hard error — grading never silently falls back to an unvalidated
+    contract.
+
+    Returns {"text", "pass_rule", "criteria_ids"}.
+    """
+    root = content_root()
+    rubric_path: Path | None = None
+    matches = sorted(root.glob(f"units/*/{unit_id}/unit.yaml"))
+    if matches:
+        try:
+            unit_data = yaml.safe_load(matches[0].read_text(encoding="utf-8"))
+            rubric_rel = (unit_data.get("verify") or {}).get("rubric")
+            if isinstance(rubric_rel, str) and rubric_rel:
+                candidate = root / rubric_rel
+                if candidate.is_file():
+                    rubric_path = candidate
+        except Exception:
+            pass
+    if rubric_path is None:
+        candidate = root / "rubrics" / unit_id / "v1.yaml"
+        if candidate.is_file():
+            rubric_path = candidate
+    if rubric_path is None:
+        raise RubricError(f"no rubric found for unit {unit_id}")
+    try:
+        rubric = yaml.safe_load(rubric_path.read_text(encoding="utf-8"))
+        assert isinstance(rubric, dict)
+    except Exception as exc:
+        raise RubricError(f"unreadable rubric for unit {unit_id}: {exc}") from exc
+    criteria_ids = [
+        c["id"] for c in (rubric.get("criteria") or [])
+        if isinstance(c, dict) and isinstance(c.get("id"), str) and c["id"].strip()
+    ]
+    if not criteria_ids:
+        raise RubricError(f"rubric for unit {unit_id} declares no criteria")
+    return {
+        "text": rubric_path.read_text(encoding="utf-8"),
+        "pass_rule": rubric.get("pass_rule"),
+        "criteria_ids": criteria_ids,
+    }
+
+
+def get_conceptual_judge_prompt(unit_id: str) -> str:
+    """Read conceptual completion judge prompt template from content/prompts/,
+    substituting the unit rubric verbatim over the RUBRIC_INSERT marker (same
+    contract as the S0.x CLI grader) — the judge cannot grade against criteria
+    it never sees."""
+    root = content_root()
+    prompts_dir = root / "prompts"
+    unit_prompt = prompts_dir / f"judge-{unit_id}.md"
+    general_prompt = prompts_dir / "judge-conceptual.md"
+    template: str
+    if unit_prompt.is_file():
+        template = unit_prompt.read_text(encoding="utf-8")
+    elif general_prompt.is_file():
+        template = general_prompt.read_text(encoding="utf-8")
+    else:
+        # Fallback to retrieval prompt template if specific judge prompt not found
+        return get_retrieval_prompt_text(unit_id)
+    if RUBRIC_INSERT_RE.search(template):
+        template = RUBRIC_INSERT_RE.sub(lambda _: load_unit_rubric(unit_id)["text"].strip(), template)
+    return template
+
+
+def extract_conceptual_verdict_json(text: str, rubric: dict[str, Any]) -> dict[str, Any]:
+    """Parse a conceptual judge reply against the rubric criteria-array contract.
+
+    Contract (content/prompts/judge-0.*.md output format):
+      {"unit": "...", "criteria": [{"id", "verdict", "evidence"}, ...],
+       "overall": "pass"|"fail", "overall_rationale": "..."}
+
+    Validation rules — any violation is a hard error (the S0.4 rule: never
+    silently reconcile):
+      - reply must contain one JSON object (markdown fences tolerated)
+      - "criteria" must be a non-empty array of objects
+      - every criterion id must exist in the unit rubric, every rubric criterion
+        must appear exactly once (unknown, missing, or duplicate id -> error)
+      - every verdict must be "pass" or "fail"; evidence must be a string
+    The model's own "overall" is discarded: the platform recomputes the overall
+    by applying the rubric's pass_rule ("all" -> pass iff every criterion
+    passes; any other rule is a hard error while undefined by the schema).
+    """
+    m = re.search(r"```(?:json)?\s*(.*?)```", text, re.DOTALL)
+    candidate = m.group(1) if m else text
+    start, end = candidate.find("{"), candidate.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("no JSON object found in reply")
+    try:
+        parsed = json.loads(candidate[start:end + 1])
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("JSON is not a dictionary")
+    criteria_raw = parsed.get("criteria")
+    if not isinstance(criteria_raw, list) or not criteria_raw:
+        raise ValueError("missing or empty criteria array")
+    expected_ids = list(rubric["criteria_ids"])
+    verdicts: dict[str, dict[str, str]] = {}
+    for crit in criteria_raw:
+        if not isinstance(crit, dict):
+            raise ValueError("criterion entry is not a JSON object")
+        crit_id = str(crit.get("id", "")).strip()
+        if crit_id not in expected_ids:
+            raise ValueError(f"criterion id diverges from rubric: {crit_id!r}")
+        if crit_id in verdicts:
+            raise ValueError(f"duplicate criterion id: {crit_id!r}")
+        crit_verdict = str(crit.get("verdict", "")).strip().lower()
+        if crit_verdict not in ("pass", "fail"):
+            raise ValueError(f"invalid verdict for criterion {crit_id!r}: {crit_verdict!r}")
+        evidence = crit.get("evidence", "")
+        if not isinstance(evidence, str):
+            raise ValueError(f"evidence for criterion {crit_id!r} is not a string")
+        verdicts[crit_id] = {"verdict": crit_verdict, "evidence": evidence.strip()}
+    missing = [cid for cid in expected_ids if cid not in verdicts]
+    if missing:
+        raise ValueError(f"rubric criteria missing from judge reply: {missing}")
+
+    pass_rule = rubric.get("pass_rule")
+    if pass_rule != "all":
+        raise ValueError(f"unsupported rubric pass_rule: {pass_rule!r}")
+    overall = "pass" if all(v["verdict"] == "pass" for v in verdicts.values()) else "fail"
+    return {
+        "overall": overall,
+        "feedback": str(parsed.get("overall_rationale", "")).strip(),
+        "criteria": [{"id": cid, **verdicts[cid]} for cid in expected_ids],
+    }
+
+
+def grade_conceptual_completion_answer(
+    student_id: int,
+    unit_id: str,
+    prompt: str,
+    instructions: str,
+    student_answer: str,
+) -> tuple[dict[str, Any], int]:
+    """Call LLM proxy to grade conceptual completion answer against the unit rubric.
+
+    Fails fast on a missing/invalid rubric (before any model spend). The reply
+    is parsed against the rubric criteria-array contract with per-criterion
+    validation and a platform-computed overall (see extract_conceptual_verdict_json).
+
+    Returns (verdict_dict, tokens_charged) where verdict_dict is
+    {"overall", "feedback", "criteria": [{"id", "verdict", "evidence"}, ...]}.
+    """
+    rubric = load_unit_rubric(unit_id)
+    prompt_instructions = get_conceptual_judge_prompt(unit_id)
+    learn_text = get_unit_learn_text(unit_id)
+
+    budget = excerpt_char_budget()
+    if budget > 0 and len(learn_text) > budget:
+        lesson_body, excerpt_sections = select_lesson_excerpt(learn_text, prompt, budget)
+    else:
+        lesson_body, excerpt_sections = learn_text, []
+
+    if excerpt_sections:
+        lesson_header = (
+            f"Lesson Material (excerpt: {len(lesson_body)} of {len(learn_text)} chars; "
+            f"sections: {' | '.join(excerpt_sections)}):"
+        )
+    else:
+        lesson_header = f"Lesson Material (full lesson: {len(learn_text)} chars):"
+
+    user_content = (
+        f"{lesson_header}\n{lesson_body}\n\n"
+        f"Conceptual Problem Prompt:\n{prompt}\n\n"
+        f"Instructions:\n{instructions}\n\n"
+        f"Student Submission:\n<student_answer>\n{student_answer}\n</student_answer>"
+    )
+
+    base_messages = [
+        {"role": "system", "content": prompt_instructions},
+        {"role": "user", "content": user_content},
+    ]
+
+    proxy_url = os.environ.get("KEEL_PROXY_URL") or os.environ.get("KEEL_LLM_BASE_URL")
+    if proxy_url:
+        if not proxy_url.endswith("/v1"):
+            proxy_url = proxy_url.rstrip("/") + "/v1"
+        endpoint = proxy_url.rstrip("/") + "/chat/completions"
+    else:
+        endpoint = "http://127.0.0.1:8788/v1/chat/completions"
+
+    model = os.environ.get("KEEL_COMPLETION_MODEL") or os.environ.get("KEEL_JUDGE_MODEL", "gpt-4o-mini")
+    call_id = f"completion-{student_id}-{uuid.uuid4().hex[:8]}"
+    total_tokens_charged = 0
+    current_messages = list(base_messages)
+
+    for attempt in (1, 2):
+        req_body = json.dumps({
+            "model": model,
+            "messages": current_messages,
+            "temperature": 0,
+        }).encode("utf-8")
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Keel-Student-Id": str(student_id),
+        }
+        key = os.environ.get("OPENAI_API_KEY")
+        if key and "api.openai.com" in endpoint:
+            headers["Authorization"] = f"Bearer {key}"
+
+        req = urllib.request.Request(endpoint, data=req_body, headers=headers, method="POST")
+        start = time.monotonic()
+
+        try:
+            with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT_S) as resp:
+                resp_raw = resp.read()
+        except urllib.error.HTTPError as exc:
+            latency = time.monotonic() - start
+            err_body = exc.read().decode(errors="replace")
+            _log_trace_call(
+                call_id=call_id,
+                attempt=attempt,
+                model=model,
+                messages=current_messages,
+                latency_s=latency,
+                error=f"API HTTP {exc.code}: {err_body[:500]}",
+                caller="completion",
+            )
+            if exc.code == 429:
+                raise BudgetExceeded("token budget exceeded") from exc
+            raise UpstreamError(f"proxy returned HTTP {exc.code}: {err_body[:500]}") from exc
+        except Exception as exc:
+            latency = time.monotonic() - start
+            _log_trace_call(
+                call_id=call_id,
+                attempt=attempt,
+                model=model,
+                messages=current_messages,
+                latency_s=latency,
+                error=f"API connection error: {exc}",
+                caller="completion",
+            )
+            raise UpstreamError(f"proxy connection failed: {exc}") from exc
+
+        latency = time.monotonic() - start
+        try:
+            resp_data = json.loads(resp_raw.decode("utf-8"))
+        except Exception as exc:
+            raise UpstreamError(f"bad upstream JSON response: {exc}") from exc
+
+        usage = resp_data.get("usage") or {}
+        prompt_tokens = int(usage.get("prompt_tokens") or 0)
+        completion_tokens = int(usage.get("completion_tokens") or 0)
+        total_tokens_charged += (prompt_tokens + completion_tokens)
+
+        choices = resp_data.get("choices") or []
+        if not choices or "message" not in choices[0]:
+            raise UpstreamError("no message choices in upstream response")
+
+        reply_text = choices[0]["message"].get("content", "")
+
+        _log_trace_call(
+            call_id=call_id,
+            attempt=attempt,
+            model=resp_data.get("model", model),
+            messages=current_messages,
+            latency_s=latency,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            response=reply_text,
+            caller="completion",
+        )
+
+        try:
+            verdict = extract_conceptual_verdict_json(reply_text, rubric)
+            return verdict, total_tokens_charged
+        except Exception as exc:
+            if attempt == 2:
+                raise MalformedJudgeError(
+                    f"judge reply violated the rubric criteria contract twice: {exc}; last reply: {reply_text[:200]}"
                 ) from exc
             # One nudge retry
             current_messages = current_messages + [
@@ -2592,14 +2942,20 @@ COMMIT;
         if not manifest:
             self._respond(404, {"error": "completion problem not found for unit"})
             return
-        self._respond(200, {
+        resp_obj = {
             "unit_id": manifest["unit_id"],
+            "kind": manifest.get("kind", "code"),
             "base_rel": manifest["base_rel"],
             "readme_markdown": manifest["readme_markdown"],
             "base_files": manifest["base_files"],
             "editable_files": manifest["editable_files"],
             "checks": manifest["checks"],
-        })
+        }
+        if manifest.get("kind") == "conceptual":
+            resp_obj["prompt"] = manifest.get("prompt", "")
+            resp_obj["instructions"] = manifest.get("instructions", "")
+            resp_obj["model_answer_markdown"] = manifest.get("model_answer_markdown", "")
+        self._respond(200, resp_obj)
 
     def _handle_get_attempts(self, student_id: int, unit_id: str) -> None:
         sql = """BEGIN;
@@ -2914,7 +3270,7 @@ ROLLBACK;
         if parsed.path in ("/concierge/ask", "/concierge/submit"):
             self._handle_concierge_ask()
             return
-        m_cask = re.match(r"^/units/(\d+\.\d+\.\d+)/concierge/ask$", parsed.path)
+        m_cask = re.match(r"^/units/(\d+\.\d+(?:\.\d+)?)/concierge/ask$", parsed.path)
         if m_cask:
             self._handle_concierge_ask(unit_id_override=m_cask.group(1))
             return
@@ -2923,7 +3279,7 @@ ROLLBACK;
         if parsed.path in ("/practice/retrieval/attempt", "/practice/retrieval/submit"):
             self._handle_retrieval_attempt()
             return
-        m_ratt = re.match(r"^/units/(\d+\.\d+\.\d+)/practice/retrieval/attempt$", parsed.path)
+        m_ratt = re.match(r"^/units/(\d+\.\d+(?:\.\d+)?)/practice/retrieval/attempt$", parsed.path)
         if m_ratt:
             self._handle_retrieval_attempt(unit_id_override=m_ratt.group(1))
             return
@@ -2932,7 +3288,7 @@ ROLLBACK;
         if parsed.path in ("/practice/attempt", "/practice/submit"):
             self._handle_attempt()
             return
-        m_att = re.match(r"^/units/(\d+\.\d+\.\d+)/practice/attempt$", parsed.path)
+        m_att = re.match(r"^/units/(\d+\.\d+(?:\.\d+)?)/practice/attempt$", parsed.path)
         if m_att:
             self._handle_attempt(unit_id_override=m_att.group(1))
             return
@@ -2961,9 +3317,6 @@ ROLLBACK;
         if not isinstance(unit_id, str) or not UNIT_RE.match(unit_id):
             self._respond(422, {"error": "unit_id (x.y.z) is required"})
             return
-        if not isinstance(files, dict) or not files:
-            self._respond(422, {"error": "files object with submitted files is required"})
-            return
 
         # 1. Load manifest and verify unit
         manifest = get_unit_practice_manifest(unit_id)
@@ -2971,27 +3324,52 @@ ROLLBACK;
             self._respond(404, {"error": "completion problem not found for unit"})
             return
 
-        editable_set = set(manifest["editable_files"])
+        is_conceptual = manifest.get("kind") == "conceptual"
+        if not is_conceptual and (not isinstance(files, dict) or not files):
+            self._respond(422, {"error": "files object with submitted files is required"})
+            return
 
         # 2. Strict Whitelist & Payload Validation
         submitted_files_clean: dict[str, str] = {}
-        for fname, content in files.items():
-            if not isinstance(fname, str) or not FILENAME_RE.match(fname) or len(fname) > MAX_FILENAME_LEN:
-                self._respond(400, {"error": "invalid_filename", "filename": str(fname)})
+        conceptual_answer = ""
+        if is_conceptual:
+            # For conceptual units, answer may be passed in payload["answer"] or files["answer"] / files["response"]
+            if isinstance(payload.get("answer"), str) and payload["answer"].strip():
+                conceptual_answer = payload["answer"].strip()
+            elif isinstance(files, dict):
+                for k, v in files.items():
+                    if isinstance(v, str) and v.strip():
+                        conceptual_answer = v.strip()
+                        break
+            if not conceptual_answer:
+                self._respond(422, {"error": "answer_required", "message": "Conceptual response text is required"})
                 return
-            if fname not in editable_set:
-                self._respond(400, {"error": "file_not_editable", "filename": fname, "editable_files": manifest["editable_files"]})
+            if len(conceptual_answer.encode("utf-8")) > MAX_FILE_BYTES:
+                self._respond(400, {"error": "answer_too_large"})
                 return
-            if not isinstance(content, str):
-                self._respond(400, {"error": "file_content_must_be_string", "filename": fname})
+            if "\0" in conceptual_answer:
+                self._respond(400, {"error": "binary_content_rejected"})
                 return
-            if len(content.encode("utf-8")) > MAX_FILE_BYTES:
-                self._respond(400, {"error": "file_too_large", "filename": fname})
-                return
-            if "\0" in content:
-                self._respond(400, {"error": "binary_content_rejected", "filename": fname})
-                return
-            submitted_files_clean[fname] = content
+            submitted_files_clean["answer.md"] = conceptual_answer
+        else:
+            editable_set = set(manifest["editable_files"])
+            for fname, content in files.items():
+                if not isinstance(fname, str) or not FILENAME_RE.match(fname) or len(fname) > MAX_FILENAME_LEN:
+                    self._respond(400, {"error": "invalid_filename", "filename": str(fname)})
+                    return
+                if fname not in editable_set:
+                    self._respond(400, {"error": "file_not_editable", "filename": fname, "editable_files": manifest["editable_files"]})
+                    return
+                if not isinstance(content, str):
+                    self._respond(400, {"error": "file_content_must_be_string", "filename": fname})
+                    return
+                if len(content.encode("utf-8")) > MAX_FILE_BYTES:
+                    self._respond(400, {"error": "file_too_large", "filename": fname})
+                    return
+                if "\0" in content:
+                    self._respond(400, {"error": "binary_content_rejected", "filename": fname})
+                    return
+                submitted_files_clean[fname] = content
 
         # 3. Enrollment Gate Authorization
         gate_sql = """BEGIN;
@@ -3019,36 +3397,81 @@ ROLLBACK;
             self._respond(403, {"error": "not_enrolled", "message": f"Active enrollment required for unit {unit_id}"})
             return
 
-        # 4. Stage problem base + student file overrides
-        staging_parent = Path(tempfile.mkdtemp(prefix="keel-practice-"))
-        staging_sub = staging_parent / "submission"
-        target_dir = staging_sub / manifest["base_rel"].rstrip("/")
-
-        try:
-            shutil.copytree(manifest["base_dir"], target_dir)
-            for fname, content in submitted_files_clean.items():
-                (target_dir / fname).write_text(content, encoding="utf-8")
-
-            # 5. Execute sandbox Layer-1 checks
-            checks_data = yaml.safe_load(manifest["checks_path"].read_text(encoding="utf-8"))
-            if not isinstance(checks_data, list) or not checks_data:
-                self._respond(500, {"error": "empty checks definition"})
+        if is_conceptual:
+            # 4/5. Conceptual grading via LLM Judge against rubric
+            try:
+                verdict_res, tokens_charged = grade_conceptual_completion_answer(
+                    student_id=student_id,
+                    unit_id=unit_id,
+                    prompt=manifest.get("prompt", ""),
+                    instructions=manifest.get("instructions", ""),
+                    student_answer=conceptual_answer,
+                )
+            except BudgetExceeded as exc:
+                self._respond(429, {"error": "budget_exceeded", "message": str(exc)})
+                return
+            except UpstreamError as exc:
+                self._respond(502, {"error": "upstream_error", "message": str(exc)})
+                return
+            except MalformedJudgeError as exc:
+                self._respond(502, {"error": "malformed_judge", "message": str(exc)})
+                return
+            except RubricError as exc:
+                self._respond(500, {"error": "rubric_load_failed", "message": str(exc)})
                 return
 
-            timeout_s = float(os.environ.get("KEEL_PRACTICE_TIMEOUT_S", DEFAULT_TIMEOUT_S))
-            check_results = []
-            for check in checks_data:
-                res = layer1.run_check_container(check, staging_sub, timeout_s)
-                check_results.append(res)
+            # One check result per rubric criterion; the overall below is the
+            # platform's pass_rule computation, never the model's own.
+            c_passed = verdict_res.get("overall") == "pass"
+            rationale = str(verdict_res.get("feedback", ""))
+            check_results = [
+                {
+                    "id": crit["id"],
+                    "type": "llm-judge",
+                    "status": "pass" if crit["verdict"] == "pass" else "fail",
+                    "note": rationale,
+                    "evidence": crit["evidence"],
+                    "wall_s": None,
+                    "exit_code": 0 if crit["verdict"] == "pass" else 1,
+                    "container_status": "judge_graded",
+                    "output_tail": f"Criterion {crit['id']}: {crit['verdict']}\nEvidence: {crit['evidence']}",
+                }
+                for crit in verdict_res.get("criteria", [])
+            ]
+        else:
+            # 4. Stage problem base + student file overrides
+            staging_parent = Path(tempfile.mkdtemp(prefix="keel-practice-"))
+            staging_sub = staging_parent / "submission"
+            target_dir = staging_sub / manifest["base_rel"].rstrip("/")
 
-        except Exception as exc:
-            sys.stderr.write(f"practice: staging/sandbox failure: {exc}\n")
-            self._respond(502, {"error": "sandbox_execution_error", "detail": str(exc)})
-            return
-        finally:
-            layer1.cleanup_staging(staging_parent)
+            try:
+                shutil.copytree(manifest["base_dir"], target_dir)
+                for fname, content in submitted_files_clean.items():
+                    (target_dir / fname).write_text(content, encoding="utf-8")
+
+                # 5. Execute sandbox Layer-1 checks
+                checks_data = yaml.safe_load(manifest["checks_path"].read_text(encoding="utf-8"))
+                if not isinstance(checks_data, list) or not checks_data:
+                    self._respond(500, {"error": "empty checks definition"})
+                    return
+
+                timeout_s = float(os.environ.get("KEEL_PRACTICE_TIMEOUT_S", DEFAULT_TIMEOUT_S))
+                check_results = []
+                for check in checks_data:
+                    res = layer1.run_check_container(check, staging_sub, timeout_s)
+                    check_results.append(res)
+
+            except Exception as exc:
+                sys.stderr.write(f"practice: staging/sandbox failure: {exc}\n")
+                self._respond(502, {"error": "sandbox_execution_error", "detail": str(exc)})
+                return
+            finally:
+                layer1.cleanup_staging(staging_parent)
 
         passed = all(r.get("status") == "pass" for r in check_results)
+        if is_conceptual:
+            # Platform-computed overall per the rubric pass_rule — never the model's.
+            passed = c_passed
         pass_count = sum(1 for r in check_results if r.get("status") == "pass")
         total_checks = len(check_results)
 

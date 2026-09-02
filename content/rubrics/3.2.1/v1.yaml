@@ -9,8 +9,8 @@ criteria:
   - id: schema-constrained-generation
     description: >-
       The extractor obtains model output through a schema-constrained generation
-      mechanism — strict json_schema response_format, a forced tool/function
-      definition, or an equivalent guided-decoding parameter — not JSON merely
+      mechanism (strict json_schema response_format, a forced tool/function
+      definition, or an equivalent guided-decoding parameter), not JSON merely
       promised in the prompt. (Plain JSON mode alone does NOT satisfy this
       criterion: it constrains syntax, not schema.)
     evidence: >-
@@ -22,16 +22,16 @@ criteria:
       model_validate / model_validate_json applied to the actual model output)
       before anything downstream consumes it; no raw parsed dicts or raw model
       text flow past the extractor. Constructing ClaimExtraction(...) directly
-      from values a human derived by inspecting the input is not validation —
+      from values a human derived by inspecting the input is not validation:
       the model's own output must be the object validated.
     evidence: >-
       Quote the model_validate call site and note the return type of the
       extraction function.
   - id: defined-fallback
     description: >-
-      A validation failure produces a defined fallback value — a schema-valid
+      A validation failure produces a defined fallback value: a schema-valid
       ClaimExtraction explicitly marked as failed (e.g. extraction_failed=True
-      with a failure_reason) — never a propagated exception, a None return, or a
+      with a failure_reason), never a propagated exception, a None return, or a
       skipped record.
     evidence: >-
       Quote the except ValidationError branch (or equivalent) showing what is
@@ -50,7 +50,7 @@ criteria:
     description: >-
       The submission contains executable evidence (a test, or a committed run
       artifact with the code that produced it) that the 20 messy inputs yield
-      exactly 20 outputs with no silent drops — N-in/N-out is checked, not
+      exactly 20 outputs with no silent drops, so N-in/N-out is checked, not
       assumed. The evidence must establish the named bar of 20: an assertion
       naming 20 (e.g. len(records) == 20), or a committed artifact of exactly
       20 lines traceable to the corpus. A generic len(out) == len(inputs)

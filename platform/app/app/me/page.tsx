@@ -22,40 +22,26 @@ import {
   type PassedGate,
 } from "@/lib/gates";
 import {
-  fetchLatestDigest,
   fetchRecheckSchedule,
-  type LatestDigestResponse,
   type PracticeResult,
   type RecheckSchedule,
 } from "@/lib/practice";
-import {
-  fetchStudentGalleryProjects,
-  type GalleryResult,
-  type StudentGalleryProject,
-} from "@/lib/gallery";
-import {
-  fetchStudentDefenses,
-  type ClientResult as SimClientResult,
-  type StudentDefenses,
-} from "@/lib/simulation";
-
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Learner Cockpit — Keel Academy",
-  description: "Your student dashboard, token telemetry, active enrollments, and live rebate progress.",
+  title: "Your dashboard",
   robots: { index: false },
 };
 
 const CHECKOUT_ERRORS: Record<string, string> = {
-  unreachable: "The enrollment service is unreachable. Please try again in a few moments.",
-  app_not_configured: "The app is missing its enrollment secret (KEEL_ENROLL_SECRET).",
-  stripe_not_wired: "Payment processing is not configured on the enrollment server.",
-  stripe_unreachable: "Payment service did not answer. No charges were made.",
-  stripe_error: "Payment processor rejected the request. Nothing was charged.",
+  unreachable: "We could not reach the enrollment server. Try again in a moment.",
+  app_not_configured: "This site is missing its enrollment secret (KEEL_ENROLL_SECRET).",
+  stripe_not_wired: "Payments are not configured on the enrollment server yet.",
+  stripe_unreachable: "The payment provider did not answer. Nothing was charged.",
+  stripe_error: "The payment provider rejected the request. Nothing was charged.",
   email_linked_to_other_account:
-    "This email is linked to a different account. Sign in with that account to enroll.",
+    "This email belongs to a different account. Sign in with that account to enroll.",
 };
 
 type Props = { searchParams: Promise<{ checkout?: string }> };
@@ -66,303 +52,152 @@ export default async function MePage({ searchParams }: Props) {
   const bridged = await ensureStudent(user);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Flight deck header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                LEARNER COCKPIT & PROGRESS
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-                {user.name ?? user.email}
-              </h1>
-              <p className="text-xs font-mono text-zinc-400">
-                Identity: {user.email}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-xs font-mono text-zinc-300">
-                <span className="text-zinc-500 mr-2">RECORD:</span>
-                <span className="text-emerald-400 font-semibold">
-                  {bridged.state === "ok" ? `#${bridged.data}` : "GUEST"}
-                </span>
-              </div>
-              <Link
-                href="/map"
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-3.5 py-1.5 text-xs font-mono font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors inline-flex items-center gap-1.5"
-              >
-                <span>Meridian Map</span>
-                <span className="text-zinc-400">&rarr;</span>
-              </Link>
-            </div>
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div>
+            <p className="eyebrow">Your dashboard</p>
+            <h1 className="heading-xl mt-4">{user.name ?? user.email}</h1>
+            <p className="mt-3 text-[15px] text-[color:var(--text-muted-on-dark)]">
+              {user.email}
+            </p>
           </div>
-
-          {checkout ? (
-            <div
-              role="alert"
-              className="rounded-md border border-red-500/30 bg-red-950/30 px-4 py-3 text-xs font-mono text-red-200"
-            >
-              <p>
-                <span className="font-bold text-red-400">CHECKOUT ERROR:</span>{" "}
-                {CHECKOUT_ERRORS[checkout] ?? "Checkout could not start. Nothing was charged."}
-              </p>
-            </div>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="chip chip-outline">
+              {bridged.state === "ok"
+                ? `Grading record #${bridged.data}`
+                : "Profile not loaded"}
+            </span>
+            <Link href="/map" className="btn btn-ghost btn-sm">
+              View the full map
+            </Link>
+          </div>
         </div>
+
+        {checkout ? (
+          <div
+            role="alert"
+            className="mt-8 rounded-lg border border-circuit-border bg-carbon-veil p-5"
+          >
+            <p className="flex flex-wrap items-center gap-3 text-[15px] leading-relaxed text-phosphor-white">
+              <span className="chip chip-alert">CHECKOUT FAILED</span>
+              {CHECKOUT_ERRORS[checkout] ?? "Checkout could not start. Nothing was charged."}
+            </p>
+          </div>
+        ) : null}
       </header>
 
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-10">
-          {bridged.state === "ok" ? (
-            <EnrolledSections studentId={bridged.data} userEmail={user.email} />
-          ) : (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-6 text-sm text-amber-200 space-y-2">
-              <h2 className="font-mono font-bold text-amber-300">Enrollment Service Suspended</h2>
-              <p className="text-xs text-amber-300/80 leading-relaxed">
-                The enrollment service is temporarily unavailable. Your signed-in session is active;
-                refresh in a moment to reload your grading profile.
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+      <div className="shell space-y-8 py-12">
+        {bridged.state === "ok" ? (
+          <EnrolledSections studentId={bridged.data} />
+        ) : (
+          <div className="card-dark max-w-[62ch]">
+            <h2 className="heading-lg">We could not load your progress</h2>
+            <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              You are signed in, but the server that holds enrollments and verdicts did
+              not answer. Nothing is lost. Refresh in a moment.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-async function EnrolledSections({
-  studentId,
-  userEmail,
-}: {
-  studentId: number;
-  userEmail: string;
-}) {
-  const [profileResult, submissionsResult, gatesLookup, recheckResult, digestResult, galleryResult, defensesResult] = await Promise.all([
+async function EnrolledSections({ studentId }: { studentId: number }) {
+  const [profileResult, submissionsResult, gatesLookup, recheckResult] = await Promise.all([
     fetchProfile(studentId),
     fetchOwnSubmissions(studentId),
     fetchStudentGates(studentId),
     fetchRecheckSchedule(studentId),
-    fetchLatestDigest(studentId),
-    fetchStudentGalleryProjects(studentId),
-    fetchStudentDefenses(studentId),
   ]);
-
-
   const gateRules = loadGateRules();
   const units = listUnits();
   const enrolledUnits = new Set(
     profileResult.state === "ok" ? profileResult.data.enrollments.map((e) => e.unit_id) : [],
   );
-
   const prices = new Map<string, EnrollResult<{ amount_cents: number; currency: string }>>();
   await Promise.all(
     units
       .filter((u) => !enrolledUnits.has(u.id))
       .map(async (u) => prices.set(u.id, await fetchPrice(u.id))),
   );
-
-  const profile = profileResult.state === "ok" ? profileResult.data : null;
-  const budget = profile?.budget ?? null;
-  const rebates = profile?.rebates ?? [];
-  const submissions = submissionsResult.state === "ok" ? submissionsResult.data.submissions : [];
+  const budget = profileResult.state === "ok" ? profileResult.data.budget : null;
+  const rebates = profileResult.state === "ok" ? profileResult.data.rebates : [];
 
   const usedTokens = budget?.tokens_used ?? 0;
-  const capTokens = budget?.tokens_cap ?? 1000000;
+  const capTokens = budget?.tokens_cap ?? 1;
   const pctUsed = Math.min(100, Math.round((usedTokens / capTokens) * 100));
 
-  // Compute live earned rebates
-  let earnedRebatesCents = 0;
-  for (const r of rebates) {
-    if (r.status === "earned" || r.status === "paid") {
-      earnedRebatesCents += r.amount_cents;
-    }
-  }
-  const maxRebateCents = 60000; // $600 max rebate
-
   return (
-    <div className="space-y-10">
-      {/* 1. Student Summary & Rebate Meter Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Profile Card */}
-        <div className="md:col-span-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-            <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-              Student Profile
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              ACTIVE ENROLLMENT
-            </span>
-          </div>
-
-          <div className="space-y-3 text-xs font-mono">
-            <div>
-              <div className="text-zinc-500 text-[11px]">STUDENT ID</div>
-              <div className="text-zinc-200 font-semibold text-sm">#{studentId}</div>
-            </div>
-            <div>
-              <div className="text-zinc-500 text-[11px]">AUTHENTICATED EMAIL</div>
-              <div className="text-zinc-200 truncate">{userEmail}</div>
-            </div>
-            <div>
-              <div className="text-zinc-500 text-[11px]">ENROLLED UNITS</div>
-              <div className="text-zinc-200">
-                {profile ? `${profile.enrollments.length} Active Modules` : "1 Free Sandbox Unit"}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Live Rebate Progress Card */}
-        <div className="md:col-span-8 rounded-lg border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-          <div className="flex flex-wrap items-center justify-between border-b border-zinc-800/80 pb-3 gap-2">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-                Live Completion Rebate Tracker
-              </span>
-              <p className="text-xs text-zinc-400 font-sans">
-                Up to $600 refunded automatically upon verified gate completions.
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="text-base font-bold font-mono text-emerald-400">
-                {formatPrice(earnedRebatesCents, "usd")}
-              </span>
-              <span className="text-xs font-mono text-zinc-500"> / {formatPrice(maxRebateCents, "usd")} Max</span>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="space-y-1.5">
-            <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
-                style={{ width: `${Math.max(4, Math.round((earnedRebatesCents / maxRebateCents) * 100))}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[10px] font-mono text-zinc-500">
-              <span>0% (Enrollment)</span>
-              <span>15% (Phase 5 Gate — $300)</span>
-              <span>30% (Capstone Delivery — $300)</span>
-            </div>
-          </div>
-
-          {/* Rebates milestone chips */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <RebateMilestoneChip
-              title="Phase 5 Integration Gate"
-              amount="$300"
-              rebate={rebates.find((r) => r.gate_id === "phase-5-integration")}
-              ruleSummary="Passing unit 5.1 unlocks multi-tool agent triage."
-            />
-            <RebateMilestoneChip
-              title="Capstone Delivery Gate"
-              amount="$300"
-              rebate={rebates.find((r) => r.gate_id === "capstone")}
-              ruleSummary="Passing unit 12.1 verifies production insurance deployment."
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Personalized Retention Digest Preview */}
-      <DigestSection result={digestResult} />
-
-      {/* 2. Token Budget Telemetry */}
+    <>
       {budget ? (
-        <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
-                Layer 2 Rubric Evaluation Budget
-              </h2>
-            </div>
-            <span className="text-xs font-mono text-zinc-400">
-              <span className="text-zinc-100 font-semibold">{usedTokens.toLocaleString("en-US")}</span> /{" "}
-              {capTokens.toLocaleString("en-US")} tokens ({pctUsed}%)
+        <section aria-labelledby="budget-title" className="card-dark">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <h2 id="budget-title" className="heading-md">
+              Grading budget
+            </h2>
+            <span className="font-code-mono text-[13px] text-moss-70">
+              {`${usedTokens.toLocaleString("en-US")} of ${capTokens.toLocaleString("en-US")} used (${pctUsed}%)`}
             </span>
           </div>
 
-          <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                pctUsed > 80 ? "bg-amber-400" : "bg-emerald-500"
-              }`}
-              style={{ width: `${Math.max(1, pctUsed)}%` }}
-            />
+          <div
+            aria-hidden="true"
+            className="mt-5 h-2 w-full overflow-hidden rounded-full border border-circuit-border bg-void-black"
+          >
+            <div className="h-full bg-lime-pulse" style={{ width: `${pctUsed}%` }} />
           </div>
 
-          <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">
-            Tokens are consumed exclusively when the frontier LLM rubric judge executes calibrated evaluation against your commit diffs and quotes verification evidence.
+          <p className="mt-4 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            The budget is spent when rubric review reads your commit. The automated checks
+            do not draw on it, so you can run those as often as you like.
           </p>
         </section>
       ) : null}
 
-      {/* 3. Spaced Re-checks Section */}
       <RecheckSection result={recheckResult} />
 
-      {/* 4. Enrolled & Available Units Grid */}
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-        <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-              Curriculum Units & Bench Access
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Authored drills with deterministic harnesses and rubric criteria.
-            </p>
-          </div>
-          <Link
-            href="/map"
-            className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
-          >
-            <span>View Full 13-Phase Map</span>
-            <span>&rarr;</span>
+      <section aria-labelledby="units-title" className="card-dark">
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h2 id="units-title" className="heading-md">
+            Units written so far
+          </h2>
+          <Link href="/curriculum" className="btn btn-quiet btn-sm">
+            See all thirteen phases
           </Link>
         </div>
 
         {profileResult.state !== "ok" ? (
-          <div className="p-6 text-xs font-mono text-zinc-400">
-            Unable to load unit enrollments right now. Please refresh.
-          </div>
+          <p className="mt-5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            We could not load your enrollments. Refresh in a moment.
+          </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
+          <div className="mt-6 overflow-x-auto">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <th className="py-3 px-4 font-semibold">Unit Spec</th>
-                  <th className="py-3 px-4 font-semibold">Phase</th>
-                  <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 text-right font-semibold">Action</th>
+                  <th scope="col">Unit</th>
+                  <th scope="col">Phase</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+              <tbody>
                 {units.map((unit) => {
                   const isEnrolled = enrolledUnits.has(unit.id);
                   return (
-                    <tr key={unit.id} className="hover:bg-zinc-900/60 transition-colors">
-                      <td className="py-3 px-4 font-bold text-zinc-100">
-                        Unit {unit.id}
+                    <tr key={unit.id}>
+                      <td className="font-code-mono text-phosphor-white">{unit.id}</td>
+                      <td className="text-[color:var(--text-muted-on-dark)]">
+                        Phase {unit.phase}
                       </td>
-                      <td className="py-3 px-4 text-zinc-400">
-                        PHASE 0{unit.phase}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                            isEnrolled
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                              : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-                          }`}
-                        >
-                          {isEnrolled ? "ENROLLED" : "AVAILABLE"}
+                      <td>
+                        <span className={isEnrolled ? "chip chip-live" : "chip chip-outline"}>
+                          {isEnrolled ? "ENROLLED" : "OPEN"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td>
                         <UnitRowAction
                           unitId={unit.id}
                           enrolled={isEnrolled}
@@ -378,314 +213,25 @@ async function EnrolledSections({
         )}
       </section>
 
-      {/* 5. Cryptographic Gate Barriers */}
       {gateRules.length > 0 ? <GatesSection rules={gateRules} lookup={gatesLookup} /> : null}
 
-      {/* 6. Standing Skeptical Reviewer Defenses HUD (S4.6) */}
-      <DefensesHUDSection result={defensesResult} />
-
-      {/* 7. Rebates Detail Ledger */}
       {rebates.length > 0 ? <RebateSection rebates={rebates} /> : null}
 
-      {/* 8. Immutable Submission Audit Ledger */}
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-        <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-              Immutable Submission Audit Ledger
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Chronological log of verified git commit evaluations and automated verdicts.
-            </p>
-          </div>
-          <Link
-            href="/submit"
-            className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
-          >
-            <span>Submission Protocol</span>
-            <span>&rarr;</span>
+      <section aria-labelledby="submissions-title" className="card-dark">
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h2 id="submissions-title" className="heading-md">
+            Your submissions
+          </h2>
+          <Link href="/submit" className="btn btn-quiet btn-sm">
+            How to submit
           </Link>
         </div>
 
-        <SubmissionsBody submissions={submissions} error={submissionsResult.state !== "ok"} />
+        <div className="mt-6">
+          <SubmissionsBody result={submissionsResult} />
+        </div>
       </section>
-
-      {/* 9. Public Build Gallery Showcase Portfolio (S4.4) */}
-      <GalleryProjectsSection result={galleryResult} />
-    </div>
-  );
-}
-
-function DefensesHUDSection({
-  result,
-}: {
-  result: SimClientResult<StudentDefenses>;
-}) {
-  const defenses = result.state === "ok" ? result.data : null;
-  const tech = defenses?.technical_stakeholder;
-  const biz = defenses?.business_owner;
-  const cleared = defenses?.defense_cleared ?? false;
-
-  return (
-    <section
-      data-keel-section="skeptical-defenses-hud"
-      className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden"
-    >
-      <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${cleared ? "bg-emerald-400" : "bg-amber-400"}`} />
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-              Standing Skeptical Reviewer Defenses HUD
-            </h2>
-          </div>
-          <p className="text-xs text-zinc-400 mt-0.5 font-sans">
-            Phase 12 capstone graduation and Section 14 credentialing check requiring passing simulations against Marcus Vance & Elena Rostova.
-          </p>
-        </div>
-        <Link
-          href="/simulations"
-          className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
-        >
-          <span>Open Simulation Hub</span>
-          <span>&rarr;</span>
-        </Link>
-      </div>
-
-      <div className="p-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Tech Stakeholder Card */}
-          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
-                SECTION 14.3 • TECHNICAL AUDIT
-              </span>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                  tech?.passed
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
-                }`}
-              >
-                {tech?.passed ? "CLEARED" : "NOT CLEARED"}
-              </span>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold font-mono text-zinc-100">
-                Marcus Vance
-              </h3>
-              <p className="text-[11px] font-mono text-zinc-400">
-                Staff AI Architect & Lead Systems Auditor
-              </p>
-            </div>
-            <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-              Demands golden-set eval numbers, token economics, cascading routers, and prompt injection defense.
-            </p>
-            <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
-              <span className="text-zinc-500 text-[11px]">
-                {tech?.score_pct !== null && tech?.score_pct !== undefined
-                  ? `Latest Score: ${tech.score_pct}%`
-                  : "No completed reps"}
-              </span>
-              <Link
-                href="/simulations/technical-stakeholder"
-                className="text-emerald-400 hover:underline"
-              >
-                Rehearse Defense &rarr;
-              </Link>
-            </div>
-          </div>
-
-          {/* Business Owner Card */}
-          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
-                SECTION 14.4 • COMMERCIAL AUDIT
-              </span>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                  biz?.passed
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
-                }`}
-              >
-                {biz?.passed ? "CLEARED" : "NOT CLEARED"}
-              </span>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold font-mono text-zinc-100">
-                Elena Rostova
-              </h3>
-              <p className="text-[11px] font-mono text-zinc-400">
-                Managing Director & P&L Owner
-              </p>
-            </div>
-            <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-              Demands plain-language dollar ROI, adjuster hours saved, and human-in-the-loop fallback for $50k claims.
-            </p>
-            <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
-              <span className="text-zinc-500 text-[11px]">
-                {biz?.score_pct !== null && biz?.score_pct !== undefined
-                  ? `Latest Score: ${biz.score_pct}%`
-                  : "No completed reps"}
-              </span>
-              <Link
-                href="/simulations/business-owner"
-                className="text-emerald-400 hover:underline"
-              >
-                Rehearse Defense &rarr;
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-function GalleryProjectsSection({
-  result,
-}: {
-  result: GalleryResult<{ student_id: number; projects: StudentGalleryProject[] }>;
-}) {
-  const projects = result.state === "ok" ? result.data.projects : [];
-
-  return (
-    <section
-      data-keel-section="gallery-portfolio"
-      className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden"
-    >
-      <div className="p-5 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-              Public Build Gallery Showcase Portfolio
-            </h2>
-          </div>
-          <p className="text-xs text-zinc-400 mt-0.5 font-sans">
-            Opt-in public portfolio deliverables visible across cohorts and prospective clients.
-          </p>
-        </div>
-        <Link
-          href="/gallery"
-          className="text-xs font-mono text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 self-start sm:self-auto"
-        >
-          <span>Explore Full Public Gallery</span>
-          <span>&rarr;</span>
-        </Link>
-      </div>
-
-      {result.state !== "ok" ? (
-        <div className="p-6 text-xs font-mono text-zinc-400">
-          Gallery showcase status is temporarily unavailable.
-        </div>
-      ) : projects.length === 0 ? (
-        <div className="p-8 text-center space-y-3 font-mono">
-          <p className="text-xs text-zinc-400 font-sans">
-            No portfolio projects published yet. When your unit submissions pass automated verification, you can opt them into the public build gallery.
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
-              <tr>
-                <th className="py-3 px-4 font-semibold">Project Title</th>
-                <th className="py-3 px-4 font-semibold">Unit Spec</th>
-                <th className="py-3 px-4 font-semibold">Showcase Visibility</th>
-                <th className="py-3 px-4 text-right font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-              {projects.map((proj) => (
-                <tr key={proj.id} className="hover:bg-zinc-900/60 transition-colors">
-                  <td className="py-3 px-4 font-bold text-zinc-100">
-                    <div className="flex flex-col">
-                      <span>{proj.title}</span>
-                      <span className="text-[10px] text-zinc-500 font-normal">
-                        Audit #{proj.submission_id} · {proj.commit_sha.slice(0, 7)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-zinc-300">UNIT {proj.unit_id}</td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        proj.published
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                          : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-                      }`}
-                    >
-                      {proj.published ? "PUBLISHED LIVE" : "UNPUBLISHED"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-3">
-                    {proj.published && (
-                      <Link
-                        href={`/gallery/${proj.id}`}
-                        className="text-emerald-400 hover:underline inline-flex items-center gap-0.5"
-                      >
-                        <span>View</span>
-                        <span>&rarr;</span>
-                      </Link>
-                    )}
-                    <Link
-                      href={`/submissions/${proj.submission_id}`}
-                      className="text-zinc-400 hover:text-zinc-200"
-                    >
-                      Manage
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function RebateMilestoneChip({
-  title,
-  amount,
-  rebate,
-  ruleSummary,
-}: {
-  title: string;
-  amount: string;
-  rebate?: Rebate;
-  ruleSummary: string;
-}) {
-  const status = rebate?.status ?? "pending";
-  const isEarned = status === "earned" || status === "paid";
-
-  return (
-    <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-3 space-y-1.5">
-      <div className="flex items-center justify-between text-xs font-mono">
-        <span className="font-semibold text-zinc-200">{title}</span>
-        <span className="font-bold text-emerald-400">{amount}</span>
-      </div>
-      <p className="text-[11px] text-zinc-400 font-sans leading-tight">
-        {ruleSummary}
-      </p>
-      <div className="pt-1 flex items-center justify-between text-[10px] font-mono">
-        <span className="text-zinc-500">Status:</span>
-        <span
-          className={`px-1.5 py-0.5 rounded font-bold uppercase ${
-            isEarned
-              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-              : status === "expired" || status === "forfeited"
-              ? "bg-red-500/10 text-red-400 border border-red-500/30"
-              : "bg-zinc-800 text-zinc-300 border border-zinc-700"
-          }`}
-        >
-          {status}
-        </span>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -700,12 +246,8 @@ function UnitRowAction({
 }) {
   if (enrolled) {
     return (
-      <Link
-        href={`/units/${unitId}`}
-        className="inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-mono font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-      >
-        <span>Open bench</span>
-        <span>&rarr;</span>
+      <Link href={`/units/${unitId}`} className="btn btn-primary btn-sm">
+        Open unit
       </Link>
     );
   }
@@ -714,13 +256,10 @@ function UnitRowAction({
     price?.state === "ok" ? formatPrice(price.data.amount_cents, price.data.currency) : null;
 
   return (
-    <form action={startCheckoutAction} className="inline-block">
+    <form action={startCheckoutAction}>
       <input type="hidden" name="unit_id" value={unitId} />
-      <button
-        type="submit"
-        className="rounded border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-mono font-medium text-zinc-200 hover:border-zinc-600 hover:bg-zinc-700 transition-colors"
-      >
-        {priceLabel ? `Enroll (${priceLabel})` : `Enroll unit ${unitId}`}
+      <button type="submit" className="btn btn-accent btn-sm">
+        {priceLabel ? `Enroll for ${priceLabel}` : `Enroll in unit ${unitId}`}
       </button>
     </form>
   );
@@ -728,9 +267,7 @@ function UnitRowAction({
 
 function gatesUnlocksSentence(rule: GateRule, cleared: boolean): string {
   if (rule.unlocks.length === 0) {
-    return cleared
-      ? "Terminal capstone cleared."
-      : "Final milestone barrier.";
+    return cleared ? "The capstone is cleared." : "This is the last gate in the program.";
   }
   const list = rule.unlocks.join(", ");
   return cleared ? `Units ${list} unlocked.` : `Passing unlocks units ${list}.`;
@@ -742,49 +279,42 @@ function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLooku
   );
 
   return (
-    <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-      <div className="p-5 border-b border-zinc-800/80">
-        <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-          Cryptographic Gate Barriers
-        </h2>
-        <p className="text-xs text-zinc-400 mt-0.5">
-          Deterministic milestones protecting advanced pipeline tracks.
-        </p>
-      </div>
+    <section aria-labelledby="gates-title" className="card-dark">
+      <h2 id="gates-title" className="heading-md">
+        Milestone gates
+      </h2>
+      <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        Two gates decide what opens next. Each one needs a passing verdict on a single
+        unit, and each one returns 15% of what you have paid.
+      </p>
 
       {lookup.state !== "ok" ? (
-        <div className="p-6 text-xs font-mono text-zinc-400">
-          Gate status is temporarily unavailable. Refresh in a moment.
-        </div>
+        <p className="mt-5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          We could not load your gate status. Refresh in a moment.
+        </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
+        <div className="mt-6 overflow-x-auto">
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="py-3 px-4 font-semibold">Milestone Gate</th>
-                <th className="py-3 px-4 font-semibold">Barrier Status</th>
-                <th className="py-3 px-4 font-semibold">Unlock Rule</th>
+                <th scope="col">Gate</th>
+                <th scope="col">Status</th>
+                <th scope="col">What it unlocks</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+            <tbody>
               {rules.map((rule) => {
                 const clearedAt = passed.get(rule.gate_id);
                 const cleared = clearedAt !== undefined;
                 return (
-                  <tr key={rule.gate_id} className="hover:bg-zinc-900/60 transition-colors">
-                    <td className="py-3 px-4 font-bold text-zinc-100">{rule.title}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                          cleared
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                            : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-                        }`}
-                      >
+                  <tr key={rule.gate_id}>
+                    <td className="text-phosphor-white">{rule.title}</td>
+                    <td>
+                      <span className={cleared ? "chip chip-live" : "chip chip-outline"}>
                         {cleared ? "CLEARED" : "LOCKED"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-zinc-400">
+                    <td className="max-w-[52ch] text-[color:var(--text-muted-on-dark)]">
                       {cleared && clearedAt
                         ? `Cleared on ${formatUtc(clearedAt.passed_at)}. ${gatesUnlocksSentence(rule, true)}`
                         : `${rule.summary} ${gatesUnlocksSentence(rule, false)}`}
@@ -801,8 +331,8 @@ function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLooku
 }
 
 const GATE_LABELS: Record<string, string> = {
-  "phase-5-integration": "Phase 5 integration gate ($300 rebate)",
-  capstone: "Final capstone delivery ($300 rebate)",
+  "phase-5-integration": "Phase 5 integration gate (15% back)",
+  capstone: "Capstone gate (15% back)",
 };
 
 function gateLabel(gateId: string): string {
@@ -813,63 +343,58 @@ function rebateStatusLine(rebate: Rebate): string {
   const amount = formatPrice(rebate.amount_cents, rebate.currency);
   switch (rebate.status) {
     case "pending":
-      return `Target window open until ${formatUtc(rebate.window_ends_at)}. Credited automatically on verified gate pass.`;
+      return `Window open until ${formatUtc(rebate.window_ends_at)}. Pass the gate before then and ${amount} comes back to your card.`;
     case "earned":
-      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. Payout initiated to card via Stripe.`;
+      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. We refund it to your card by hand, so it lands a few days later.`;
     case "paid":
-      return `Refund of ${amount} issued to payment method on ${formatUtc(rebate.paid_at ?? rebate.earned_at ?? rebate.pledged_at)}.`;
+      return `Refunded ${amount} to your payment method on ${formatUtc(rebate.paid_at ?? rebate.earned_at ?? rebate.pledged_at)}.`;
     case "forfeited":
       return `Forfeited on ${formatUtc(rebate.forfeited_at ?? rebate.pledged_at)}.`;
     case "expired":
-      return `Target window expired on ${formatUtc(rebate.expired_at ?? rebate.window_ends_at)} without verified pass.`;
+      return `Window closed on ${formatUtc(rebate.expired_at ?? rebate.window_ends_at)} without a passing verdict, so this one is gone.`;
   }
 }
 
 function RebateSection({ rebates }: { rebates: Rebate[] }) {
   return (
-    <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-      <div className="p-5 border-b border-zinc-800/80">
-        <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-100">
-          30% Completion Rebate Settlement Ledger
-        </h2>
-        <p className="text-xs text-zinc-400 mt-0.5">
-          Automatic refund ledger wired to Stripe payout engine.
-        </p>
-      </div>
+    <section aria-labelledby="rebates-title" className="card-dark">
+      <h2 id="rebates-title" className="heading-md">
+        Completion rebates
+      </h2>
+      <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        Clear both gates inside their windows and 30% of what you paid comes back, 15% at a
+        time. Each row carries its own deadline.
+      </p>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs font-mono">
-          <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
+      <div className="mt-6 overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="py-3 px-4 font-semibold">Rebate Milestone</th>
-              <th className="py-3 px-4 font-semibold">Ledger Status</th>
-              <th className="py-3 px-4 font-semibold">Settlement Details</th>
+              <th scope="col">Gate</th>
+              <th scope="col">Status</th>
+              <th scope="col">Detail</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-            {rebates.map((rebate) => {
-              return (
-                <tr key={rebate.gate_id} className="hover:bg-zinc-900/60 transition-colors">
-                  <td className="py-3 px-4 font-bold text-zinc-100">{gateLabel(rebate.gate_id)}</td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                        rebate.status === "earned" || rebate.status === "paid"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                          : rebate.status === "pending"
-                          ? "bg-zinc-800 text-zinc-300 border border-zinc-700"
-                          : "bg-red-500/10 text-red-400 border border-red-500/30"
-                      }`}
-                    >
-                      {rebate.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-zinc-400">
-                    {rebateStatusLine(rebate)}
-                  </td>
-                </tr>
-              );
-            })}
+          <tbody>
+            {rebates.map((rebate) => (
+              <tr key={rebate.gate_id}>
+                <td className="text-phosphor-white">{gateLabel(rebate.gate_id)}</td>
+                <td>
+                  <span
+                    className={
+                      rebate.status === "earned" || rebate.status === "paid"
+                        ? "chip chip-live"
+                        : "chip chip-outline"
+                    }
+                  >
+                    {rebate.status.toUpperCase()}
+                  </span>
+                </td>
+                <td className="max-w-[52ch] text-[color:var(--text-muted-on-dark)]">
+                  {rebateStatusLine(rebate)}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -889,49 +414,50 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
 
   return (
     <section
+      aria-labelledby="rechecks-title"
       data-keel-section="spaced-rechecks"
-      className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 space-y-4"
+      className="card-dark"
     >
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
-            Active Spaced Re-Checks
-          </h2>
-        </div>
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <h2 id="rechecks-title" className="heading-md">
+          Questions to re-answer
+        </h2>
+        <span className={dueSeeds.length > 0 ? "chip chip-live" : "chip chip-outline"}>
           {dueSeeds.length} DUE NOW
         </span>
       </div>
 
-      <div>
+      <div className="mt-5">
         {!schedule ? (
-          <p className="text-xs font-mono text-zinc-400">
-            Re-check schedule is temporarily unavailable. Refresh in a moment.
+          <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            We could not load your re-check schedule. Refresh in a moment.
           </p>
         ) : dueSeeds.length === 0 ? (
-          <p className="text-xs text-zinc-400 font-sans">
-            No re-checks due today. Passed drills reappear here after 3 days, then 7 days to consolidate recall.
-            {nextDueAt ? ` Next scheduled drill: ${formatUtc(nextDueAt)}.` : ""}
+          <p className="max-w-[70ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            Nothing due. A question you answered correctly comes back three days later, then
+            seven days after that, so it sticks.
+            {nextDueAt ? ` Next one: ${formatUtc(nextDueAt)}.` : ""}
           </p>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="space-y-3">
             {dueSeeds.map((s) => (
               <li
                 key={`${s.unit_id}-${s.seed_index}`}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-md border border-zinc-800 bg-zinc-950/60"
+                className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-circuit-border bg-carbon-veil p-4"
               >
-                <div className="space-y-1">
-                  <span className="text-[11px] font-mono font-bold text-emerald-400">
-                    UNIT {s.unit_id} · SEED {s.seed_index + 1}
+                <div className="max-w-[62ch]">
+                  <span className="font-code-mono text-[12px] text-moss-70">
+                    Unit {s.unit_id} · question {s.seed_index + 1}
                   </span>
-                  <p className="text-xs text-zinc-300 line-clamp-1">{s.seed_prompt}</p>
+                  <p className="mt-2 text-[15px] leading-relaxed text-phosphor-white">
+                    {s.seed_prompt}
+                  </p>
                 </div>
                 <Link
                   href={`/units/${s.unit_id}#practice`}
-                  className="rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-mono font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors self-start sm:self-auto inline-block"
+                  className="btn btn-ghost btn-sm"
                 >
-                  Open drill &rarr;
+                  Open drill
                 </Link>
               </li>
             ))}
@@ -942,161 +468,33 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
   );
 }
 
-function DigestSection({ result }: { result: PracticeResult<LatestDigestResponse> }) {
-  const digest = result.state === "ok" && result.data.has_digest ? result.data.digest : null;
-  const content = digest?.content_json;
-  const pillars = content?.pillars;
-
-  if (!digest || !content || !pillars) {
-    return (
-      <section
-        data-keel-section="weekly-digest"
-        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 space-y-3"
-      >
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
-              Your Weekly Dispatch
-            </h2>
-          </div>
-          <span className="text-[10px] font-mono text-zinc-500">PROACTIVE RETENTION</span>
-        </div>
-        <p className="text-xs text-zinc-400 font-sans">
-          Your weekly personalized digest synthesizes every Monday morning, mapping where you stand, what unlocks next on the Meridian route, and peer activity from your pod.
-        </p>
-      </section>
-    );
-  }
-
-  const { current_location: loc, next_unlocks: unlocks, pod_activity: pod, rebate_status: rebate } = pillars;
-
-  return (
-    <section
-      data-keel-section="weekly-digest"
-      className="rounded-lg border border-emerald-500/30 bg-zinc-900/50 p-5 sm:p-6 space-y-6"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-800/80 pb-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400">
-              Your Weekly Dispatch & Flight Plan ({digest.cohort_week})
-            </h2>
-          </div>
-          <p className="text-xs text-zinc-400 font-sans">
-            Delivered to <span className="font-mono text-zinc-300">{digest.email_to}</span> on {formatUtc(digest.delivered_at || digest.created_at)}.
-          </p>
-        </div>
-        <div className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 self-start sm:self-auto">
-          {loc.is_idle ? "REACH-OUT DISPATCH" : "ACTIVE MOMENTUM"}
-        </div>
-      </div>
-
-      {/* 4 Pillars Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Pillar 1: Location */}
-        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
-              1. Current Location
-            </span>
-            <span className="text-[10px] text-zinc-400">Unit {loc.active_unit}</span>
-          </div>
-          <div className="text-sm font-semibold font-mono text-zinc-200">{loc.active_unit_title}</div>
-          <p className="text-xs text-zinc-400 font-sans leading-relaxed">{loc.note}</p>
-        </div>
-
-        {/* Pillar 2: Unlocks */}
-        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
-              2. Next Unlocks
-            </span>
-            <span className="text-[10px] text-zinc-400">Phase {unlocks.meridian_phase_next}</span>
-          </div>
-          <ul className="text-xs font-mono text-zinc-300 space-y-1">
-            {unlocks.next_units.slice(0, 2).map((u) => (
-              <li key={u.unit_id} className="flex items-center gap-1.5 truncate">
-                <span className="text-emerald-400 font-bold">&bull;</span>
-                <span className="text-zinc-200">Unit {u.unit_id}:</span>
-                <span className="text-zinc-400 truncate">{u.title}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-[11px] text-zinc-500 font-sans">{unlocks.summary}</p>
-        </div>
-
-        {/* Pillar 3: Pod Highlights */}
-        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
-              3. Pod Activity
-            </span>
-            <span className="text-[10px] text-zinc-400 truncate max-w-[120px]">{pod.pod_name}</span>
-          </div>
-          <div className="space-y-2 text-xs">
-            {pod.highlights.slice(0, 2).map((h, i) => (
-              <div key={i} className="rounded bg-zinc-900/60 p-2 text-[11px] space-y-0.5">
-                <div className="font-mono font-semibold text-zinc-300">{h.author}:</div>
-                <div className="text-zinc-400 line-clamp-1"><strong className="text-zinc-300">Shipped:</strong> {h.shipped}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pillar 4: Rebates */}
-        <div className="rounded-md border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
-              4. Rebate Progress
-            </span>
-            <span className="text-emerald-400 font-bold font-mono">
-              ${rebate.earned_cents / 100} / ${rebate.pledged_cents / 100}
-            </span>
-          </div>
-          <p className="text-xs text-zinc-300 font-sans leading-relaxed">{rebate.summary}</p>
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {rebate.milestones.map((m) => (
-              <span
-                key={m.gate_id}
-                className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300"
-              >
-                {m.gate_id}: <strong className="text-emerald-400">${m.amount_cents / 100}</strong>
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+function verdictLabel(sub: OwnSubmission): string {
+  if (sub.overall === "pass") return "Passed";
+  if (sub.overall === "fail") return "Not yet";
+  return "Still grading";
 }
 
 function SubmissionsBody({
-  submissions,
-  error,
+  result,
 }: {
-  submissions: OwnSubmission[];
-  error: boolean;
+  result: EnrollResult<{ submissions: OwnSubmission[] }>;
 }) {
-  if (error) {
+  if (result.state === "unreachable" || result.state === "rejected") {
     return (
-      <div className="p-6 text-xs font-mono text-zinc-400">
-        Grading history is temporarily unavailable. Refresh in a moment.
-      </div>
+      <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+        We could not load your grading history. Refresh in a moment.
+      </p>
     );
   }
-
+  const submissions = result.data.submissions;
   if (submissions.length === 0) {
     return (
-      <div className="p-8 text-center space-y-3 font-mono">
-        <p className="text-xs text-zinc-400">No automated submissions recorded yet.</p>
-        <Link
-          href="/submit"
-          className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 underline"
-        >
-          <span>View git submission instructions</span>
-          <span>&rarr;</span>
+      <div>
+        <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          No submissions yet. You submit by pushing a commit and pasting its hash.
+        </p>
+        <Link href="/submit" className="btn btn-ghost btn-sm mt-5">
+          Read the submission steps
         </Link>
       </div>
     );
@@ -1104,54 +502,39 @@ function SubmissionsBody({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs font-mono">
-        <thead className="border-b border-zinc-800 bg-zinc-950/60 text-zinc-400 uppercase tracking-wider text-[11px]">
+      <table className="data-table">
+        <thead>
           <tr>
-            <th className="py-3 px-4 font-semibold">Submission Record</th>
-            <th className="py-3 px-4 font-semibold">Target Unit</th>
-            <th className="py-3 px-4 font-semibold">Runner Status</th>
-            <th className="py-3 px-4 font-semibold">Verdict</th>
-            <th className="py-3 px-4 text-right font-semibold">Timestamp (UTC)</th>
+            <th scope="col">Submission</th>
+            <th scope="col">Unit</th>
+            <th scope="col">Stage</th>
+            <th scope="col">Verdict</th>
+            <th scope="col">Received (UTC)</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-          {submissions.map((s) => {
-            return (
-              <tr key={s.id} className="hover:bg-zinc-900/60 transition-colors">
-                <td className="py-3 px-4 font-bold text-zinc-100">
-                  <Link
-                    href={`/submissions/${s.id}`}
-                    className="text-emerald-400 hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>Record #{s.id}</span>
-                  </Link>
-                </td>
-                <td className="py-3 px-4 text-zinc-300">UNIT {s.unit_id}</td>
-                <td className="py-3 px-4">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-zinc-700 uppercase">
-                    {s.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                      s.overall === "pass"
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                        : s.overall === "fail"
-                        ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                        : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-                    }`}
-                  >
-                    {s.overall ?? "PENDING"}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right text-zinc-400">{formatUtc(s.created_at)}</td>
-              </tr>
-            );
-          })}
+        <tbody>
+          {submissions.map((s) => (
+            <tr key={s.id}>
+              <td>
+                <Link
+                  href={`/submissions/${s.id}`}
+                  className="text-fern-link underline underline-offset-4 hover:text-phosphor-white"
+                >
+                  #{s.id}
+                </Link>
+              </td>
+              <td className="font-code-mono text-phosphor-white">{s.unit_id}</td>
+              <td>
+                <span className="chip chip-outline">{s.status.toUpperCase()}</span>
+              </td>
+              <td className="text-phosphor-white">{verdictLabel(s)}</td>
+              <td className="text-[color:var(--text-muted-on-dark)]">
+                {formatUtc(s.created_at)}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
-

@@ -3,7 +3,7 @@
 
 Synthesizes weekly personalized digests across the 4 mandatory pillars:
 1. Current Location: Completed units, active unit, current route step.
-2. Next Unlocks: What comes next on the Meridian map and routing path.
+2. Next Unlocks: What comes next on the curriculum map and routing path.
 3. Pod Activity: Highlights of what peers shipped/broke/planned this week from pod_posts.
 4. Rebate & Streak Status: Pledged/earned rebate milestones and deadline timers.
 
@@ -29,8 +29,8 @@ from db import db_sql, sql_str
 from community.email_transport import deliver_email
 from community.pods import current_cohort_week
 
-# Phase & Unit Meridian map structure for location and unlock calculation
-MERIDIAN_UNITS = [
+# Phase and unit curriculum map structure for location and unlock calculation
+CURRICULUM_UNITS = [
     {"id": "0.1", "phase": 0, "title": "Warmup: System Invariant Harness"},
     {"id": "1.1", "phase": 1, "title": "Pydantic Extraction Parser"},
     {"id": "1.2", "phase": 1, "title": "Deterministic Layer-1 Sandbox"},
@@ -56,8 +56,8 @@ MERIDIAN_UNITS = [
     {"id": "12.1", "phase": 12, "title": "Production Insurance Capstone"},
 ]
 
-MERIDIAN_MAP = {u["id"]: u for u in MERIDIAN_UNITS}
-UNIT_ORDER = [u["id"] for u in MERIDIAN_UNITS]
+CURRICULUM_MAP = {u["id"]: u for u in CURRICULUM_UNITS}
+UNIT_ORDER = [u["id"] for u in CURRICULUM_UNITS]
 
 
 def synthesize_student_digest(
@@ -134,7 +134,7 @@ ROLLBACK;
     if not active_unit:
         active_unit = enrolled_units[0] if enrolled_units else "0.1"
 
-    unit_title = MERIDIAN_MAP.get(active_unit, {}).get("title", f"Unit {active_unit}")
+    unit_title = CURRICULUM_MAP.get(active_unit, {}).get("title", f"Unit {active_unit}")
 
     # Determine current route step
     if is_route_completed:
@@ -164,17 +164,17 @@ ROLLBACK;
     }
 
     # Pillar 2: Next Unlocks
-    # Find next 1-3 units after active_unit in Meridian map
+    # Find next 1-3 units after active_unit in the curriculum map
     active_idx = UNIT_ORDER.index(active_unit) if active_unit in UNIT_ORDER else 0
     next_candidates = UNIT_ORDER[active_idx + 1: active_idx + 4]
     next_unlocks_list = []
     for n_id in next_candidates:
-        u_info = MERIDIAN_MAP.get(n_id, {})
+        u_info = CURRICULUM_MAP.get(n_id, {})
         next_unlocks_list.append({
             "unit_id": n_id,
             "title": u_info.get("title", f"Unit {n_id}"),
             "phase": u_info.get("phase", 1),
-            "description": f"Unlocks next on your Meridian track upon clearing Unit {active_unit}.",
+            "description": f"Unlocks next on your track upon clearing Unit {active_unit}.",
         })
 
     if not next_unlocks_list and is_route_completed:
@@ -187,7 +187,7 @@ ROLLBACK;
 
     pillar_next_unlocks = {
         "next_units": next_unlocks_list,
-        "meridian_phase_next": MERIDIAN_MAP.get(next_candidates[0], {}).get("phase", 1) if next_candidates else 13,
+        "next_phase": CURRICULUM_MAP.get(next_candidates[0], {}).get("phase", 1) if next_candidates else 13,
         "summary": f"Passing Unit {active_unit} unlocks {', '.join(u['unit_id'] for u in next_unlocks_list)}.",
     }
 
@@ -353,9 +353,9 @@ def render_digest_email_text(digest_json: dict[str, Any]) -> str:
         f"• Completed Units: {len(loc.get('completed_units', []))} units cleared",
         f"• Note: {loc.get('note')}\n",
         "============================================================",
-        "2. WHAT UNLOCKS NEXT ON MERIDIAN MAP",
+        "2. WHAT UNLOCKS NEXT",
         "============================================================",
-        f"• Next Target Phase: Phase {unlocks.get('meridian_phase_next', 1)}",
+        f"• Next Target Phase: Phase {unlocks.get('next_phase', 1)}",
     ]
     for u in unlocks.get("next_units", []):
         lines.append(f"  - Unit {u.get('unit_id')}: {u.get('title')} ({u.get('description')})")

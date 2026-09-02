@@ -1,7 +1,7 @@
 """The contract: InvoiceExtraction.
 
 WHY a Pydantic model as the single source of truth: we need the SAME schema at both
-enforcement points — (a) the JSON Schema handed to the provider so generation is
+enforcement points: (a) the JSON Schema handed to the provider so generation is
 constrained, and (b) the validation our own code runs on whatever comes back.
 Hand-maintaining both guarantees drift; deriving one from the other guarantees it
 can't.
@@ -16,7 +16,7 @@ INVOICE_TYPES = ("goods", "services", "mixed", "other")
 
 class InvoiceExtraction(BaseModel):
     # WHY extra="forbid": if the model adds a "helpful" extra key, that's a shape
-    # change and we want it to FAIL at the boundary — not flow downstream silently.
+    # change and we want it to FAIL at the boundary, not flow downstream silently.
     model_config = ConfigDict(extra="forbid")
 
     invoice_id: str = Field(min_length=1, description="Vendor invoice identifier, e.g. INV-3091")

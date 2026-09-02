@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""practice/fake_judge_upstream.py — deterministic offline fake OpenAI for retrieval grading (S3.2).
+"""practice/fake_judge_upstream.py — deterministic offline fake OpenAI for retrieval
+and conceptual-completion grading (S3.2, C1a).
 
 Echoes canned retrieval judge verdicts (pass, fail, malformed, prompt-injection defense)
-with OpenAI-shaped responses and token usage accounting.
+and conceptual rubric-criteria verdicts (all-pass, one-criterion-fail, malformed then
+nudge, hallucinated criterion id) with OpenAI-shaped responses and token usage accounting.
 Exposes GET /__count so proof harnesses can assert exact upstream call counts and prove
 zero-forwarding on budget pre-check rejection.
 
@@ -13,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -36,6 +39,69 @@ def bump() -> int:
 def count() -> int:
     with _count_lock:
         return _count
+
+
+def _student_answer_snippet(all_text: str) -> str:
+    m = re.search(r"<student_answer>\n?(.*?)\n?</student_answer>", all_text, re.DOTALL)
+    if not m:
+        return "the submission states the requirement directly"
+    return " ".join(m.group(1).split())[:80]
+
+
+def _conceptual_criteria_ids(system_text: str) -> list[str]:
+    """Criterion ids from the rubric text the practice server substitutes into
+    the judge prompt (RUBRIC_INSERT). Content is data: the fake reads the same
+    rubric the real judge sees instead of hardcoding unit criteria. Scoped to
+    the system message so lesson bullets in the user message can't pollute it."""
+    ids = re.findall(r"^\s*-\s*id:\s*([a-z0-9][a-z0-9-]*)\s*$", system_text, re.MULTILINE)
+    return list(dict.fromkeys(ids))
+
+
+def conceptual_reply(messages: list, all_text: str) -> str:
+    """Canned conceptual judge replies in the rubric criteria-array contract:
+    default all-pass; fail_me -> first criterion fails; unknown_id -> one
+    hallucinated criterion id; malformed_once -> prose until nudged;
+    malformed_double -> prose forever (hard error)."""
+    probe = all_text
+    if "malformed_double" in probe:
+        return "Here is my evaluation: the submission is strong but this is not JSON."
+    if "malformed_once" in probe:
+        is_nudge = any(
+            "Your previous reply was not valid JSON" in str(m.get("content", ""))
+            for m in messages
+        )
+        if not is_nudge:
+            return "Not JSON on first attempt"
+    system_text = next(
+        (str(m.get("content", "")) for m in messages if m.get("role") == "system"),
+        all_text,
+    )
+    ids = _conceptual_criteria_ids(system_text)
+    if not ids:
+        # No rubric found in the prompt: return contract-broken JSON so the
+        # platform's hard-error path surfaces the failure loudly.
+        return json.dumps({"unit": "", "criteria": [], "overall": "pass"})
+
+    unit_m = re.search(r"grading judge for Unit (\d+(?:\.\d+)+)", all_text)
+    unit = unit_m.group(1) if unit_m else ""
+    snippet = _student_answer_snippet(all_text)
+
+    criteria = []
+    for i, cid in enumerate(ids):
+        verdict = "fail" if ("fail_me" in probe and i == 0) else "pass"
+        criteria.append({"id": cid, "verdict": verdict, "evidence": snippet})
+    if "unknown_id" in probe:
+        criteria.append({"id": "hallucinated-nonexistent-criterion", "verdict": "pass", "evidence": snippet})
+
+    # fail_me claims a passing overall: the platform must recompute it from the
+    # rubric pass_rule, never trust the model's arithmetic.
+    model_overall = "fail" if ("fail_me" in probe and "malformed_once" not in probe) else "pass"
+    return json.dumps({
+        "unit": unit,
+        "criteria": criteria,
+        "overall": model_overall,
+        "overall_rationale": "Fake judge verdict for offline smoke proof.",
+    })
 
 
 class FakeJudgeHandler(BaseHTTPRequestHandler):
@@ -80,8 +146,14 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
         messages = req_data.get("messages") or []
         all_text = " ".join(str(m.get("content", "")) for m in messages)
 
+        # Conceptual completion judge (C1a): rubric criteria-array contract.
+        # First branch of the EXCLUSIVE if/elif chain — its student-answer
+        # markers (fail_me / malformed_once / malformed_double) would otherwise
+        # be captured by the retrieval probe branches below.
+        if "Conceptual Problem Prompt" in all_text:
+            reply_content = conceptual_reply(messages, all_text)
         # Concierge Guard Mode
-        if "GUARD MODE" in all_text or "Unit Deliverable Specification" in all_text:
+        elif "GUARD MODE" in all_text or "Unit Deliverable Specification" in all_text:
             if "Ignore all" in all_text or "ignore_instructions" in all_text or "System override" in all_text:
                 reply_content = "In build context the concierge unblocks. It does not write the deliverable. Adversarial override rejected. What error did you encounter when testing your extractor?"
             elif "write" in all_text.lower() or "solution" in all_text.lower() or "deliverable" in all_text.lower() or "code" in all_text.lower():
@@ -95,20 +167,22 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
             else:
                 reply_content = "Schema-constrained decoding guarantees that the model output strictly conforms to the JSON Schema at the token level, eliminating parsing failures. Here is a quick micro-exercise to test your understanding: why does json.loads alone fail to guarantee field types?"
         # Simulation Persona Actor
-        if "You are roleplaying as discovery-call" in all_text:
+        # (elif, not if: chains must stay exclusive or the retrieval default
+        # below would overwrite concierge replies)
+        elif "You are roleplaying as discovery-call" in all_text:
             last_user_msg = ""
             for m in reversed(messages):
                 if m.get("role") == "user":
                     last_user_msg = str(m.get("content", "")).lower()
                     break
             if any(w in last_user_msg for w in ["langchain", "llama", "chatgpt", "fine-tune", "finetune", "rag pipeline", "we build", "vector database"]):
-                reply_content = "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT and it hallucinated coverage rules. I'm not looking for another science experiment that makes my adjusters double-check everything. How does that help us?"
+                reply_content = "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT and it hallucinated supplier discount rules. I'm not looking for another science experiment that makes my specialists double-check everything. How does that help us?"
             elif any(w in last_user_msg for w in ["volume", "how many", "per month", "turnaround", "how long", "bottleneck"]):
-                reply_content = "Right now we're processing around 3,000 claims a month across auto and homeowners. Triage takes 2 to 3 business days per claim. Our senior adjusters are spending roughly 60% of their day just reading through incident reports and matching them against policy exclusions."
-            elif any(w in last_user_msg for w in ["policy", "coverage", "exclusion", "audit", "compliance", "hallucinat", "root cause", "underlying"]):
-                reply_content = "The real nightmare isn't just extracting OCR fields — we can scan PDFs. The hard part is verifying policy coverage accurately against complex exclusionary clauses with a verifiable audit trail compliance can trust."
+                reply_content = "Right now we're processing around 4,000 transactions a month across our commercial suppliers. Triage takes 2 to 3 business days per dispute. Our senior specialists are spending roughly 60% of their day just reading packing slips and damage reports and matching them against purchase orders and return terms."
             elif any(w in last_user_msg for w in ["summary", "to summarize", "in summary", "it sounds like", "so the real bottleneck"]):
-                reply_content = "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured coverage verification piece with a verifiable audit trail without my team having to redo the work, we have a real project."
+                reply_content = "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured contract verification piece with a verifiable audit trail without my team having to redo the work, we have a real project."
+            elif any(w in last_user_msg for w in ["contract", "entitlement", "exclusion", "audit", "compliance", "hallucinat", "root cause", "underlying"]):
+                reply_content = "The real nightmare isn't just extracting OCR fields — we can scan PDFs. The hard part is verifying line items and credits accurately against complex supplier master agreements with a verifiable audit trail compliance can trust."
             else:
                 reply_content = "That's a good question. What else would you like to explore about our workflow?"
         # Simulation Evaluation Judge
@@ -133,10 +207,10 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
                     "passing_threshold_pct": 70.0,
                     "summary": "Solid discovery call. Successfully surfaced root operational pain and workflow metrics without premature pitching.",
                     "criteria": [
-                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 100.0, "passed": True, "feedback": "Uncovered policy verification and compliance audit pain.", "evidence": "Where is the real underlying bottleneck in policy coverage verification?"},
-                        {"id": "explored-process-metrics", "weight": 0.25, "score_pct": 100.0, "passed": True, "feedback": "Explored 3,000/mo volume and 2-3 day triage turnaround.", "evidence": "What is your current monthly claim volume and how long does manual triage take?"},
-                        {"id": "avoided-premature-pitching", "weight": 0.20, "score_pct": 80.0, "passed": True, "feedback": "Pivoted after initial objection into consultative discovery.", "evidence": "Before talking tools, what is your current monthly claim volume"},
-                        {"id": "accurate-problem-summary", "weight": 0.20, "score_pct": 100.0, "passed": True, "feedback": "Accurately summarized the bottleneck.", "evidence": "core bottleneck is not basic OCR extraction, but deterministic policy coverage verification"}
+                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 100.0, "passed": True, "feedback": "Uncovered supplier contract verification and compliance audit pain.", "evidence": "Where is the real underlying bottleneck in supplier contract verification?"},
+                        {"id": "explored-process-metrics", "weight": 0.25, "score_pct": 100.0, "passed": True, "feedback": "Explored 4,000/mo volume and 2-3 day triage turnaround.", "evidence": "What is your current monthly transaction volume and how long does manual triage take?"},
+                        {"id": "avoided-premature-pitching", "weight": 0.20, "score_pct": 80.0, "passed": True, "feedback": "Pivoted after initial objection into consultative discovery.", "evidence": "Before talking tools, what is your current monthly transaction volume"},
+                        {"id": "accurate-problem-summary", "weight": 0.20, "score_pct": 100.0, "passed": True, "feedback": "Accurately summarized the bottleneck.", "evidence": "core bottleneck is not basic OCR extraction, but deterministic supplier contract verification"}
                     ]
                 })
         # Retrieval Judge Probes

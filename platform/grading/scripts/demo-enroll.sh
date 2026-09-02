@@ -194,12 +194,19 @@ check() {  # check <name> <cmd...>
 }
 
 html_has() {  # html_has <cookie-jar-or-"-"> <path> <needle>
-    local jar="$1"
+    # The body is captured and then matched with a bash pattern rather than
+    # piped into `grep -q`. grep exits on its first match, so on a page larger
+    # than the pipe buffer the writer is still writing when the pipe closes,
+    # dies of SIGPIPE, and `set -o pipefail` turns a found needle into a
+    # failed assertion.
+    local jar="$1" body
     if [ "$jar" = "-" ]; then
-        curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2"
+        body="$(curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2")" || return 1
     else
-        curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2"
-    fi | grep -qF "$3"
+        body="$(curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2")" || return 1
+    fi
+    case "$body" in *"$3"*) return 0 ;; esac
+    return 1
 }
 
 # Extract the progressive-enhancement action id from a rendered form:
@@ -253,7 +260,7 @@ do_prove() {
         test "${RESP%% *}" = "303" -a "${RESP#* }" = "$APP/me"
     check "sign-up set the session cookie" grep -q "keel_session" "$JAR_NEW"
     check "/me greets the new account" html_has "$JAR_NEW" /me "pat@keel.test"
-    check "/me links the new grading record" html_has "$JAR_NEW" /me "grading record #2"
+    check "/me links the new grading record" html_has "$JAR_NEW" /me "Grading record #2"
     check "/me shows the honest empty submissions state" html_has "$JAR_NEW" /me "No submissions yet"
 
     echo
@@ -266,7 +273,7 @@ do_prove() {
     RESP="$(post_action "$JAR_ALICE" /sign-up "$ACTION=" "name=Alice" "email=alice@keel.test" "next=/me")"
     check "sign-up with a pusher email answers 303 to /me" \
         test "${RESP%% *}" = "303" -a "${RESP#* }" = "$APP/me"
-    check "/me links alice to grading record #1" html_has "$JAR_ALICE" /me "grading record #1"
+    check "/me links alice to grading record #1" html_has "$JAR_ALICE" /me "Grading record #1"
     check "/me lists her graded submission" html_has "$JAR_ALICE" /me "#1"
     check "no forked student row" \
         test "$(psql_sql "SELECT count(*) FROM students WHERE email='alice@keel.test';")" = "1"
@@ -304,8 +311,8 @@ do_prove() {
              -a "${RETURN_URL#"$APP/checkout/return?session_id=$CS_ID"}" != "$RETURN_URL"
     check "return page confirms enrollment" \
         html_has "$JAR_NEW" "/checkout/return?session_id=$CS_ID&unit=3.2.1" "You are enrolled in unit 3.2.1"
-    check "/me shows the enrolled chip" html_has "$JAR_NEW" /me ">enrolled<"
-    check "/me shows the provisioned budget" html_has "$JAR_NEW" /me "5,000 tokens"
+    check "/me shows the enrolled chip" html_has "$JAR_NEW" /me ">ENROLLED<"
+    check "/me shows the provisioned budget" html_has "$JAR_NEW" /me "of 5,000 used"
     check "exactly one enrollment row in the grading store" \
         test "$(psql_sql "SELECT count(*) FROM enrollments;")" = "1"
     check "exactly one enrollment.activated event" \

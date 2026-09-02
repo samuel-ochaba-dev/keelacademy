@@ -6,7 +6,7 @@ server.py) loads them to compute adaptive practice routes per student.
 For each rule file:
 
   1. validate the parsed YAML against content/schemas/routing.schema.json, and
-  2. check layout consistency — the file name stem must equal the unit_id.
+  2. check layout consistency. The file name stem must equal the unit_id.
 
 Cross-file rules:
   - no two rules may declare the same unit_id.

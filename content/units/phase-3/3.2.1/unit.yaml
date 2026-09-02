@@ -15,13 +15,13 @@ practice:
   retrieval_seeds:
     - "why free-text LLM output cannot be parsed reliably by downstream systems"
     - "why schema-constrained generation beats prompt-promised JSON"
-    - "JSON mode vs tool-calling-style structured outputs — what each actually guarantees"
+    - "JSON mode vs tool-calling-style structured outputs: what each actually guarantees"
     - "Pydantic v2 model_validate as an enforcement boundary, not just a dataclass"
     - "graceful degradation: fallback objects and logged validation failures instead of silent drops"
 build:
   deliverable: "Rebuild your claim extractor (Phase 1/2 work) so it returns a Pydantic-validated `ClaimExtraction` object every time, with a defined fallback when the model's output fails validation."
   submission: repo
-  data_variant: meridian@v3
+  data_variant: omnisupply@v3
 verify:
   layers: [1, 2, 3]
   deterministic_checks: checks/3.2.1.build.yaml

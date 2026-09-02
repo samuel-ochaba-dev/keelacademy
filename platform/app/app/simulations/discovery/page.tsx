@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { ensureStudent } from "@/lib/enroll";
@@ -8,8 +9,7 @@ import { SimulationWorkbench } from "@/components/simulation/simulation-workbenc
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Discovery-Call Simulation — Keel Academy",
-  description: "Rehearse high-stakes prospect discovery calls with scored rubric feedback (§11.5.1).",
+  title: "Run a discovery call",
   robots: { index: false },
 };
 
@@ -25,40 +25,44 @@ export default async function DiscoverySimulationPage() {
   let initialSession: SimulationSession | null = null;
   if (studentId > 0) {
     const listRes = await listStudentSimulations(studentId);
-    if (listRes.state === "ok" && listRes.data.length > 0) {
-      const latestSummary = listRes.data[0];
-      const detailRes = await getSimulation(latestSummary.id, studentId);
-      if (detailRes.state === "ok") {
-        initialSession = detailRes.data;
+    if (listRes.state === "ok") {
+      const latestSummary = listRes.data.find((s) => s.persona_id === "discovery-call");
+      if (latestSummary) {
+        const detailRes = await getSimulation(latestSummary.id, studentId);
+        if (detailRes.state === "ok") {
+          initialSession = detailRes.data;
+        }
       }
     }
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            PHASE 11 • BUSINESS SIMULATION ENGINE
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-            Discovery-Call Practice Workbench
-          </h1>
-          <p className="text-xs text-zinc-400 font-sans">
-            Rehearse consultative discovery with AI prospect personas. Score your reps against the curriculum&apos;s §11.5.1 checklist before booking live client calls.
-          </p>
-        </div>
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <nav
+          aria-label="Breadcrumb"
+          className="text-[13px] text-[color:var(--text-faint-on-dark)]"
+        >
+          <Link href="/simulations" className="hover:text-phosphor-white">
+            Practice conversations
+          </Link>
+          <span className="px-2">/</span>
+          <span className="text-[color:var(--text-muted-on-dark)]">Discovery call</span>
+        </nav>
+        <h1 className="heading-xl mt-7 max-w-[28ch]">Run a discovery call</h1>
+        <p className="lead mt-5 max-w-[68ch]">
+          You have thirty minutes with an operations lead who has a problem and no idea what to
+          build. Your job is to find the problem, not to pitch a solution.
+        </p>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 mx-auto max-w-5xl w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="shell py-12">
         <SimulationWorkbench
           initialSession={initialSession}
           studentId={studentId}
+          personaId="discovery-call"
         />
-      </main>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,11 @@
-id: meridian@v3
+id: omnisupply@v3
 generator:
-  script: generators/meridian_v3.py
+  script: generators/omnisupply_v3.py
 parameters:
-  - name: claim_count
+  - name: dispute_count
     range: { min: 120, max: 400 }
-    description: "number of claim notes in the corpus"
-  - name: policy_clause_set
+    description: "number of dispute notes in the corpus"
+  - name: contract_clause_set
     range: { values: ["standard", "expanded", "adversarial"] }
 seed_rule:
   per_student: hash(student_id, unit_id)

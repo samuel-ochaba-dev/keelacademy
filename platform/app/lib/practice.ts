@@ -533,7 +533,7 @@ export type DigestLocationPillar = {
 
 export type DigestNextUnlocksPillar = {
   next_units: { unit_id: string; title: string; phase: number; description: string }[];
-  meridian_phase_next: number;
+  next_phase: number;
   summary: string;
 };
 

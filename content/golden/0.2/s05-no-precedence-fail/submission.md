@@ -1,0 +1,1 @@
+We have 4 layers: Layer 1 automated unit tests, Layer 2 LLM judge for rubrics, Layer 3 defend your work interview, and Layer 4 recorded walkthroughs. Phase 11 runs alongside technical modules from day one so students learn how to get clients.

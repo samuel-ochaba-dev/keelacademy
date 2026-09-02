@@ -1,0 +1,10 @@
+submission: s01-textbook
+expected: pass
+criteria:
+  verification-stages-analysis: pass
+  checks-before-review-rationale: pass
+  parallel-business-track-rationale: pass
+overall: pass
+grader_notes: "Reference-quality submission. Clear explanations of all four verification stages, precise rationale for running automated checks before rubric review, and commercial rationale for Phase 11 pacing."
+graded_by: human
+graded_on: 2026-08-25

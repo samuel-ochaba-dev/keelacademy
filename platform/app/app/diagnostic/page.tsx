@@ -10,8 +10,7 @@ import { DiagnosticWorkbench } from "@/components/diagnostic-workbench";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Phase 1 Foundations Placement Diagnostic — Keel Academy",
-  description: "20-minute adaptive foundations check to determine initial placement and unit skips.",
+  title: "Placement check",
   robots: { index: false },
 };
 
@@ -27,14 +26,15 @@ export default async function DiagnosticPage() {
   const diagnostic = loadPlacementDiagnostic("placement-phase-1");
   if (!diagnostic) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-        <div className="max-w-xl mx-auto rounded-lg border border-red-500/30 bg-red-950/20 p-6 text-center space-y-3">
-          <h1 className="font-mono text-lg font-bold text-red-300">Diagnostic Specification Unavailable</h1>
-          <p className="text-xs text-zinc-400 font-sans">
-            Unable to load placement diagnostic specification from content repository.
+      <div className="shell section">
+        <div className="card-dark max-w-[62ch]">
+          <h1 className="heading-lg">We could not load the placement check</h1>
+          <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            Nothing is wrong with your account. Refresh in a moment, or start at the beginning
+            and skip this entirely.
           </p>
-          <Link href="/map" className="inline-block text-xs font-mono text-emerald-400 underline">
-            Proceed to Curriculum Map
+          <Link href="/map" className="btn btn-primary btn-sm mt-7">
+            Open your map
           </Link>
         </div>
       </div>
@@ -50,31 +50,27 @@ export default async function DiagnosticPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            DAY-ZERO ADAPTIVE GATE
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">
-            Foundations Placement Diagnostic
-          </h1>
-          <p className="text-xs text-zinc-400 font-sans">
-            Establish your starting point on the Meridian architecture: skip to Unit 1.3 or start at baseline.
-          </p>
-        </div>
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <p className="eyebrow">Placement check</p>
+        <h1 className="heading-xl mt-4 max-w-[28ch]">
+          Skip what you already know, or start at the beginning
+        </h1>
+        <p className="lead mt-5 max-w-[68ch]">
+          {`${diagnostic.questions.length} multiple-choice questions, about ${diagnostic.est_minutes} minutes. Score ${diagnostic.passing_threshold_pct}% or better and units ${diagnostic.pass_skip_units.join(", ")} open without you working through them. Score under that and you start at ${diagnostic.fail_baseline_units.join(", ")}, which is where everyone else starts.`}
+        </p>
+        <p className="mt-5 max-w-[68ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          This is not graded work and it costs nothing. You can skip it and lose nothing.
+        </p>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+      <div className="shell py-12">
         <DiagnosticWorkbench
           diagnostic={diagnostic}
           studentId={studentId}
           initialAttempts={initialAttempts}
         />
-      </main>
+      </div>
     </div>
   );
 }

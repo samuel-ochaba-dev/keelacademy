@@ -17,7 +17,7 @@ def ask(note):
 
 def extract(rec):
     text = ask(rec["notes"])
-    m_type = re.search(r"(fire|water|auto|liability)", text.lower())
+    m_type = re.search(r"(damage|shortage|late_delivery|overbilling)", text.lower())
     m_amt = re.search(r"\$?\s*([\d,]+(?:\.\d{2})?)", text)
     return {"claim_id": rec["claim_id"],
             "claim_type": m_type.group(1) if m_type else "other",

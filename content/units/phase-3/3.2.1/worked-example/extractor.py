@@ -12,7 +12,7 @@ from llm import call_model
 from notes import INVOICE_NOTES
 from schemas import InvoiceExtraction
 
-# WHY a named logger (not print): the failure log is an artifact of the pipeline —
+# WHY a named logger (not print): the failure log is an artifact of the pipeline:
 # it must be capturable by tests, redirectable to the ops sink, and greppable by
 # claim-id/invoice-id in production. Logger names also make the source obvious.
 logger = logging.getLogger("invoice_extraction")
@@ -22,7 +22,7 @@ def _strip_fences(text: str) -> str:
     """Remove markdown code fences some models still wrap around JSON.
 
     WHY: even with JSON mode on, some providers/models emit fences. This is a
-    known, mechanical wart — fix it mechanically, but ONLY as preprocessing;
+    known, mechanical wart: fix it mechanically, but ONLY as preprocessing;
     never as a substitute for validation.
     """
     stripped = text.strip()
@@ -65,12 +65,12 @@ def extract(note: str, index: int, invoice_id: str) -> InvoiceExtraction:
     except json.JSONDecodeError as exc:
         reason = f"unparseable model output: {exc.msg} (pos {exc.pos})"
     except ValidationError as exc:
-        # exc.errors() gives structured (loc, msg) pairs — flatten to a readable,
+        # exc.errors() gives structured (loc, msg) pairs, flatten to a readable,
         # greppable reason instead of dumping the whole traceback at the log sink.
         reason = "; ".join(
             f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in exc.errors()
         )
-    # Single fallback path for both failure classes — log THEN return, so the log
+    # Single fallback path for both failure classes: log THEN return, so the log
     # record exists even if a consumer downstream crashes on the fallback.
     logger.error(
         "FALLBACK invoice_id=%s index=%d reason='%s'", invoice_id, index, reason
@@ -98,7 +98,7 @@ def main() -> int:
           f"({len(ok)} extracted, {len(failed)} flagged for review)\n")
     for r in results:
         marker = "OK     " if not r.extraction_failed else "FLAGGED"
-        amount = f"${r.total_amount_usd:,.2f}" if r.total_amount_usd is not None else "—"
+        amount = f"${r.total_amount_usd:,.2f}" if r.total_amount_usd is not None else "-"
         print(f"  {marker} {r.invoice_id} {r.invoice_type:8s} {r.vendor[:26]:26s} {amount}")
         if r.extraction_failed:
             print(f"          reason: {r.failure_reason}")

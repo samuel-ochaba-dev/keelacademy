@@ -2,12 +2,12 @@
 #
 # Submission contract (what the checks assume about the student's repo):
 #   extract_claims.py        runnable pipeline; defines the Pydantic ClaimExtraction
-#   claims_messy.jsonl       the 20 messy claim texts from the student's data variant
+#   claims_messy.jsonl       the 20 messy dispute texts for this unit
 #   tests/test_build.py      pytest suite the student wrote (1.5.1 habit)
 #   CLI: python extract_claims.py --data claims_messy.jsonl --out out.jsonl --log run.log
 #
 # These checks encode the curriculum's Prove-it bar verbatim: "Running it against
-# 20 messy real-world-style claim texts produces 20 valid schema objects — with
+# 20 messy real-world-style claim texts produces 20 valid schema objects, with
 # the failures logged, not silently dropped."
 
 - id: schema-object-importable

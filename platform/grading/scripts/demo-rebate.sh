@@ -184,12 +184,19 @@ check() {  # check <name> <cmd...>
 }
 
 html_has() {  # html_has <cookie-jar-or-"-"> <path> <needle>
-    local jar="$1"
+    # The body is captured and then matched with a bash pattern rather than
+    # piped into `grep -q`. grep exits on its first match, so on a page larger
+    # than the pipe buffer the writer is still writing when the pipe closes,
+    # dies of SIGPIPE, and `set -o pipefail` turns a found needle into a
+    # failed assertion.
+    local jar="$1" body
     if [ "$jar" = "-" ]; then
-        curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2"
+        body="$(curl -sf --max-time 30 "http://127.0.0.1:$APP_PORT$2")" || return 1
     else
-        curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2"
-    fi | grep -qF "$3"
+        body="$(curl -sf --max-time 30 -b "$jar" "http://127.0.0.1:$APP_PORT$2")" || return 1
+    fi
+    case "$body" in *"$3"*) return 0 ;; esac
+    return 1
 }
 
 action_id() {  # action_id <html-file>
@@ -273,7 +280,7 @@ do_prove() {
     check "riley pays via the fake checkout" pay_enrollment "$JAR_RILEY"
     RILEY_ID="$(student_id_by_email riley@keel.test)"
     check "/me shows no rebate section before any pledge" \
-        test "$(curl -sf --max-time 30 -b "$JAR_PAT" "$APP/me" | grep -cF '30% COMPLETION REBATE LEDGER')" = "0"
+        test "$(curl -sf --max-time 30 -b "$JAR_PAT" "$APP/me" | grep -cF 'Completion rebates')" = "0"
 
     echo
     echo "== proof 2: gate.pledged -> pending on /me =="
@@ -286,9 +293,9 @@ do_prove() {
         html_has "$JAR_PAT" /me "Phase 5 integration gate"
     check "/me shows the pending chip and the window" \
         html_has "$JAR_PAT" /me ">PENDING<"
-    check "/me names the window end" html_has "$JAR_PAT" /me "Target window open until"
-    check "/me says the credit needs a verified passage" \
-        html_has "$JAR_PAT" /me "Credited automatically on verified gate pass"
+    check "/me names the window end" html_has "$JAR_PAT" /me "Window open until"
+    check "/me says the credit needs a passing verdict" \
+        html_has "$JAR_PAT" /me "Pass the gate before then"
 
     echo
     echo "== proof 3: verified gate.passed inside the window -> earned on /me =="
@@ -302,7 +309,7 @@ do_prove() {
     check "/me shows the earned chip and the amount" \
         bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>EARNED<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '\$1.85'"
     check "/me is honest that a person issues the refund" \
-        html_has "$JAR_PAT" /me "Payout initiated to card via Stripe"
+        html_has "$JAR_PAT" /me "We refund it to your card by hand"
 
     echo
     echo "== proof 4: replayed gate event changes nothing (earn-once) =="
@@ -327,7 +334,7 @@ do_prove() {
     check "expiry is event-sourced" \
         test "$(psql_sql "SELECT count(*) FROM events WHERE type='rebate.expired';")" = "1"
     check "/me shows the expired chip and the honest copy" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>EXPIRED<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF 'without verified pass'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>EXPIRED<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF 'without a passing verdict'"
 
     echo
     echo "== proof 6: runbook payout mark -> paid on /me (ledger only) =="
@@ -341,7 +348,7 @@ do_prove() {
     check "transition carries who/what/when" \
         test "$(psql_sql "SELECT actor || ':' || reason FROM rebate_transitions WHERE to_status='paid';")" = "founder:stripe refund re_demo_001"
     check "/me shows the paid chip and the refunded amount" \
-        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>PAID<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF 'issued to payment method'"
+        bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>PAID<' && curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF 'to your payment method on'"
     check "/me is the final state: pat paid, riley expired" \
         bash -c "curl -sf --max-time 30 -b '$JAR_PAT' '$APP/me' | grep -qF '>PAID<' && curl -sf --max-time 30 -b '$JAR_RILEY' '$APP/me' | grep -qF '>EXPIRED<'"
 

@@ -33,21 +33,21 @@ questions:
     prompt: |
       Given the following Python snippet:
       ```python
-      claims = [{"id": 1, "type": "auto"}, {"id": 2, "type": "home"}, {"id": 3, "type": "auto"}]
-      auto_ids = {c["id"] for c in claims if c.get("type") == "auto"}
+      disputes = [{"id": 1, "type": "damage"}, {"id": 2, "type": "shortage"}, {"id": 3, "type": "damage"}]
+      damage_ids = {d["id"] for d in disputes if d.get("type") == "damage"}
       ```
-      What is the type and exact value of `auto_ids`?
+      What is the type and exact value of `damage_ids`?
     options:
       - id: "opt_a"
         label: "list with value [1, 3]"
       - id: "opt_b"
         label: "set with value {1, 3}"
       - id: "opt_c"
-        label: "dict with value {1: 'auto', 3: 'auto'}"
+        label: "dict with value {1: 'damage', 3: 'damage'}"
       - id: "opt_d"
         label: "tuple with value (1, 3)"
     correct_answer: "opt_b"
-    explanation: "Braces with a comprehension `{c['id'] for c in ...}` produce a set containing the extracted elements {1, 3}."
+    explanation: "Braces with a comprehension `{d['id'] for d in ...}` produce a set containing the extracted elements {1, 3}."
 
   - id: "q2_dict_mutation"
     category: "syntax_data_structures"

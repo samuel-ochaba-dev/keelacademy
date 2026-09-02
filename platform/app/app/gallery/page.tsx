@@ -1,229 +1,152 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchGalleryProjects } from "@/lib/gallery";
-import { formatUtc } from "@/lib/grading";
+import { loadCurriculumMap } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Public Build Gallery — Keel Academy",
+  title: "What students built",
   description:
-    "Opt-in showcase of verified Meridian-style systems and production portfolio deliverables shipped by students across cohorts.",
+    "Projects students chose to publish, each one attached to the verdict that passed it.",
 };
 
 type Props = {
-  searchParams: Promise<{
-    phase?: string;
-    unit_id?: string;
-    search?: string;
-  }>;
+  searchParams: Promise<{ phase?: string; unit_id?: string; search?: string }>;
 };
-
-const PHASE_FILTERS = [
-  { label: "All Phases", value: undefined },
-  { label: "Phase 0: Setup", value: "0" },
-  { label: "Phase 1: Foundations", value: "1" },
-  { label: "Phase 2: LLM Physics", value: "2" },
-  { label: "Phase 3: Prompts & Schemas", value: "3" },
-  { label: "Phase 5: Agents & Triage", value: "5" },
-  { label: "Phase 12: Capstone", value: "12" },
-];
 
 export default async function GalleryPage({ searchParams }: Props) {
   const { phase, unit_id, search } = await searchParams;
   const phaseNum = phase !== undefined && phase !== "" ? parseInt(phase, 10) : undefined;
-
   const result = await fetchGalleryProjects({
     phase: isNaN(phaseNum as number) ? undefined : phaseNum,
     unitId: unit_id || undefined,
     search: search || undefined,
     limit: 50,
   });
-
   const projects = result.state === "ok" ? result.data.projects : [];
   const total = result.state === "ok" ? result.data.total : 0;
 
+  const phaseFilters = [
+    { label: "All phases", value: undefined as string | undefined },
+    ...loadCurriculumMap().phases.map((p) => ({
+      label: `Phase ${p.phase}`,
+      value: String(p.phase),
+    })),
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Gallery Showcase Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              OPT-IN PUBLIC PORTFOLIO SHOWCASE
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold font-mono tracking-tight text-zinc-100">
-              Public Build Gallery
-            </h1>
-            <p className="text-sm sm:text-base text-zinc-400 max-w-3xl font-sans leading-relaxed">
-              Real Meridian-style insurance extraction pipelines, multi-agent triage architectures, and
-              production capstones shipped by Keel Academy learners. Every project in this showcase holds a
-              cryptographically verified PASS verdict from the automated grading engine.
-            </p>
-          </div>
-
-          {/* Search & Filter Controls */}
-          <div className="pt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Phase Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {PHASE_FILTERS.map((f) => {
-                const isActive = (phase === undefined && f.value === undefined) || phase === f.value;
-                const href = f.value !== undefined ? `/gallery?phase=${f.value}` : "/gallery";
-                return (
-                  <Link
-                    key={f.label}
-                    href={href}
-                    className={`rounded-full px-3 py-1 text-xs font-mono transition-colors ${
-                      isActive
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 font-semibold"
-                        : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
-                    }`}
-                  >
-                    {f.label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Total verified badge */}
-            <div className="text-xs font-mono text-zinc-400 self-start md:self-auto">
-              <span className="text-emerald-400 font-bold">{total}</span> VERIFIED SHOWCASES
-            </div>
-          </div>
-        </div>
+    <div>
+      <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
+        <p className="eyebrow">Published work</p>
+        <h1 className="heading-xl mt-4">What students built</h1>
+        <p className="lead mt-5 max-w-[68ch]">
+          Every project here passed its unit and was published by the student who wrote it.
+          Each one shows how many rubric criteria it cleared.
+        </p>
+        <p className="mt-6 font-code-mono text-[13px] text-moss-70">
+          {result.state === "ok"
+            ? total === 1
+              ? "1 published project"
+              : `${total.toLocaleString("en-US")} published projects`
+            : "Count unavailable"}
+        </p>
       </header>
 
-      {/* Main Grid Section */}
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          {result.state !== "ok" ? (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-8 text-center space-y-3 font-mono">
-              <h2 className="text-base font-bold text-amber-300">Showcase Service Temporarily Offline</h2>
-              <p className="text-xs text-zinc-400">
-                The public gallery discovery service is currently restarting. Refresh in a moment.
-              </p>
+      <div className="shell py-12">
+        <section aria-label="Filters" className="space-y-6">
+          <nav aria-label="Filter by phase">
+            <ul className="flex flex-wrap gap-2">
+              {phaseFilters.map((f) => {
+                const href = f.value !== undefined ? `/gallery?phase=${f.value}` : "/gallery";
+                const active = (phase ?? undefined) === f.value;
+                return (
+                  <li key={f.label}>
+                    <Link
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={
+                        active
+                          ? "chip chip-live no-underline"
+                          : "chip chip-outline no-underline hover:text-phosphor-white"
+                      }
+                    >
+                      {f.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <form action="/gallery" method="get" className="flex flex-wrap items-end gap-3">
+            {phase ? <input type="hidden" name="phase" value={phase} /> : null}
+            <div className="min-w-[16rem] flex-1">
+              <label htmlFor="gallery-search" className="field-label">
+                Search titles and descriptions
+              </label>
+              <input
+                id="gallery-search"
+                name="search"
+                type="search"
+                defaultValue={search ?? ""}
+                placeholder="invoice reconciliation"
+                className="field-input"
+              />
             </div>
-          ) : projects.length === 0 ? (
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-12 text-center space-y-4 font-mono">
-              <div className="text-3xl">🏛️</div>
-              <h2 className="text-base font-bold text-zinc-200">No Showcase Projects Found</h2>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed font-sans">
-                {phase !== undefined
-                  ? `No verified projects have been opted into the public gallery for Phase ${phase} yet.`
-                  : "No student deliverables have been published to the gallery yet."}
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/gallery"
-                  className="rounded border border-zinc-700 bg-zinc-800 px-3.5 py-1.5 text-xs font-mono text-zinc-200 hover:bg-zinc-700"
-                >
-                  Clear Phase Filter
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((proj) => (
-                <article
-                  key={proj.id}
-                  className="group relative flex flex-col justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900/80"
-                >
-                  <div className="space-y-3">
-                    {/* Card Top Pill Strip */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400 uppercase">
-                          PHASE 0{proj.phase} · UNIT {proj.unit_id}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-zinc-500">
-                        {formatUtc(proj.created_at)}
-                      </span>
-                    </div>
-
-                    {/* Title & Author */}
-                    <div>
-                      <h2 className="text-base font-bold font-mono text-zinc-100 group-hover:text-emerald-300 transition-colors line-clamp-2">
-                        <Link href={`/gallery/${proj.id}`}>
-                          <span className="absolute inset-0" aria-hidden="true" />
-                          {proj.title}
-                        </Link>
-                      </h2>
-                      <p className="mt-1 text-xs font-mono text-zinc-400">
-                        By <span className="text-zinc-200">{proj.student_name}</span>
-                      </p>
-                    </div>
-
-                    {/* Description Snippet */}
-                    <p className="text-xs text-zinc-400 font-sans line-clamp-3 leading-relaxed">
-                      {proj.description}
-                    </p>
-                  </div>
-
-                  {/* Card Bottom: Verification Proof Badge & Links */}
-                  <div className="mt-6 pt-4 border-t border-zinc-800/80 space-y-3">
-                    {/* Rubric Verification Badge */}
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                      <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold">
-                        <span>✓</span>
-                        <span>VERIFIED PASS</span>
-                      </span>
-                      <span className="text-zinc-500 text-[10px]">
-                        {proj.verdict.criteria_passed > 0
-                          ? `${proj.verdict.criteria_passed}/${proj.verdict.total_criteria} CRITERIA`
-                          : "RUBRIC PROOF"}
-                      </span>
-                    </div>
-
-                    {/* Links Row */}
-                    <div className="flex items-center justify-between text-xs font-mono pt-1 text-zinc-400">
-                      <span className="text-emerald-400 group-hover:underline inline-flex items-center gap-1">
-                        View showcase &rarr;
-                      </span>
-                      <div className="flex items-center gap-2 relative z-10">
-                        {proj.repo_url && (
-                          <a
-                            href={proj.repo_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-zinc-400 hover:text-zinc-100 p-1"
-                            title="GitHub Repository"
-                          >
-                            Repo
-                          </a>
-                        )}
-                        {proj.walkthrough_video_url && (
-                          <a
-                            href={proj.walkthrough_video_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-purple-400 hover:text-purple-300 p-1"
-                            title="Video Walkthrough"
-                          >
-                            Video
-                          </a>
-                        )}
-                        {proj.demo_url && (
-                          <a
-                            href={proj.demo_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sky-400 hover:text-sky-300 p-1"
-                            title="Live Demo"
-                          >
-                            Demo
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+            <button type="submit" className="btn btn-primary btn-sm">
+              Search
+            </button>
+          </form>
+        </section>
+        {result.state !== "ok" ? (
+          <div className="card-dark mt-10 max-w-[62ch]">
+            <h2 className="heading-md">We could not load the gallery</h2>
+            <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              The server that holds published projects did not answer. Refresh in a moment.
+            </p>
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="card-dark mt-10 max-w-[62ch]">
+            <h2 className="heading-md">Nothing matches that</h2>
+            <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+              {search || phase
+                ? "No published project matches those filters yet. Try a wider search."
+                : "No projects have been published yet."}
+            </p>
+          </div>
+        ) : (
+          <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((proj) => (
+              <li key={proj.id} className="card-dark flex flex-col">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="chip chip-outline">UNIT {proj.unit_id}</span>
+                  <span className="font-code-mono text-[12.5px] text-[color:var(--text-faint-on-dark)]">
+                    Phase {proj.phase}
+                  </span>
+                </div>
+                <h2 className="mt-4 font-goga text-[19px] leading-snug font-medium">
+                  <Link
+                    href={`/gallery/${proj.id}`}
+                    className="text-phosphor-white underline-offset-4 hover:underline"
+                  >
+                    {proj.title}
+                  </Link>
+                </h2>
+                <p className="mt-2 text-[13.5px] text-[color:var(--text-faint-on-dark)]">
+                  {proj.student_name}
+                </p>
+                <p className="mt-4 flex-1 text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+                  {proj.description}
+                </p>
+                <p className="mt-6 border-t border-[color:var(--line-on-dark-strong)] pt-4 font-code-mono text-[13px] text-moss-70">
+                  {`${proj.verdict.criteria_passed} of ${proj.verdict.total_criteria} criteria passed`}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

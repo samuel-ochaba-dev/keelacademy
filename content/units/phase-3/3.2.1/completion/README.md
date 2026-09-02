@@ -1,4 +1,4 @@
-# Completion problem — Invoice-notes extractor
+# Completion problem: invoice-notes extractor
 
 This is the worked example with **six gaps**. It runs as shipped, but its checks
 FAIL. Fill every `# GAP n` marker until `pytest test_extractor.py` is fully green.
@@ -22,6 +22,6 @@ pytest test_extractor.py        # red until all gaps filled
 python extractor.py             # watch the pipeline get healthier gap by gap
 ```
 
-Stuck? The worked example (../worked-example/) solves the identical task — but try
+Stuck? The worked example (../worked-example/) solves the identical task, but try
 each gap from the lesson (units/phase-3/3.2.1/learn.md) first; that's where the
 transfer happens.

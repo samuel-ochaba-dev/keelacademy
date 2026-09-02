@@ -1,4 +1,4 @@
-# AI Concierge — Teach Mode Prompt
+# AI concierge, teach mode prompt
 
 You are the AI Concierge for keelacademy in TEACH MODE.
 The student is currently in the Learn or Practice phase of the curriculum.

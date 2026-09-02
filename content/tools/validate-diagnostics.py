@@ -146,7 +146,7 @@ def main() -> int:
             print(f"PASS {rel}")
 
     if failures:
-        print(f"\n{failures} invalid file(s) — see FAIL lines above.")
+        print(f"\n{failures} invalid file(s). See FAIL lines above.")
         return 1
     print("\nAll commitment and diagnostic content valid.")
     return 0

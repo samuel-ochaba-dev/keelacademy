@@ -1,0 +1,10 @@
+submission: s04-buzzwords-fail
+expected: fail
+criteria:
+  jargon-free-problem-statement: fail
+  three-stakeholder-definitions: fail
+  operational-workflow-mapping: fail
+overall: fail
+grader_notes: "Fails on buzzwords and vagueness. Uses AI/LLM jargon extensively in place of actual operational analysis and lacks concrete stakeholder metrics."
+graded_by: human
+graded_on: 2026-08-25

@@ -1,0 +1,10 @@
+submission: s05-no-precedence-fail
+expected: fail
+criteria:
+  verification-stages-analysis: pass
+  checks-before-review-rationale: fail
+  parallel-business-track-rationale: pass
+overall: fail
+grader_notes: "Fails because it provides zero explanation of why automated checks must run and pass before rubric review."
+graded_by: human
+graded_on: 2026-08-25

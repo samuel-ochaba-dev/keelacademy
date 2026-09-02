@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""platform/grading/scripts/smoke-routing-checks.py — S3.4 adaptive routing checks.
+"""platform/grading/scripts/smoke-routing-checks.py: S3.4 adaptive routing checks.
 
 Deterministic test battery (no sleeps; the clock is KEEL_PRACTICE_NOW_FILE):
 
@@ -48,7 +48,7 @@ UNIT = "3.2.1"
 SEEDS = [
     "why free-text LLM output cannot be parsed reliably by downstream systems",
     "why schema-constrained generation beats prompt-promised JSON",
-    "JSON mode vs tool-calling-style structured outputs — what each actually guarantees",
+    "JSON mode vs tool-calling-style structured outputs: what each actually guarantees",
     "Pydantic v2 model_validate as an enforcement boundary, not just a dataclass",
     "graceful degradation: fallback objects and logged validation failures instead of silent drops",
 ]

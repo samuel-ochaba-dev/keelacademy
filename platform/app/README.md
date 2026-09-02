@@ -11,7 +11,7 @@ unstyled semantic HTML with zero CSS applied.
 Do not treat anything about the current presentation as a design decision
 — not the structure, ordering, markup patterns, and NOT the copy strings
 either. The current text (ALL-CAPS badges, "Submission Engine", "Learner
-Cockpit", "Meridian Map", the footer voice) is placeholder copy inherited
+Cockpit", "OmniSupply Map", the footer voice) is placeholder copy inherited
 from the torn-down design; it carries no voice decision and will be
 rewritten from scratch. Do not mine git history for the removed design.
 

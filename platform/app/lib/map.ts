@@ -56,7 +56,7 @@ export type ResolvedPhase = {
   };
 };
 
-export type MeridianMapState = {
+export type ProgressMapState = {
   skeleton: CurriculumMap;
   phases: ResolvedPhase[];
   stats: {
@@ -75,11 +75,11 @@ export type MeridianMapState = {
   };
 };
 
-export function buildMeridianMap(
+export function buildProgressMap(
   profile: StudentProfile | null,
   submissions: OwnSubmission[],
   gates: StudentGates | null,
-): MeridianMapState {
+): ProgressMapState {
   const skeleton = loadCurriculumMap();
   const gateRules = loadGateRules();
   const authoredUnitsList = listUnits();

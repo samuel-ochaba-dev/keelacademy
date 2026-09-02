@@ -7,6 +7,6 @@ def test_twenty_in_twenty_out():
     assert all(isinstance(o, ClaimExtraction) for o in out)
 def test_bad_input_yields_flagged_object_not_exception(monkeypatch):
     import extract_claims as ec
-    monkeypatch.setattr(ec, "call", lambda n: '{"claim_type": "fire", "severity": "x" * 99, "bogus": 1}')
+    monkeypatch.setattr(ec, "call", lambda n: '{"claim_type": "damage", "severity": "x" * 99, "bogus": 1}')
     o = extract(RECS[0])
     assert o.extraction_failed and o.failure_reason

@@ -1,0 +1,10 @@
+submission: s05-hardcoded-keys-fail
+expected: fail
+criteria:
+  containerized-sandbox-rationale: pass
+  spend-limit-safeguards: pass
+  api-secret-management-discipline: fail
+overall: fail
+grader_notes: "Fails because it advocates hardcoding API keys directly into source files, violating basic credential security discipline."
+graded_by: human
+graded_on: 2026-08-25

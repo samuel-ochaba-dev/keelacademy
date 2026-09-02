@@ -1,11 +1,12 @@
-# Worked example — Invoice-notes extractor (parallel task)
+# Worked example: invoice-notes extractor (parallel task)
 
 This solves a task with the **same structure** as your Build, but in a different
-domain (vendor invoice notes instead of insurance claims) — so reading it teaches you
+domain (invoice notes at a logistics company instead of OmniSupply's dispute
+notes), so reading it teaches you
 the pattern without handing you the deliverable.
 
 **The task:** Harbor Point Logistics receives free-text notes about vendor invoices.
-Build an extractor that turns each note into a validated `InvoiceExtraction` — every
+Build an extractor that turns each note into a validated `InvoiceExtraction`, every
 time, with a defined fallback when the model's output fails validation, and failures
 logged, never dropped.
 
@@ -37,12 +38,12 @@ ambiguous values). The real provider call is marked and shown in comments.
    JSON Schema sent to the provider is *derived* from it (`model_json_schema()`).
    Never hand-maintain both.
 2. **Fallback is a value, not an exception.** Failed extraction produces a valid
-   `InvoiceExtraction` with `extraction_failed=True` and a reason — consumers never
+   `InvoiceExtraction` with `extraction_failed=True` and a reason, so consumers never
    see `None`, crashes, or missing records.
 3. **Conservation at the loop level.** The runner zips inputs to outputs; the *tests*
    assert 10 in → 10 out. N-in/N-out is a property you must test for, not assume.
 4. **Accountability via logging.** Every fallback logs invoice id + validation
    reason. The test captures the log and asserts fallbacks and log lines pair up.
 5. **Offline determinism.** The fake model makes the example runnable and testable
-   without keys or network — the same property that makes YOUR build's tests
+   without keys or network, the same property that makes YOUR build's tests
    reproducible. Swap the adapter's `call` for your 2.4.2 provider wrapper.

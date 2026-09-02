@@ -7,6 +7,6 @@ criteria:
   failures-logged: pass
   conservation-tested: pass
 overall: fail
-grader_notes: "BORDERLINE. Hand-rolled dict checks replace model_validate ('don't trust pydantic magic') — and they drift from the schema already: no extra='forbid', no loss_date, amount type-check misses bool (isinstance(True, int)). The boundary the rubric names (ClaimExtraction validation) is bypassed even though outputs end up typed. Single-criterion fail; judges may argue constructing ClaimExtraction IS validation. Good calibration case."
+grader_notes: "BORDERLINE. Hand-rolled dict checks replace model_validate ('don't trust pydantic magic'), and they drift from the schema already: no extra='forbid', no incident_date, amount type-check misses bool (isinstance(True, int)). The boundary the rubric names (ClaimExtraction validation) is bypassed even though outputs end up typed. Single-criterion fail; judges may argue constructing ClaimExtraction IS validation. Good calibration case."
 graded_by: human
 graded_on: 2026-08-21

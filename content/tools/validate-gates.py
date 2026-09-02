@@ -6,7 +6,7 @@ engine.py) loads them to decide which verdicts it evaluates and what they
 unlock. For each rule file:
 
   1. validate the parsed YAML against content/schemas/gate.schema.json, and
-  2. check layout consistency — the file name stem must equal the gate_id.
+  2. check layout consistency. The file name stem must equal the gate_id.
 
 Cross-file rules (the engine depends on both):
   - no two rules may declare the same gate_id (a pledge or passage event
@@ -104,7 +104,7 @@ def main() -> int:
                     if uid in seen_unit_ids:
                         problems.append(
                             f"duplicate unit_id {uid!r}, also gated by "
-                            f"{seen_unit_ids[uid]} — a verdict must satisfy "
+                            f"{seen_unit_ids[uid]}. A verdict must satisfy "
                             f"at most one gate")
                     else:
                         seen_unit_ids[uid] = rel

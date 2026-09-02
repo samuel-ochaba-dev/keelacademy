@@ -1,0 +1,10 @@
+submission: s05-missing-cfo-fail
+expected: fail
+criteria:
+  jargon-free-problem-statement: pass
+  three-stakeholder-definitions: fail
+  operational-workflow-mapping: pass
+overall: fail
+grader_notes: "Fails because it completely omits the CFO / finance definition of success and unit cost economics."
+graded_by: human
+graded_on: 2026-08-25

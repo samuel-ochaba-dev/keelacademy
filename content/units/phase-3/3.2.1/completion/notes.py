@@ -1,4 +1,4 @@
-"""Ten messy invoice notes — the corpus. Notes 0–8 are extractable with varying
+"""Ten messy invoice notes: the corpus. Notes 0 to 8 are extractable with varying
 difficulty; note 9 is not an invoice at all (a real corpus always contains some)."""
 
 INVOICE_NOTES = [

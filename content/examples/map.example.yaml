@@ -3,22 +3,22 @@ phases:
 - phase: 0
   id: phase-0
   title: Orientation & Environment Setup
-  est_hours: 20
+  est_hours: 9
   why: Environment setup is where self-taught learners quietly drop off. We treat
     sandboxing, tooling, and your first drill as the initial deliverable completed
     in your first session.
-  outcome: 'Your isolated Docker environment runs, and you meet Meridian Mutual: the
+  outcome: 'Your isolated Docker environment runs, and you meet OmniSupply: the
     anchor client you serve across all thirteen phases.'
-  meridian_role: Docker runner and initial claim fixtures.
+  pipeline_role: Docker runner and initial invoice and dispute fixtures.
   modules:
   - id: '0.1'
-    title: 'Meet the client: Meridian Mutual'
-    description: Domain overview of insurance claim intake, policy coverage rules,
+    title: 'Meet the client: OmniSupply Operations'
+    description: Domain overview of B2B invoice intake, supplier SLAs, return disputes,
       and triage failure modes.
   - id: '0.2'
     title: How the curriculum and grading loop work
-    description: Four-layer verification, sandboxed Layer 1 test suites, and rubric
-      judge evaluation.
+    description: How automated checks, rubric review, and defence questions combine
+      into one verdict.
   - id: '0.3'
     title: One-click Docker environment setup
     description: Isolated containerized workspace with Python 3.12, Pytest, and Pydantic.
@@ -27,11 +27,11 @@ phases:
   title: Software Engineering Foundations
   est_hours: 100
   why: Every subsequent phase stands on engineering fundamentals. Python, git workflows,
-    HTTP APIs, async programming, and pytest are taught as components of the claims
+    HTTP APIs, async programming, and pytest are taught as components of the operations
     intake pipeline.
   outcome: You structure, test, and containerize asynchronous backend code ready for
     high-throughput model pipelines.
-  meridian_role: Asynchronous intake API and schema validation backend.
+  pipeline_role: Asynchronous intake API and schema validation backend.
   note: Experienced programmers can take a 20-minute adaptive diagnostic to place
     straight into Phase 2.
   modules:
@@ -59,7 +59,7 @@ phases:
     as magic, non-deterministic failures feel impossible to debug.
   outcome: 'You predict model behavior: tokenization nuances, context compression,
     attention mechanics, provider differences, and engineered API handling.'
-  meridian_role: Model abstraction layer and per-call token telemetry.
+  pipeline_role: Model abstraction layer and per-call token telemetry.
   modules:
   - id: '2.1'
     title: How transformer models work practically
@@ -68,7 +68,7 @@ phases:
   - id: '2.2'
     title: Tokens, context windows and model degradation patterns
     description: Tokenization edge cases, context dilution, and attention decay across
-      long claims.
+      long dispute dossiers.
   - id: '2.3'
     title: The model provider landscape and trade-off matrices
     description: Frontier versus open-weight models, pricing curves, and provider
@@ -86,7 +86,7 @@ phases:
     We treat prompts as strict software artifacts.
   outcome: You author versioned, schema-constrained prompts with deterministic JSON
     outputs that parse every time or fail with structured error logs.
-  meridian_role: Strict structured claims extraction engine.
+  pipeline_role: Strict structured invoice and dispute extraction engine.
   note: Unit 3.2.1 is live and accepting submissions today with full automated grading.
   modules:
   - id: '3.1'
@@ -97,11 +97,11 @@ phases:
     title: Structured outputs and schema-constrained generation
     description: JSON schema mode, instructor paradigms, and strict type enforcement.
   - id: 3.2.1
-    title: Structured claims extraction with Pydantic
-    description: Author schema-constrained claim parser handling messy incident notes.
+    title: Structured extraction with JSON mode and Pydantic
+    description: Author schema-constrained parser handling messy invoice and dispute notes.
   - id: '3.3'
     title: Few-shot exemplars and dynamic in-context retrieval
-    description: Representative exemplar curation, token budget budgeting, and selection
+    description: Representative exemplar curation, token budget management, and selection
       heuristics.
   - id: '3.4'
     title: 'Prompts as code: versioning, CI testing and regression gates'
@@ -113,9 +113,9 @@ phases:
   est_hours: 80
   why: 'Retrieval fails quietly: the model prioritizes fluent generation over accurate
     grounding unless explicitly anchored to verified documents.'
-  outcome: You ground answers in Meridian policy documents using hybrid search, chunking
+  outcome: You ground answers in OmniSupply supplier agreements and warranty terms using hybrid search, chunking
     strategies, dense embeddings, and cross-encoder rerankers.
-  meridian_role: Policy grounding and hybrid retrieval index (BM25 + vector).
+  pipeline_role: Vendor agreement grounding and hybrid retrieval index (BM25 + vector).
   modules:
   - id: '4.1'
     title: Semantic chunking, metadata extraction and PDF parsing
@@ -142,9 +142,9 @@ phases:
   rebate_pct: 15
   why: Autonomous agents fail in infinite loops and blow through budgets. This is
     where most builders stall; we provide explicit stop conditions and state machines.
-  outcome: You build multi-tool agents that query policy databases, calculate payouts,
-    and make triage routing decisions within strict token budgets.
-  meridian_role: Multi-tool claim triage agent with bounded stop conditions.
+  outcome: You build multi-tool agents that query inventory databases, calculate price adjustments,
+    and make dispute routing decisions within strict token budgets.
+  pipeline_role: Multi-tool dispute triage agent with bounded stop conditions.
   note: Passing the Phase 5 integration gate inside 365 days triggers your first 15%
     completion rebate.
   modules:
@@ -159,7 +159,7 @@ phases:
       and token ceilings.
   - id: '5.3'
     title: Multi-agent orchestration and hierarchical routing
-    description: Supervisor agent routing claims to specialized damage and liability
+    description: Supervisor agent routing disputes to specialized SKU damage and supplier SLA
       sub-agents.
   - id: '5.4'
     title: Orchestration frameworks and protocol interoperability
@@ -177,7 +177,7 @@ phases:
     tuning.
   outcome: You know when to prompt, when to retrieve, and when to fine-tune. You prepare
     instruction datasets and train LoRA adapters on open models.
-  meridian_role: Domain-adapted open model for insurance terminology classification.
+  pipeline_role: Domain-adapted open model for B2B catalog and SKU terminology classification.
   modules:
   - id: '6.1'
     title: 'Decision framework: Prompting vs RAG vs Fine-tuning'
@@ -191,8 +191,8 @@ phases:
     description: Quantized low-rank adaptation on open-weight LLMs with loss monitoring.
   - id: '6.4'
     title: Preference optimization for domain tone alignment
-    description: Direct Preference Optimization (DPO) aligning model output to insurance
-      compliance standards.
+    description: Direct Preference Optimization (DPO) aligning model output to commercial
+      procurement standards.
 - phase: 7
   id: phase-7
   title: Evaluation & Production Observability
@@ -202,7 +202,7 @@ phases:
     using the exact evaluation methodology taught in this phase.
   outcome: You build golden evaluation datasets, calibrate LLM judges against human
     baselines, instrument distributed traces, and wire automated CI regression gates.
-  meridian_role: Automated regression evaluation and distributed tracing harness.
+  pipeline_role: Automated regression evaluation and distributed tracing harness.
   modules:
   - id: '7.1'
     title: Curating representative golden evaluation datasets
@@ -224,19 +224,19 @@ phases:
   id: phase-8
   title: Cost & Performance Engineering
   est_hours: 50
-  why: At 3,000 claims a month, inefficient LLM calls destroy unit economics. A system
+  why: At 4,000 transactions a month, inefficient LLM calls destroy unit economics. A system
     that costs more than the human labor it replaces is unviable.
   outcome: You model token costs, implement dynamic model routing from low-tier to
     frontier models, leverage prompt caching, and optimize latency.
-  meridian_role: Dynamic cascading model router and token budget optimizer.
+  pipeline_role: Dynamic cascading model router and token budget optimizer.
   modules:
   - id: '8.1'
     title: Token economics, context modeling and ROI calculations
-    description: Unit economics modeling, per-claim cost estimation, and batching
+    description: Unit economics modeling, per-transaction cost estimation, and batching
       trade-offs.
   - id: '8.2'
     title: Dynamic cascading model routers
-    description: Cheap-first classification fallbacks routing difficult claims to
+    description: Cheap-first classification fallbacks routing complex disputes to
       frontier judges.
   - id: '8.3'
     title: Prompt prefix caching, semantic caching and batching
@@ -246,11 +246,11 @@ phases:
   id: phase-9
   title: Security, Safety & Governance
   est_hours: 60
-  why: An automated claims system ingests untrusted user documents. Adversarial prompt
+  why: An automated operations system ingests untrusted vendor documents. Adversarial prompt
     injection and data leakage must be defended systematically.
   outcome: You build input guardrails, prevent prompt injections, enforce human-in-the-loop
     approvals for high-value payouts, and maintain tamper-evident audit logs.
-  meridian_role: Input guardrails and tamper-evident audit ledger.
+  pipeline_role: Input guardrails and tamper-evident audit ledger.
   modules:
   - id: '9.1'
     title: Direct and indirect prompt injection defense
@@ -258,10 +258,10 @@ phases:
       tokens.
   - id: '9.2'
     title: PII redaction, data sanitization and access policies
-    description: Automated entity redaction, data masking, and role-based claim visibility.
+    description: Automated entity redaction, data masking, and role-based invoice visibility.
   - id: '9.3'
     title: Human-in-the-loop checkpoints for critical decisions
-    description: Confidence thresholding, payout threshold escalation, and adjuster
+    description: Confidence thresholding, credit threshold escalation, and operations
       review queues.
   - id: '9.4'
     title: Immutable audit logging and regulatory compliance trails
@@ -275,7 +275,7 @@ phases:
     web development. Latency spikes and model drift require dedicated infrastructure.
   outcome: You wrap your system in FastAPI endpoints, containerize with Docker, deploy
     to scalable infrastructure, and build monitoring dashboards.
-  meridian_role: Containerized FastAPI microservice with production health telemetry.
+  pipeline_role: Containerized FastAPI microservice with production health telemetry.
   modules:
   - id: '10.1'
     title: Packaging AI pipelines as robust REST APIs
@@ -302,7 +302,7 @@ phases:
     mode of self-taught engineers. This track runs in parallel from week one.
   outcome: You rehearse discovery calls against AI prospects, calculate value-based
     pricing, draft sendable proposals with explicit exclusions, and send real outreach.
-  meridian_role: Commercialization and client-facing scope proposal package.
+  pipeline_role: Commercialization and client-facing scope proposal package.
   note: Unlocked on day one alongside technical phases so business reps compound with
     technical building.
   modules:
@@ -343,15 +343,15 @@ phases:
   rebate_pct: 15
   why: One vertical project proves depth; three additional projects prove you can
     architect AI systems across healthcare, finance, and legal domains.
-  outcome: The complete Meridian claims triage pipeline running in production, plus
-    three cross-domain portfolio deliverables and an unscripted video walkthrough.
-  meridian_role: End-to-end production claims triage system and cross-industry portfolio.
+  outcome: The complete OmniSupply operations pipeline running in production, plus
+    three cross-domain portfolio deliverables.
+  pipeline_role: End-to-end production operations dispute system and cross-industry portfolio.
   note: Clearing the capstone gate inside 365 days triggers your final 15% completion
     rebate.
   modules:
   - id: '12.1'
-    title: 'The Capstone: Meridian Mutual end to end in production'
-    description: Complete claims triage pipeline integrating extraction, retrieval,
+    title: 'The Capstone: OmniSupply Operations end to end in production'
+    description: Complete operations dispute pipeline integrating extraction, retrieval,
       routing, and audit logs.
     is_gate: true
   - id: '12.2'

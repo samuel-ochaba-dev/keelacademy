@@ -1,4 +1,4 @@
-"""The completion checks. RED until GAP 1–6 are filled; then fully green.
+"""The completion checks. RED until GAP 1 to 6 are filled; then fully green.
 
   GAP 1 -> test_invoice_type_enum_constrained
   GAP 2 -> test_extra_keys_rejected
@@ -42,7 +42,7 @@ def test_extra_keys_rejected():
         })
 
 
-# --- the pipeline properties (GAP 3–6 together) ------------------------------
+# --- the pipeline properties (GAP 3 to 6 together) ------------------------------
 
 def test_conservation_all_notes_yield_valid_objects(results):
     assert len(INVOICE_NOTES) == 10

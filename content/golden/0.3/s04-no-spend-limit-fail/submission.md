@@ -1,0 +1,1 @@
+Docker containers provide a clean environment with Python 3.12 and Pytest so tests run without dependency issues. API keys should be stored in environment variables and added to .gitignore so they are not committed to git.

@@ -1,0 +1,35 @@
+kind: conceptual
+id: "0.3"
+phase: 0
+est_hours: 2
+prereq_units: ["0.2"]
+last_verified:
+  concept_core: 2026-08-25
+  applied_context: 2026-08-25
+  tool_specifics: 2026-08-25
+learn: units/phase-0/0.3/learn.md
+practice:
+  worked_example: units/phase-0/0.3/worked-example/
+  completion_problem:
+    prompt: "Explain why containerized sandbox environments are essential for AI engineering verification, how provider spend limits prevent runaway API bills, and what security practices protect API keys in local development."
+    instructions: "Provide a 2-3 paragraph synthesis analyzing isolated Docker runners, credential management discipline, and cost ceiling enforcement."
+    rubric: rubrics/0.3/v1.yaml
+  retrieval_seeds:
+    - "why containerized sandboxes eliminate environment divergence and execution drift"
+    - "how hard billing limits and spend caps prevent runaway recursive API loops"
+    - "proper API key management using environment variables and gitignore rules"
+    - "how to verify a working Python environment and test an authenticated provider ping"
+build:
+  deliverable: "Set up and verify your containerized local development environment, establish hard spend ceilings on your provider account, and execute an authenticated smoke verification test."
+  submission: file
+  data_variant: omnisupply@v0
+verify:
+  layers: [2]
+  rubric: rubrics/0.3/v1.yaml
+gate:
+  unlocks: ["1.1.1"]
+unstuck:
+  - symptom: "Committing API keys or secrets to git repository"
+    fix_ref: faq/0.3.md#api-key-leak
+  - symptom: "Encountering Docker container permission or socket errors"
+    fix_ref: faq/0.3.md#docker-permissions

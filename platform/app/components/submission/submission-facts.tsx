@@ -9,63 +9,43 @@ export function SubmissionFacts({
   studentEmail?: string | null;
 }) {
   const s = view.submission;
-  const shortSha = s.commit_sha.slice(0, 10);
-  const gitCommitUrl = s.repo_url
-    ? `${s.repo_url.replace(/\.git$/, "")}/commit/${s.commit_sha}`
-    : null;
-
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
-      <Fact label="STUDENT IDENTIFIER">
-        <dd className="font-mono text-xs font-medium text-zinc-200 truncate">
+    <dl className="mt-px grid gap-px overflow-hidden rounded-lg border border-circuit-border bg-circuit-border sm:grid-cols-2 lg:grid-cols-4">
+      <Fact label="Account">
+        <dd className="mt-2 text-[15px] text-phosphor-white">
           {studentEmail ?? s.student_name ?? `Student #${s.student_id}`}
         </dd>
       </Fact>
-
-      <Fact label="TARGET WORKBENCH">
-        <dd className="font-mono text-xs font-semibold text-emerald-400">
+      <Fact label="Unit">
+        <dd className="mt-2 text-[15px]">
           <Link
             href={`/units/${s.unit_id}`}
-            className="hover:underline flex items-center gap-1"
+            className="text-fern-link underline underline-offset-4 hover:text-phosphor-white"
           >
-            <span>UNIT-{s.unit_id}</span>
-            <span className="text-zinc-500 text-[10px]">↗</span>
+            Unit {s.unit_id}
           </Link>
         </dd>
       </Fact>
-
-      <Fact label="LOCKED COMMIT SHA">
-        <dd className="font-mono text-xs font-medium text-sky-400">
-          {gitCommitUrl ? (
-            <a
-              href={gitCommitUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline flex items-center gap-1"
-              title="Open commit in GitHub"
-            >
-              <code>{shortSha}</code>
-              <span className="text-zinc-500 text-[10px]">↗</span>
-            </a>
-          ) : (
-            <code className="text-zinc-300">{shortSha}</code>
-          )}
+      <Fact label="Commit">
+        <dd className="mt-2 text-[15px]">
+          <code className="font-code-mono text-[14px] text-phosphor-white">
+            {s.commit_sha.slice(0, 10)}
+          </code>
         </dd>
       </Fact>
-
-      <Fact label="SUBMITTED (UTC)">
-        <dd className="font-mono text-xs text-zinc-300">
+      <Fact label="Pushed (UTC)">
+        <dd className="mt-2 font-code-mono text-[14px] text-phosphor-white">
           {formatUtc(s.created_at)}
         </dd>
       </Fact>
-    </div>
+    </dl>
   );
 }
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <dt className="font-mono text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
+    <div className="bg-ground-iron p-5">
+      <dt className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
         {label}
       </dt>
       {children}

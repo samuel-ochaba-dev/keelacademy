@@ -315,7 +315,7 @@ do_prove() {
         test "$(html_count "$JAR_JESSE" /units/3.2.1 "retrieval-drill")" -ge 1
 
     check "pre-enrollment practice prompt visible" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Active enrollment required to run checks.")" -ge 1
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "NOT ENROLLED")" -ge 1
 
     echo
     echo "== proof 2: jesse pays for unit 3.2.1 -> practice workbench active =="
@@ -325,7 +325,7 @@ do_prove() {
 
     curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/units/3.2.1" -o "$ROOT/unit-post.html"
     check "post-enrollment practice workbench has run button" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Run practice checks")" -ge 1
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Run the checks")" -ge 1
     check "whitelisted editable files tabs visible (schemas.py, extractor.py)" \
         test "$(html_count "$JAR_JESSE" /units/3.2.1 "schemas.py")" -ge 1
 
@@ -469,7 +469,7 @@ assert len(res['feedback']) > 0
 
     curl -sf --max-time 30 -b "$JAR_JESSE" "$APP/units/3.2.1" -o "$ROOT/unit-ret2.html"
     check "rendered page shows retrieval attempt history" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Retrieval attempt history (2)")" -ge 1
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Every drill answer you have given (2)")" -ge 1
 
     echo
     echo "== proof 9: spaced re-checks (+3d / +7d) surface on /me and clear from the drill =="
@@ -507,27 +507,27 @@ PYEOF
     check "jesse passes seed 0 at T0 over HTTP 200" [ "$RET_CODE" = "200" ]
 
     check "/me shows the spaced re-checks panel" \
-        test "$(html_count "$JAR_JESSE" /me "SPACED RE-CHECKS")" -ge 1
+        test "$(html_count "$JAR_JESSE" /me "spaced-rechecks")" -ge 1
     check "/me honest zero state right after pass (0 DUE)" \
-        test "$(html_count "$JAR_JESSE" /me "0 DUE")" -ge 1
+        test "$(html_count "$JAR_JESSE" /me '0<!-- --> DUE NOW')" -ge 1
     check "unit page has no due badge before T+3" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Re-check due")" -eq 0
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "data-keel-drill-due")" -eq 0
 
     set_recheck_now "2026-03-03T00:00:00+00:00"   # T+2
     check "/me still 0 DUE at T+2" \
-        test "$(html_count "$JAR_JESSE" /me "0 DUE")" -ge 1
-    check "unit page still badge-free at T+2" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Re-check due")" -eq 0
+        test "$(html_count "$JAR_JESSE" /me '0<!-- --> DUE NOW')" -ge 1
+    check "unit page still without the due marker at T+2" \
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "data-keel-drill-due")" -eq 0
 
     set_recheck_now "2026-03-04T00:00:00+00:00"   # T+3
     check "/me flips to 1 DUE at T+3" \
-        test "$(html_count "$JAR_JESSE" /me "1 DUE")" -ge 1
+        test "$(html_count "$JAR_JESSE" /me '1<!-- --> DUE NOW')" -ge 1
     check "/me names the due seed" \
         test "$(html_count "$JAR_JESSE" /me "why free-text LLM output cannot be parsed reliably by downstream systems")" -ge 1
     check "/me links into the unit drill" \
         test "$(html_count "$JAR_JESSE" /me "Open drill")" -ge 1
     check "unit page marks the due drill question at T+3 (badge + notice)" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Re-check due")" -eq 2
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "data-keel-drill-due")" -eq 2
 
     ret_answer_file
     RET_CODE="$(curl -s --max-time 30 -b "$JAR_JESSE" -c "$JAR_JESSE" \
@@ -538,15 +538,15 @@ PYEOF
         "$APP/api/practice/retrieval/attempt")"
     check "completing the +3d re-check returns HTTP 200" [ "$RET_CODE" = "200" ]
     check "the SAME drill attempt cleared the due state (/me back to 0 DUE)" \
-        test "$(html_count "$JAR_JESSE" /me "0 DUE")" -ge 1
+        test "$(html_count "$JAR_JESSE" /me '0<!-- --> DUE NOW')" -ge 1
     check "unit page badge cleared after completing" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Re-check due")" -eq 0
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "data-keel-drill-due")" -eq 0
     check "attempt counted as the re-check in history (2 rows)" \
         test "$(psql_sql "SELECT count(*) FROM retrieval_attempts WHERE student_id=$JESSE_ID;")" = "2"
 
     set_recheck_now "2026-03-11T00:00:00+00:00"   # T+10
     check "/me flips to 1 DUE again at T+10 (+7d leg)" \
-        test "$(html_count "$JAR_JESSE" /me "1 DUE")" -ge 1
+        test "$(html_count "$JAR_JESSE" /me '1<!-- --> DUE NOW')" -ge 1
 
     ret_answer_file
     curl -s --max-time 30 -b "$JAR_JESSE" -c "$JAR_JESSE" \
@@ -558,9 +558,9 @@ PYEOF
 
     set_recheck_now "2099-01-01T00:00:00+00:00"   # far future
     check "after the +7d pass the seed is retired: /me stays 0 DUE forever" \
-        test "$(html_count "$JAR_JESSE" /me "0 DUE")" -ge 1 && test "$(html_count "$JAR_JESSE" /me "1 DUE")" -eq 0
+        test "$(html_count "$JAR_JESSE" /me '0<!-- --> DUE NOW')" -ge 1 && test "$(html_count "$JAR_JESSE" /me '1<!-- --> DUE NOW')" -eq 0
     check "retired seed never re-surfaces on the unit page" \
-        test "$(html_count "$JAR_JESSE" /units/3.2.1 "Re-check due")" -eq 0
+        test "$(html_count "$JAR_JESSE" /units/3.2.1 "data-keel-drill-due")" -eq 0
 
     echo
     echo "== proof 7: practice events do not unlock units or earn rebates =="
@@ -631,9 +631,9 @@ PYEOF
 
     curl -sf --max-time 30 -b "$JAR_MAYA" "$APP/units/3.2.1" -o "$ROOT/maya-unit.html"
     check "maya unit page shows FAST PASS ACTIVE" \
-        test "$(html_count "$JAR_MAYA" /units/3.2.1 "FAST PASS ACTIVE")" -ge 1
+        test "$(html_count "$JAR_MAYA" /units/3.2.1 "SHORTER ROUTE")" -ge 1
     check "maya unit page shows worked example is OPTIONAL" \
-        test "$(html_count "$JAR_MAYA" /units/3.2.1 "OPTIONAL (FAST PASS)")" -ge 1
+        test "$(html_count "$JAR_MAYA" /units/3.2.1 "OPTIONAL")" -ge 1
     check "maya route API reports fast_pass" \
         test "$(curl -sf -H "X-Keel-App-Token: $APP_TOKEN" "http://127.0.0.1:$PRACTICE_PORT/practice/route?student_id=$MAYA_ID&unit=3.2.1" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status'))")" = "fast_pass"
 
@@ -656,11 +656,11 @@ PYEOF
 
     curl -sf --max-time 30 -b "$JAR_LEO" "$APP/units/3.2.1" -o "$ROOT/leo-unit-fail.html"
     check "leo unit page shows SCAFFOLD ROUTE ACTIVE" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "SCAFFOLD ROUTE ACTIVE")" -ge 1
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "EXTRA PRACTICE ADDED")" -ge 1
     check "leo unit page marks worked example with RECOMMENDED REVIEW (SCAFFOLD)" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "RECOMMENDED REVIEW (SCAFFOLD)")" -ge 1
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "WORTH RE-READING")" -ge 1
     check "leo unit page links to scaffold target file llm.py" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "REMEDIAL ROUTE: REVIEW WORKED EXAMPLE")" -ge 1 \
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "GO BACK TO THE WORKED EXAMPLE")" -ge 1 \
         && test "$(html_count "$JAR_LEO" /units/3.2.1 "llm.py")" -ge 1
 
     # Leo passes all seeds (retrying seed 1)
@@ -681,12 +681,12 @@ PYEOF
     check "leo unit page shows ROUTE COMPLETE" \
         test "$(html_count "$JAR_LEO" /units/3.2.1 "ROUTE COMPLETE")" -ge 1
     check "leo unit page links to Build deliverable" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "Start build deliverable")" -ge 1
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "Start the deliverable")" -ge 1
 
     echo
     echo "== proof 10: unenrolled kim's schedule and route are honestly empty =="
     check "kim's /me reports 0 DUE and lists no seeds" \
-        test "$(html_count "$JAR_KIM" /me "0 DUE")" -ge 1 \
+        test "$(html_count "$JAR_KIM" /me '0<!-- --> DUE NOW')" -ge 1 \
         && test "$(html_count "$JAR_KIM" /me "Open drill")" -eq 0
     check "kim's route API reports enrolled: false" \
         test "$(curl -sf -H "X-Keel-App-Token: $APP_TOKEN" "http://127.0.0.1:$PRACTICE_PORT/practice/route?student_id=$KIM_ID&unit=3.2.1" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('enrolled'))")" = "False"
@@ -714,10 +714,13 @@ PYEOF
         test "$kim_status" = "403"
 
     # Leo unit page renders concierge section with GUARD MODE badge
-    check "leo unit page renders AI Concierge section" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "AI Concierge")" -ge 1
+    # Greps the question box's id rather than the heading copy: 3.2.1's lesson is a
+    # unit script and authors its own heading, and the box only renders for a
+    # signed-in enrolled student, so this proves more than a string match did.
+    check "leo unit page renders the ask-about-this-unit panel" \
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "concierge-question")" -ge 1
     check "leo unit page renders GUARD MODE badge" \
-        test "$(html_count "$JAR_LEO" /units/3.2.1 "GUARD MODE")" -ge 1
+        test "$(html_count "$JAR_LEO" /units/3.2.1 "WORKS IT THROUGH WITH YOU")" -ge 1
 
     echo
     echo "== practice demo summary: $PASS_COUNT passed, $FAIL_COUNT failed =="

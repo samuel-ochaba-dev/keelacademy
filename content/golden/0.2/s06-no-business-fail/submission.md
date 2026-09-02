@@ -1,0 +1,1 @@
+The four layers are: Layer 1 deterministic sandbox checks, Layer 2 LLM rubric judge, Layer 3 code defense interviews, and Layer 4 video walkthroughs. Layer 1 must always run first to ensure code runs before qualitative evaluation occurs.

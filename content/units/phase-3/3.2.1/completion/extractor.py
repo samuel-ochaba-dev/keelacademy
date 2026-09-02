@@ -1,6 +1,6 @@
 """The pipeline: generate -> validate -> success | fallback+log. N in, N out.
 
-Contains GAP 3–6. Run:  python extractor.py
+Contains GAP 3 to 6. Run:  python extractor.py
 """
 import json
 import logging
@@ -60,7 +60,7 @@ def extract(note: str, index: int, invoice_id: str) -> InvoiceExtraction:
         )
     # GAP 6: before returning the fallback, log it at ERROR level on the
     # "invoice_extraction" logger. The log line must contain the word FALLBACK and
-    # the invoice_id, and the reason — so every fallback pairs with a greppable
+    # the invoice_id, and the reason, so every fallback pairs with a greppable
     # log record (accountability). Keep the return below as-is.
     return fallback_extraction(invoice_id, reason)
 
@@ -85,7 +85,7 @@ def main() -> int:
           f"({len(ok)} extracted, {len(failed)} flagged for review)\n")
     for r in results:
         marker = "OK     " if not r.extraction_failed else "FLAGGED"
-        amount = f"${r.total_amount_usd:,.2f}" if getattr(r, "total_amount_usd", None) is not None else "—"
+        amount = f"${r.total_amount_usd:,.2f}" if getattr(r, "total_amount_usd", None) is not None else "-"
         print(f"  {marker} {r.invoice_id} {r.invoice_type} {amount}")
         if r.extraction_failed:
             print(f"          reason: {r.failure_reason}")

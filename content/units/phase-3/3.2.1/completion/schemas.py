@@ -14,7 +14,7 @@ class InvoiceExtraction(BaseModel):
 
     invoice_id: str = Field(min_length=1, description="Vendor invoice identifier, e.g. INV-3091")
     # GAP 1: replace this bare `str` with a type that only accepts the four legal
-    # values in INVOICE_TYPES — so "GOODS PURCHASE" fails validation here, at the
+    # values in INVOICE_TYPES, so "GOODS PURCHASE" fails validation here, at the
     # boundary, instead of reaching the database.
     invoice_type: str
     vendor: str = Field(min_length=1)

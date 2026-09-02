@@ -1,0 +1,30 @@
+id: rubric-0.3
+version: 1
+pass_rule: all
+judge:
+  prompt: prompts/judge-0.3.md
+  model_tier: mid
+golden_set: golden/0.3/
+criteria:
+  - id: containerized-sandbox-rationale
+    description: >-
+      The submission articulates why containerized sandbox environments (Docker with
+      Python 3.12, Pytest, Pydantic) are essential for deterministic evaluation,
+      explaining how containerization eliminates environment divergence, enforces CPU/RAM
+      caps, and provides network isolation.
+    evidence: >-
+      Quote the explanation of containerized sandboxing and resource/network isolation.
+  - id: spend-limit-safeguards
+    description: >-
+      The submission explains how hard monthly provider spend limits and usage alerts
+      protect against runaway financial loss from recursive agent loops, unhandled retries,
+      or buggy prompt cycles.
+    evidence: >-
+      Quote the explanation of provider spend limits and recursive loop risks.
+  - id: api-secret-management-discipline
+    description: >-
+      The submission details secure API key management practices, including using
+      environment variables, gitignore exclusions, and prohibiting hardcoded credentials in
+      code or commit history.
+    evidence: >-
+      Quote the secret management and gitignore security rules.

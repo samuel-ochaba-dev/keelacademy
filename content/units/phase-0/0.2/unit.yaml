@@ -1,0 +1,35 @@
+kind: conceptual
+id: "0.2"
+phase: 0
+est_hours: 1
+prereq_units: ["0.1"]
+last_verified:
+  concept_core: 2026-08-25
+  applied_context: 2026-08-25
+  tool_specifics: 2026-08-25
+learn: units/phase-0/0.2/learn.md
+practice:
+  worked_example: units/phase-0/0.2/worked-example/
+  completion_problem:
+    prompt: "Explain how the four verification stages catch different classes of failure in AI engineering systems, and why automated checks must always run and pass before rubric review."
+    instructions: "Write 2 to 3 paragraphs. Cover each verification stage and the failure class it catches, and explain why staged verification is what makes the credential mean something."
+    rubric: rubrics/0.2/v1.yaml
+  retrieval_seeds:
+    - "the four verification stages and what failure class each one catches"
+    - "why automated checks must run and pass before rubric review"
+    - "why the parallel business track (Phase 11) runs alongside technical phases from week one"
+    - "the difference between completion metrics and shipped verification bars"
+build:
+  deliverable: "Create a complete curriculum tracking plan detailing your timeline, milestone target dates, verification checkpoints, and daily execution schedule."
+  submission: file
+  data_variant: omnisupply@v0
+verify:
+  layers: [2]
+  rubric: rubrics/0.2/v1.yaml
+gate:
+  unlocks: ["0.3"]
+unstuck:
+  - symptom: "Confusing self-reported progress with machine-verified delivery"
+    fix_ref: faq/0.2.md#progress-vs-verification
+  - symptom: "Treating Phase 11 business work as a post-graduation sequence"
+    fix_ref: faq/0.2.md#parallel-business-track

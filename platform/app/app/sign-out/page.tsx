@@ -6,7 +6,7 @@ import { signOutAction } from "@/app/auth/actions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sign Out — Keel Academy",
+  title: "Sign out",
   robots: { index: false },
 };
 
@@ -17,48 +17,41 @@ export default async function SignOutPage() {
   if (mode === "clerk") {
     const { SignOutButton } = await import("@clerk/nextjs");
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
+      <div className="shell section flex justify-center">
         <SignOutButton />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12 text-zinc-100 selection:bg-emerald-500/20 selection:text-emerald-300">
-      <div className="w-full max-w-md space-y-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 shadow-2xl backdrop-blur-sm text-center">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[11px] font-mono font-medium text-zinc-400">
-            <span>SESSION REVOCATION</span>
-          </div>
-          <h1 className="text-2xl font-bold font-mono text-zinc-50">Sign Out</h1>
-          {user ? (
-            <p className="text-xs text-zinc-400 font-mono">
-              Currently signed in as: <span className="text-zinc-200">{user.name ?? user.email}</span>
-            </p>
-          ) : (
-            <p className="text-xs text-zinc-400 font-sans">You are currently not signed in.</p>
-          )}
-        </div>
-
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            className="w-full rounded-md bg-zinc-800 border border-zinc-700 py-2.5 text-sm font-mono font-bold text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors active:scale-[0.99]"
-          >
-            Confirm Sign Out &rarr;
-          </button>
-        </form>
-
-        <div className="pt-2 border-t border-zinc-800/80">
+    <div className="shell section">
+      <div className="card-dark mx-auto max-w-[30rem]">
+        <h1 className="heading-lg">Sign out</h1>
+        <p className="mt-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          {user
+            ? `Signed in as ${user.name ?? user.email}. Your progress stays on your account.`
+            : "You are not signed in right now."}
+        </p>
+        {user ? (
+          <form action={signOutAction} className="mt-7">
+            <button type="submit" className="btn btn-primary btn-sm">
+              Sign out
+            </button>
+          </form>
+        ) : (
+          <Link href="/sign-in" className="btn btn-primary btn-sm mt-7">
+            Sign in
+          </Link>
+        )}
+        <p className="mt-6">
           <Link
             href="/me"
-            className="text-xs font-mono text-emerald-400 hover:underline"
+            className="text-[14.5px] text-fern-link underline underline-offset-4 hover:text-phosphor-white"
           >
-            &larr; Return to Learner Cockpit
+            Back to dashboard
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );
 }
-

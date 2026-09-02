@@ -1,0 +1,23 @@
+unit_id: "0.3"
+steps:
+  - id: "lesson"
+    title: "Study the lesson"
+    type: "concept"
+  - id: "retrieval"
+    title: "Retrieval drills"
+    type: "drill"
+  - id: "worked_example"
+    title: "Annotated model answer"
+    type: "scaffold"
+  - id: "completion"
+    title: "Synthesis problem workbench"
+    type: "workbench"
+fast_pass:
+  condition: "all_retrieval_passed_first_try"
+  worked_example: "optional"
+  summary: "Passing all retrieval drills on first attempt marks the model answer optional."
+scaffold:
+  condition: "any_failed_retrieval_or_completion"
+  worked_example: "recommended"
+  deep_links: true
+  summary: "A failed retrieval drill or completion problem routes to specific model answer sections for review."

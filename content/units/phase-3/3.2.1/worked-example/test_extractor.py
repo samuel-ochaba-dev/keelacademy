@@ -1,9 +1,9 @@
 """The Prove-it bar as executable properties (reuse your 1.5.1 pytest habits):
 
-  1. CONSERVATION   — N notes in, exactly N valid objects out, in order.
-  2. ACCOUNTABILITY — every flagged extraction has a logged reason naming its input.
-  3. FALLBACK SHAPE — fallbacks are valid objects (schema-valid even when failed).
-  4. KNOWN FAILURES — the corpus's designed failure modes land in the fallback path
+  1. CONSERVATION: N notes in, exactly N valid objects out, in order.
+  2. ACCOUNTABILITY: every flagged extraction has a logged reason naming its input.
+  3. FALLBACK SHAPE: fallbacks are valid objects (schema-valid even when failed).
+  4. KNOWN FAILURES: the corpus's designed failure modes land in the fallback path
                       (proves the pipeline catches them, not just that it could).
 """
 import logging

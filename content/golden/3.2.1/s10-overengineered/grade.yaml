@@ -7,6 +7,6 @@ criteria:
   failures-logged: fail
   conservation-tested: fail
 overall: fail
-grader_notes: "Maximum architecture, minimum substance: provider ABC + pipeline + postprocessors, but the provider is prompt-only JSON, unparseable output is passed through as a raw dict ('passing through raw'), Pydantic is 'planned for v1.0', tests assert nothing about schema validity or conservation. A log line exists but carries the claim id only — no validation reason — so by the rubric's letter criterion 4 fails too. Fails 5/5. (Corrected 2026-08-21 during S0.6 spot-check: failures-logged was originally recorded as pass, lenient against the rubric's 'id AND reason' wording.)"
+grader_notes: "Maximum architecture, minimum substance: provider ABC + pipeline + postprocessors, but the provider is prompt-only JSON, unparseable output is passed through as a raw dict ('passing through raw'), Pydantic is 'planned for v1.0', tests assert nothing about schema validity or conservation. A log line exists but carries the claim id only, no validation reason, so by the rubric's letter criterion 4 fails too. Fails 5/5. (Corrected 2026-08-21 during S0.6 spot-check: failures-logged was originally recorded as pass, lenient against the rubric's 'id AND reason' wording.)"
 graded_by: human
 graded_on: 2026-08-21
