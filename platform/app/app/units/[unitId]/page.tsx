@@ -34,6 +34,8 @@ import { UnitExitCard } from "@/components/unit/unit-exit-card";
 import { MermaidRuntime } from "@/components/unit/mermaid-runtime";
 import { CodeFigureRuntime } from "@/components/unit/code-figure";
 import { ChapterOpener } from "@/components/unit/chapter-opener";
+import { ResumeBanner } from "@/components/unit/resume-banner";
+import { ReadingTracker } from "@/components/unit/reading-tracker";
 import { getSessionUser } from "@/lib/auth";
 import { fetchStudentSubmissions, parseDbTimestamp } from "@/lib/grading";
 import { ensureStudent, fetchProfile } from "@/lib/enroll";
@@ -44,10 +46,12 @@ import {
   fetchPracticeRoute,
   fetchRecheckSchedule,
   fetchRetrievalAttempts,
+  fetchReviewQueue,
   type ConciergeTurn,
   type PracticeAttemptSummary,
   type PracticeRouteData,
   type RetrievalAttemptSummary,
+  type ReviewQueueItem,
 } from "@/lib/practice";
 
 export const dynamic = "force-dynamic";
@@ -145,6 +149,7 @@ export default async function UnitPage(props: Props) {
   let practiceAttempts: PracticeAttemptSummary[] = [];
   let retrievalAttempts: RetrievalAttemptSummary[] = [];
   let dueSeedIndices: number[] = [];
+  let priorReviewItems: ReviewQueueItem[] = [];
   let routeData: PracticeRouteData | null = null;
   let conciergeTurns: ConciergeTurn[] = [];
 
@@ -171,6 +176,12 @@ export default async function UnitPage(props: Props) {
         dueSeedIndices = scheduleRes.data.seeds
           .filter((s) => s.status === "due")
           .map((s) => s.seed_index);
+      }
+      const reviewQueueRes = await fetchReviewQueue(studentId);
+      if (reviewQueueRes.state === "ok") {
+        priorReviewItems = reviewQueueRes.data.items.filter(
+          (item) => item.unit_id !== unitId,
+        );
       }
       if (isEnrolled) {
         const routeRes = await fetchPracticeRoute(studentId, unitId);
@@ -265,6 +276,7 @@ export default async function UnitPage(props: Props) {
         isEnrolled={isEnrolled}
         isSignedIn={isSignedIn}
         serviceDown={practiceServiceDown}
+        reviewItems={priorReviewItems}
       />
     ),
     deliverable: <DeliverableCallout unit={yaml} />,
@@ -300,6 +312,8 @@ export default async function UnitPage(props: Props) {
           phase.contents.map((entry) => ({ id: entry.id, name: entry.name, estMinutes: entry.estMinutes })),
         )}
       />
+      <ResumeBanner unitId={yaml.id} />
+      <ReadingTracker unitId={yaml.id} phases={script.phases} />
       <UnitScript
         phases={script.phases}
         preamble={script.preamble}
@@ -360,8 +374,8 @@ function unitSpecs(yaml: Unit["yaml"], checkCount: number, criterionCount: numbe
  */
 function gradedOn(checkCount: number, criterionCount: number): string {
   const criteria = `${criterionCount} ${criterionCount === 1 ? "CRITERION" : "CRITERIA"}`;
-  if (checkCount > 0 && criterionCount > 0) return `${checkCount} CHECKS, ${criteria}`;
-  if (checkCount > 0) return `${checkCount} CHECKS`;
+  if (checkCount > 0 && criterionCount > 0) return `${checkCount} AUTOMATED CHECKS, ${criteria}`;
+  if (checkCount > 0) return `${checkCount} AUTOMATED CHECKS`;
   if (criterionCount > 0) return `RUBRIC REVIEW, ${criteria}`;
   return "NOT GRADED YET";
 }
@@ -395,9 +409,10 @@ function PlannedUnit({ phase, module }: { phase: MapPhase; module: MapModule }) 
           {module.description}
         </p>
         <p className="mt-6 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          This unit is mapped and its place in the build is fixed, but the lesson, the practice set
-          and the rubric are not written yet. Nothing here is enrollable and nothing is hidden
-          behind a payment: when the unit opens, this page becomes the unit.
+          This unit is mapped and its place in the build is fixed. The lesson, the practice
+          set and the rubric are not written yet — nothing here is enrollable, and nothing
+          is hiding behind a payment. When the unit opens, this page becomes the unit —
+          same URL, nothing to re-bookmark.
         </p>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
           It sits in Phase {phase.phase}, {phase.title}. {phase.outcome}

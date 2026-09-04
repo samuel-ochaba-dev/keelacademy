@@ -51,8 +51,8 @@ export default async function BusinessOwnerPage() {
         </nav>
         <h1 className="heading-xl mt-7 max-w-[28ch]">Defend it to the budget holder</h1>
         <p className="lead mt-5 max-w-[68ch]">
-          The other defence the capstone needs. She signs the invoice and she does not care how
-          it works. Say what it saves, in hours and in money, and what it costs to run.
+          The second defence the capstone needs. She signs the invoice, so speak hers:
+          hours saved, money saved, cost to run.
         </p>
       </header>
 

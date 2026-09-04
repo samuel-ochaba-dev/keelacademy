@@ -18,8 +18,8 @@ export default async function CheckoutCancelPage() {
         <span className="chip chip-outline">CANCELLED</span>
         <h1 className="heading-lg mt-4">Checkout cancelled</h1>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          You backed out before paying, so nothing was charged to your account. The unit is
-          still there when you want it.
+          You left before paying, so nothing was charged. The unit stays open
+          whenever you are ready.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href="/pricing" className="btn btn-primary btn-sm">

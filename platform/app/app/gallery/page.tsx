@@ -41,8 +41,8 @@ export default async function GalleryPage({ searchParams }: Props) {
         <p className="eyebrow">Published work</p>
         <h1 className="heading-xl mt-4">What students built</h1>
         <p className="lead mt-5 max-w-[68ch]">
-          Every project here passed its unit and was published by the student who wrote it.
-          Each one shows how many rubric criteria it cleared.
+          Every project here passed its unit. The student who wrote it chose to publish
+          it. Each one shows how many rubric criteria it cleared.
         </p>
         <p className="mt-6 font-code-mono text-[13px] text-moss-70">
           {result.state === "ok"
@@ -103,7 +103,7 @@ export default async function GalleryPage({ searchParams }: Props) {
           <div className="card-dark mt-10 max-w-[62ch]">
             <h2 className="heading-md">We could not load the gallery</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              The server that holds published projects did not answer. Refresh in a moment.
+              We could not load the gallery. Refresh.
             </p>
           </div>
         ) : projects.length === 0 ? (
@@ -111,8 +111,8 @@ export default async function GalleryPage({ searchParams }: Props) {
             <h2 className="heading-md">Nothing matches that</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               {search || phase
-                ? "No published project matches those filters yet. Try a wider search."
-                : "No projects have been published yet."}
+                ? "No published project matches those filters yet. Widen the search — the gallery is young."
+                : "No projects have been published yet. Yours could be first."}
             </p>
           </div>
         ) : (

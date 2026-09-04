@@ -1,0 +1,11 @@
+submission: s02-jargon-fail
+expected: fail
+criteria:
+  zero-jargon: fail
+  root-cause-scale: pass
+  stakeholder-trilemma: pass
+  hitl-thresholds: pass
+overall: fail
+grader_notes: "Fails zero-jargon due to repeated buzzwords including 'AI agent', 'LLM', 'prompt engineering', and 'machine learning'. Problem statement, stakeholder trilemma KPIs, and HITL thresholds all satisfy quantitative and structural requirements."
+graded_by: human
+graded_on: 2026-09-03

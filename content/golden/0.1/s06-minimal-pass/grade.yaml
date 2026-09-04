@@ -1,0 +1,11 @@
+submission: s06-minimal-pass
+expected: borderline
+criteria:
+  zero-jargon: pass
+  root-cause-scale: pass
+  stakeholder-trilemma: pass
+  hitl-thresholds: pass
+overall: pass
+grader_notes: "Borderline pass across all four criteria. Barely satisfies the minimum thresholds: problem statement is exactly two sentences touching required scale, multi-artifact friction, cycle time, and leakage; zero AI buzzwords though technical systems vocabulary is used; exactly three quantified stakeholder KPIs; exactly three basic quantitative HITL boundaries."
+graded_by: human
+graded_on: 2026-09-03

@@ -23,9 +23,10 @@ effect (stopping mid-unit is a hook, not a failure).
   state. U1 and U2 copy is app-owned because it is structural (names, times,
   counts pulled from real data), not teaching. If a line needs teaching
   voice, it belongs in `learn.md`, not here.
-- Copy discipline (binding, from platform/app/AGENTS.md): short declarative
-  sentences, active voice, concrete numbers. No em or en dashes, no
-  exclamation marks, no hype verbs, no internal architecture names. "Not
+- Copy discipline (binding, from platform/app/AGENTS.md): Full Comeau voice per
+  `.agents/skills/keel-copy` on anything the student reads as prose; terse
+  surfaces (exit cards, boundary markers, error copy) stay short,
+  declarative, active, concrete. No internal architecture names. "Not
   yet", never "fail". Uppercase only for short data-state chips.
 - Honest states only: no fake progress, no invented counts, no placeholder
   telemetry. If a data source is unreachable, the surface renders nothing
@@ -55,8 +56,7 @@ Anatomy, top to bottom:
    from `yaml.gate.unlocks[0]` when the unit passed its gate, else the
    unit's own verify/build surface (keep working this unit). Exactly one
    primary action; everything else is quiet.
-4. A wrap-up option, equally legitimate: a quiet secondary link ("Wrap up
-   here") pointing at the dashboard, with one line saying the student's
+4. A wrap-up option, equally legitimate: a quiet secondary link ("Wrap up") pointing at the dashboard, with one line saying the student's
    place is saved and reviews will be waiting (only if the re-check
    schedule actually has items; else omit the claim).
 
@@ -84,7 +84,7 @@ the boundary; the marker is quiet, inside the measure, not a panel).
 
 Anatomy: one mono line, data-assembled:
 
-`END OF LEARN · NEXT: PRACTICE, ABOUT 4 MIN · STOP HERE IF YOU NEED TO`
+`END OF LEARN · NEXT: PRACTICE, ABOUT 4 MIN · STOP HERE IF YOU LIKE`
 
 - Phase names uppercase as data-state chips; read time from the script's
   own word-count estimates (already computed for the rail), summed over

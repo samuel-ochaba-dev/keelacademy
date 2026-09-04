@@ -13,7 +13,7 @@
 
 The schema is the contract between platform and content. If it's wrong, we either hack special cases into code per unit, or re-author content. Four schemas, versioned from day one, stored as JSON Schema:
 
-**Unit** (`content/units/<phase>/<id>.yaml` + `learn.md`):
+**Unit** (`content/units/phase-<N>/<id>/unit.yaml` + `learn.md`):
 ```yaml
 id: "3.2.1"
 phase: 3
@@ -22,8 +22,8 @@ prereq_units: ["2.4.1", "1.5.1"]
 last_verified: { concept_core: 2026-08-01, applied_context: 2026-08-01, tool_specifics: 2026-08-01 }
 learn: learn.md                       # sections: concept_core / applied_context / tool_specifics
 practice:
-  worked_example: examples/3.2.1-invoice-extractor/   # annotated parallel task
-  completion_problem: { base: fixtures/3.2.1/completion/, checks: checks/3.2.1.completion.yaml }
+  worked_example: units/phase-3/3.2.1/worked-example/   # annotated parallel task
+  completion_problem: { base: units/phase-3/3.2.1/completion/, checks: checks/3.2.1.completion.yaml }
   retrieval_seeds: [ "why schema-constrained output beats prompt-promise JSON", "..." ]
 build:
   deliverable: "<verbatim from curriculum.md>"
@@ -38,7 +38,7 @@ unstuck:
   - { symptom: "Pydantic nested-model validation fails", fix_ref: faq/3.2.1.md#nested-validation }
 ```
 
-**Rubric** (`content/rubrics/<id>.yaml`):
+**Rubric** (`content/rubrics/<id>/vN.yaml`, e.g. `content/rubrics/3.2.1/v1.yaml`):
 ```yaml
 id: rubric-3.2.1
 version: 4
@@ -51,7 +51,7 @@ criteria:
     evidence: "quote the log line or code path"
 ```
 
-**Data variant** (`content/variants/omnisupply@v3.yaml`): generator script + parameter ranges; per-student seed = `hash(student_id, unit_id)`, so every student's corpus differs but is reproducible.
+**Data variant** (`data_variant: omnisupply@v3`, a versioned string; schema at `content/schemas/variant.schema.json`): generator script + parameter ranges; per-student seed = `hash(student_id, unit_id)`, so every student's corpus differs but is reproducible.
 
 **Persona** (`content/personas/*.yaml`): grounding refs, rubric ref, scoring config for the §6 simulation engine.
 

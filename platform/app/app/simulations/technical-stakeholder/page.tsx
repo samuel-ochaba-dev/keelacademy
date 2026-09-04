@@ -51,8 +51,8 @@ export default async function TechnicalStakeholderPage() {
         </nav>
         <h1 className="heading-xl mt-7 max-w-[28ch]">Defend it to an engineer</h1>
         <p className="lead mt-5 max-w-[68ch]">
-          One of the two defences the capstone needs. Bring your numbers: what you measured it
-          against, what a run costs, how long it takes, and what happens when it gets one wrong.
+          The capstone needs two defences, and this is the technical one. Bring numbers for
+          accuracy, cost, latency, and failure handling — he has read your code and he will check.
         </p>
       </header>
 

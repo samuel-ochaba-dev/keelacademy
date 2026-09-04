@@ -15,7 +15,7 @@ function CheckRow({ check }: { check: Layer1Check }) {
             </span>
           ) : null}
           <span className={passed ? "chip chip-live" : "chip chip-alert"}>
-            {passed ? "PASSED" : check.status.toUpperCase()}
+            {passed ? "PASSED" : "NOT YET"}
           </span>
         </div>
       </div>
@@ -29,7 +29,7 @@ function CheckRow({ check }: { check: Layer1Check }) {
       {check.output_tail ? (
         <details className="mt-4">
           <summary className="cursor-pointer text-[14px] text-fern-link underline underline-offset-4 hover:text-phosphor-white">
-            Show what the check printed
+            Show what the automated check printed
           </summary>
           <pre className="mt-3 overflow-x-auto rounded-lg border border-circuit-border bg-void-black p-4">
             <code className="font-code-mono text-[12.5px] leading-relaxed text-moss-80">
@@ -47,21 +47,21 @@ export function Layer1Section({ layer1 }: { layer1: Layer1Result | null | undefi
   const totalCount = layer1?.checks.length ?? 0;
 
   return (
-    <section id="layer-1" aria-labelledby="checks-title" className="card-dark scroll-mt-24">
+    <section id="automated-checks" aria-labelledby="checks-title" className="card-dark scroll-mt-24">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h2 id="checks-title" className="heading-md">
           Automated checks
         </h2>
         {layer1 ? (
           <span className="font-code-mono text-[13px] text-moss-70">
-            {`${passCount} of ${totalCount} checks passed`}
+            {`${passCount} of ${totalCount} automated checks passed`}
           </span>
         ) : null}
       </div>
 
       <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        These run your code in a clean container. They are the same checks you can run
-        yourself before pushing.
+        These run your code in an isolated run. They are the same automated checks
+        you can run before pushing.
       </p>
 
       {layer1 && layer1.checks.length > 0 ? (
@@ -72,7 +72,7 @@ export function Layer1Section({ layer1 }: { layer1: Layer1Result | null | undefi
         </div>
       ) : (
         <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          No check results were recorded for this submission.
+          This submission has no check results.
         </p>
       )}
     </section>

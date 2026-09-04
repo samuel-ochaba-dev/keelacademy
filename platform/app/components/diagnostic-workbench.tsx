@@ -118,8 +118,8 @@ export function DiagnosticWorkbench({
           ) : null}
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             {latestResult.passed
-              ? "You can still work through anything that opened early. Skipping is an option, not an instruction."
-              : "Nothing was taken away from you. This is the ordinary route through the curriculum."}
+              ? "You can still work through anything that opened early. Skipping stays optional — strong foundations have saved many engineers."
+              : "You keep your place. This is the ordinary route through the curriculum — most students start here."}
           </p>
           <Link href="/map" className="btn btn-primary btn-sm mt-7">
             See your map
@@ -173,7 +173,7 @@ export function DiagnosticWorkbench({
                 disabled={!isComplete || inFlight}
                 className="btn btn-accent btn-sm"
               >
-                {inFlight ? "Checking..." : "Check my answers"}
+                {inFlight ? "Checking" : "Check my answers"}
               </button>
               <button
                 type="button"

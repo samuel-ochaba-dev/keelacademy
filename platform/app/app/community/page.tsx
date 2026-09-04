@@ -8,7 +8,7 @@ import { PodWorkspace } from "@/components/community/pod-workspace";
 export const metadata: Metadata = {
   title: "Your pod",
   description:
-    "Weekly check-ins with the small group of students working through the curriculum alongside you.",
+    "Weekly check-ins with students moving through the same units as you.",
 };
 
 export default async function CommunityPage() {
@@ -36,7 +36,7 @@ export default async function CommunityPage() {
         <div className="card-dark max-w-[52ch]">
           <h1 className="heading-lg">Your pod</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            We could not load your account just now. Nothing is lost. Refresh in a moment.
+            We could not load your account. Nothing is lost. Refresh.
           </p>
         </div>
       </div>
@@ -57,10 +57,11 @@ export default async function CommunityPage() {
     <div>
       <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
         <p className="eyebrow">Your pod</p>
-        <h1 className="heading-xl mt-4">Say what you shipped, what broke, what is next</h1>
+        <h1 className="heading-xl mt-4">Show your work, every week</h1>
         <p className="lead mt-5 max-w-[68ch]">
-          A pod is a handful of students moving through the same phases as you. Once a week
-          each of you posts three short answers. That is the whole ritual.
+          A pod is a small crew of students in the same phase as you. Once a week, each of
+          you posts three short answers: what shipped, what broke, what is next. That is
+          the whole thing — shipping in public, with witnesses.
         </p>
       </header>
 

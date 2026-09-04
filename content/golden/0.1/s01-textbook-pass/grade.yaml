@@ -1,0 +1,11 @@
+submission: s01-textbook-pass
+expected: pass
+criteria:
+  zero-jargon: pass
+  root-cause-scale: pass
+  stakeholder-trilemma: pass
+  hitl-thresholds: pass
+overall: pass
+grader_notes: "Exemplary submission that passes all criteria cleanly. Zero technical jargon used. Problem statement captures 4k monthly volume, multi-artifact inputs, 2-3 day cycle time, and financial leakage in exactly 3 sentences. Quantified KPIs established for Operations, Compliance, and CFO. Four explicit quantitative HITL boundary rules defined."
+graded_by: human
+graded_on: 2026-09-03

@@ -1,0 +1,11 @@
+submission: s04-missing-compliance
+expected: fail
+criteria:
+  zero-jargon: pass
+  root-cause-scale: pass
+  stakeholder-trilemma: fail
+  hitl-thresholds: pass
+overall: fail
+grader_notes: "Fails stakeholder-trilemma. The compliance perspective lacks any quantified KPI, citation of contract/SLA clauses, or audit provenance standard, offering only vague qualitative aspirations. Passes zero-jargon, root-cause-scale, and hitl-thresholds."
+graded_by: human
+graded_on: 2026-09-03

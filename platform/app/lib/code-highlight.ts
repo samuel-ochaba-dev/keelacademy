@@ -105,6 +105,11 @@ export function highlightCode(code: string, lang: string, meta = ""): string {
     html = `<pre class="shiki shiki-plain" tabindex="0"><code>${escapeHtml(code)}</code></pre>`;
   }
 
+  const hasRange = /\{[\d,\-\s]+\}/.test(meta);
+  if (hasRange) {
+    html = html.replace('<pre class="shiki', '<pre class="shiki has-line-numbers');
+  }
+
   cache.set(key, html);
   return html;
 }

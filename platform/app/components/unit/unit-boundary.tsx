@@ -13,7 +13,7 @@ import { scriptPhaseLabel } from "@/lib/content";
  * estimates the contents rail lists. Nothing here teaches; a line that needs
  * teaching voice belongs in the script, not at its edge.
  *
- *   END OF LEARN · NEXT: PRACTICE, ABOUT 4 MIN · STOP HERE IF YOU NEED TO
+ *   END OF LEARN · NEXT: PRACTICE, ABOUT 4 MIN · STOP HERE IF YOU LIKE
  *
  * The time segment is the sum of the next phase's own beat estimates, and it
  * renders only when that sum is honest: a phase with unmeasured beats has no
@@ -44,7 +44,7 @@ export function UnitBoundary({
 
   return (
     <p id={`exit-${phaseId}`} data-keel-exit={phaseId} className="unit-boundary">
-      {`END OF ${ended} · NEXT: ${next}${time} · STOP HERE IF YOU NEED TO`}
+      {`END OF ${ended} · NEXT: ${next}${time} · STOP HERE IF YOU LIKE`}
     </p>
   );
 }

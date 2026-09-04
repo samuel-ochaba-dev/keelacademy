@@ -12,7 +12,7 @@ function bannerConfig(
   if (status === "queued") {
     return {
       title: "Queued",
-      body: "Your push arrived. It is waiting for a free machine to run on.",
+      body: "Your push arrived. It waits in line to run.",
       badge: "QUEUED",
       tone: "outline",
     };
@@ -28,7 +28,7 @@ function bannerConfig(
   if (status === "error") {
     return {
       title: "Grading stopped early",
-      body: "Something went wrong before a verdict was written. Nothing about your work is lost.",
+      body: "Grading stopped before we wrote a verdict. Your work is safe.",
       badge: "ERROR",
       tone: "alert",
     };
@@ -36,7 +36,7 @@ function bannerConfig(
   if (verdict?.overall === "pass") {
     return {
       title: "Passed",
-      body: "Every automated check and every rubric criterion came back passing.",
+      body: "Every automated check and every rubric criterion passed. Nice.",
       badge: "PASSED",
       tone: "live",
     };
@@ -44,14 +44,14 @@ function bannerConfig(
   if (verdict?.overall === "fail") {
     return {
       title: "Not yet",
-      body: "At least one check or criterion did not clear the bar. The details below say which.",
+      body: "At least one automated check or rubric criterion did not pass. The details below name it.",
       badge: "NOT YET",
       tone: "alert",
     };
   }
   return {
-    title: "Graded",
-    body: "Grading finished. The details are below.",
+    title: "Grading finished",
+    body: "The details are below.",
     badge: "GRADED",
     tone: "outline",
   };

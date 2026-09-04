@@ -15,7 +15,7 @@ const STATUS_TAXONOMY = [
     status: "QUEUED",
     summary: "Your push arrived.",
     detail:
-      "The commit is recorded and waiting for a free machine. Nothing has run yet.",
+      "We recorded the commit. It waits in line to run — nothing has run yet.",
   },
   {
     status: "GRADING",
@@ -27,13 +27,13 @@ const STATUS_TAXONOMY = [
     status: "GRADED",
     summary: "There is a verdict.",
     detail:
-      "Passed or not yet, with every check result and every rubric criterion, each quoting the lines it relied on.",
+      "Passed or Not yet. Every automated check and every rubric criterion quotes the lines it relied on.",
   },
   {
     status: "ERROR",
     summary: "Grading stopped early.",
     detail:
-      "The run broke or your grading budget was already spent. No verdict was written, and this does not count as an attempt.",
+      "The run broke, or you had spent your grading budget. We wrote no verdict — and this does not count as an attempt.",
   },
 ];
 
@@ -44,22 +44,22 @@ const LIFECYCLE_STEPS = [
     code: "git add .\ngit commit -m 'unit 3.2.1: reconcile invoice lines'\ngit push origin main",
   },
   {
-    name: "The commit is locked in",
+    name: "We lock in the commit",
     detail:
       "We record the exact commit hash you pushed. Grading reads that commit and no other, so the same push always produces the same verdict.",
     code: "keel: submission received for commit 4f2a1c9",
   },
   {
-    name: "The checks run in a clean container",
+    name: "Automated checks run in isolation",
     detail:
-      "Your repository is cloned into a fresh container with nothing left over from anyone else. The unit's checks run against it.",
+      "We clone your repository into a fresh, isolated run — nothing left over from anyone else. The unit's automated checks run against it.",
     code: "pytest -v tests/",
   },
   {
     name: "The rubric review reads your code",
     detail:
-      "Each criterion is judged against the published rubric and has to quote the lines of your code it relied on. No quote, no verdict.",
-    code: "criterion 1: passed",
+      "We judge each criterion against the published rubric. Each one quotes the lines it relied on — no quote, no verdict.",
+    code: "criterion 1: Passed",
   },
 ];
 
@@ -74,8 +74,9 @@ export default function SubmitPage() {
         <p className="eyebrow">Submitting work</p>
         <h1 className="heading-xl mt-4 max-w-[24ch]">How to push your work for grading</h1>
         <p className="lead mt-5">
-          You write code in your own repository. When you push it, grading starts on its own.
-          There is nothing to upload and no form to fill in.
+          You write code in your own repository. Push it and grading starts on
+          its own — nothing to upload, no form to fill in. Pushing{" "}
+          <em>is</em> the submission.
         </p>
       </header>
 
@@ -88,8 +89,8 @@ export default function SubmitPage() {
             <span className="chip chip-outline">REQUIRED</span>
           </div>
           <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Each unit gets its own repository. The name is how we know which unit a push
-            belongs to, so the unit id has to be in it.
+            Each unit gets its own repository. Include the unit id in the name so we
+            know which unit a push belongs to.
           </p>
           <div className="mt-6 flex flex-col justify-between gap-2 rounded-lg border border-circuit-border bg-carbon-veil p-4 font-code-mono text-[14px] sm:flex-row sm:items-center">
             <span className="text-phosphor-white">
@@ -179,15 +180,15 @@ export default function SubmitPage() {
           </h2>
           <ul className="mt-5 space-y-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             <li>
-              There is no submit button in the app. Pushing is the only way to submit, and we
-              would rather say so than build a button that just tells you to go and push.
+              There is no submit button — you submit by pushing. We would rather say so
+              than build a button that just tells you to go and push.
             </li>
             <li>
-              Only written units can be graded. Phase 0 and unit 3.2.1 are open today. The rest
-              of the curriculum is being written and shows as planned until it is ready.
+              We grade only written units. Phase 0 and unit 3.2.1 are open today. The rest
+              is being written and shows as planned until it is ready.
             </li>
             <li>
-              The recorded walkthrough is not built. No unit asks you for a video right now.
+              We have not built the recorded walkthrough. No unit needs a video.
             </li>
           </ul>
         </section>
@@ -201,8 +202,8 @@ export default function SubmitPage() {
               Accounts and payments
             </h2>
             <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              An account is free. You pay per unit when you start one, and enrolling is what
-              links your pushes to your grading record.
+              An account is free. You pay per unit when you start one. Enrolling links
+              your pushes to your grading record.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-3">

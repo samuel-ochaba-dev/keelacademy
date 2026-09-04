@@ -1,0 +1,11 @@
+submission: s03-vague-problem
+expected: fail
+criteria:
+  zero-jargon: pass
+  root-cause-scale: fail
+  stakeholder-trilemma: pass
+  hitl-thresholds: pass
+overall: fail
+grader_notes: "Fails root-cause-scale. Problem statement is completely vague, lacking transaction volume (~4k/mo), multi-artifact input friction (PDFs, packing slips, emails, photos), cycle time latency (2-3 days), and financial leakage specifics. Passes zero-jargon, stakeholder-trilemma, and hitl-thresholds."
+graded_by: human
+graded_on: 2026-09-03

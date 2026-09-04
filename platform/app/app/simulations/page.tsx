@@ -23,7 +23,7 @@ const TRACKS = [
     persona: "Sarah Jenkins",
     role: "VP of Operations, OmniSupply Operations",
     description:
-      "Find out what is actually costing her time before you offer to build anything.",
+      "Find what costs her time before you offer to build anything.",
     href: "/simulations/discovery",
   },
   {
@@ -33,7 +33,7 @@ const TRACKS = [
     persona: "Marcus Vance",
     role: "Staff AI Architect, OmniSupply Operations",
     description:
-      "Answer for your evaluation numbers, your costs, your latency, and what happens when the model is wrong.",
+      "Answer for accuracy, cost, latency, and failure handling. Bring numbers — charm does not count.",
     href: "/simulations/technical-stakeholder",
   },
   {
@@ -43,7 +43,7 @@ const TRACKS = [
     persona: "Elena Rostova",
     role: "Managing Director, OmniSupply Operations",
     description:
-      "Say what it saves, in hours and in money, without a single acronym.",
+      "Say what it saves in hours and money. Plain words only — she signs invoices, not architecture diagrams.",
     href: "/simulations/business-owner",
   },
 ] as const;
@@ -88,15 +88,16 @@ export default async function SimulationsDirectoryPage() {
       <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
         <p className="eyebrow">Practice conversations</p>
         <h1 className="heading-xl mt-4 max-w-[28ch]">
-          The part of the job that is not code
+          The part of the job where you talk
         </h1>
         <p className="lead mt-5 max-w-[68ch]">
-          You will be asked to explain what you built to people who did not build it. These
-          three conversations are where you practise that, as many times as you want.
+          Sooner or later someone who did not build it will ask you to explain what you
+          built. These three conversations are the rehearsal room — run them as many
+          times as you want.
         </p>
         <p className="mt-6 max-w-[68ch] rounded-lg border border-circuit-border bg-carbon-veil p-4 text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          The person on the other side of these conversations is an AI, not a real employee of
-          a real company. Each one follows a written brief you can read in the curriculum.
+          You talk with an AI following a written brief — no real employee joins these calls.
+          You can read the brief in the curriculum before you start.
         </p>
       </header>
 
@@ -105,8 +106,8 @@ export default async function SimulationsDirectoryPage() {
           <div className="card-dark max-w-[52ch]">
             <h2 className="heading-md">Sign in to start one</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              Conversations are saved against your account so you can come back to a transcript
-              and see what you would say differently.
+              We save conversations to your account. Come back to a transcript and spot what
+              you would say differently.
             </p>
             <Link href="/sign-in?next=/simulations" className="btn btn-primary btn-sm mt-7">
               Sign in
@@ -128,7 +129,7 @@ export default async function SimulationsDirectoryPage() {
                     passed={defenses.technical_stakeholder.passed}
                   />
                   <DefenceStat label="Budget holder" passed={defenses.business_owner.passed} />
-                  <DefenceStat label="Both together" passed={defenses.defense_cleared} />
+                    <DefenceStat label="Both" passed={defenses.defense_cleared} />
                 </dl>
               </section>
             ) : null}

@@ -29,9 +29,9 @@ export const metadata: Metadata = {
 };
 
 const CHECKOUT_ERRORS: Record<string, string> = {
-  unreachable: "We could not reach the enrollment server. Try again in a moment.",
-  app_not_configured: "This site is missing its enrollment secret (KEEL_ENROLL_SECRET).",
-  stripe_not_wired: "Payments are not configured on the enrollment server yet.",
+  unreachable: "We could not reach enrollment. Try again.",
+  app_not_configured: "Enrollment is not configured yet. Try again.",
+  stripe_not_wired: "Payments are not configured yet.",
   stripe_unreachable: "The payment provider did not answer. Nothing was charged.",
   stripe_error: "The payment provider rejected the request. Nothing was charged.",
   email_linked_to_other_account:
@@ -52,8 +52,8 @@ export default async function MapPage({ searchParams }: Props) {
           <p className="eyebrow">Profile unavailable</p>
           <h1 className="heading-lg mt-3">We could not load your map</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            You are signed in, but the server that holds your progress did not answer.
-            Nothing is lost. Refresh in a moment and the map will load.
+            You are signed in, but your progress would not load.
+            Nothing is lost. Refresh and the map will load.
           </p>
           <Link href="/me" className="btn btn-ghost btn-sm mt-7">
             Back to dashboard
@@ -95,9 +95,9 @@ export default async function MapPage({ searchParams }: Props) {
             <p className="eyebrow">OmniSupply Operations · your build map</p>
             <h1 className="heading-xl mt-4">The whole system, phase by phase</h1>
             <p className="lead mt-5">
-              Thirteen phases build one invoice reconciliation and dispute triage
-              pipeline. Every card names the component that unit contributes, whether
-              it is open to you, and how your last submission was graded.
+              Thirteen phases, one invoice reconciliation and dispute triage
+              pipeline. Every card names the unit&apos;s component, whether
+              you can open it, and your last verdict.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -187,7 +187,7 @@ export default async function MapPage({ searchParams }: Props) {
                 How the phases connect
               </h2>
               <p className="mt-3 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Four tracks, one pipeline. Each track ships a component the next one
+                Four tracks form one pipeline. Each track ships a component the next one
                 needs.
               </p>
             </div>
@@ -208,7 +208,7 @@ export default async function MapPage({ searchParams }: Props) {
             <PipelineTrack
               title="3. Agents and adaptation"
               phases="Phases 5 to 6"
-              role="Dispute routing agent, hard stop conditions, and a domain-adapted open model."
+              role="Dispute routing agent, hard stop conditions, and domain adaptation."
               gateBadge="15% rebate gate"
             />
             <PipelineTrack
@@ -232,18 +232,19 @@ export default async function MapPage({ searchParams }: Props) {
             What graduation requires
           </h2>
           <p className="mt-3 max-w-[62ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Five checks. All five have to pass before your record is published.
+            Five checks stand between you and graduation. Clear all five and we publish
+            your record.
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <GradCheck
               num="01"
               title="Golden set accuracy"
-              description="Measured precision and recall on held-out adversarial dispute cases you have never seen."
+              description="We measure precision and recall on held-out adversarial dispute cases you have never seen."
             />
             <GradCheck
               num="02"
               title="Defend your work"
-              description="Short unscripted questions generated from the code you submitted."
+              description="Answer short unscripted questions about the code you submitted."
             />
             <GradCheck
               num="03"
@@ -258,13 +259,13 @@ export default async function MapPage({ searchParams }: Props) {
             <GradCheck
               num="05"
               title="Real outreach"
-              description="One outreach email sent to a real business, with a priced scope of work attached."
+              description="Send one outreach email to a real business, with a priced scope of work attached."
             />
             <div className="rounded-lg border border-circuit-border bg-carbon-veil p-5">
               <p className="eyebrow">Your record</p>
               <p className="mt-3 text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Clearing all five publishes a profile that ties every verdict to the exact
-                commit it was graded from.
+                Clearing all five publishes a profile linking every verdict to the exact
+                commit you pushed.
               </p>
               <Link href="/submit" className="btn btn-ghost btn-sm mt-6">
                 Read the submission guide
@@ -351,7 +352,7 @@ function PhaseSection({
             {p.title}
           </h2>
           <p className="mt-2 text-[14px] leading-relaxed text-[color:var(--text-faint-on-dark)]">
-            Built into the pipeline as: {p.pipeline_role}
+            Its job in the pipeline: {p.pipeline_role}
           </p>
         </div>
         {phase.gateCleared ? (
@@ -371,7 +372,7 @@ function PhaseSection({
           </p>
         </div>
         <div>
-          <p className="eyebrow">What you come out with</p>
+          <p className="eyebrow">What you walk away with</p>
           <p className="mt-2 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             {p.outcome}
           </p>

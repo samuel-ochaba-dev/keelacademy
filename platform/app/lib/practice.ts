@@ -93,6 +93,7 @@ export type RecheckSeed = {
   seed_prompt: string;
   stage: number;
   status: RecheckSeedStatus;
+  mastery?: "unstarted" | "attempted" | "familiar" | "proficient" | "mastered";
   last_pass_at: string | null;
   due_at: string | null;
 };
@@ -269,6 +270,31 @@ export function fetchRecheckSchedule(
   const unitParam = unitId ? `&unit=${encodeURIComponent(unitId)}` : "";
   return practiceFetch<RecheckSchedule>(
     `/practice/retrieval/schedule?student_id=${studentId}${unitParam}`,
+  );
+}
+
+export type ReviewQueueItem = {
+  review_id: string;
+  unit_id: string;
+  seed_index: number;
+  seed_prompt: string;
+  mastery: "unstarted" | "attempted" | "familiar" | "proficient" | "mastered";
+  stage: number;
+  due_at: string | null;
+};
+
+export type ReviewQueueResponse = {
+  student_id: number;
+  now: string;
+  due_count: number;
+  items: ReviewQueueItem[];
+};
+
+export function fetchReviewQueue(
+  studentId: number,
+): Promise<PracticeResult<ReviewQueueResponse>> {
+  return practiceFetch<ReviewQueueResponse>(
+    `/practice/review/queue?student_id=${studentId}`,
   );
 }
 
@@ -609,4 +635,27 @@ export function fetchLatestDigest(
   studentId: number,
 ): Promise<PracticeResult<LatestDigestResponse>> {
   return practiceFetch<LatestDigestResponse>(`/digest/latest?student_id=${studentId}`);
+}
+
+export type ExplainItBackResult = {
+  ok: boolean;
+  passed: boolean;
+  feedback: string;
+  score: number;
+};
+
+export function evaluateExplainItBack(params: {
+  studentId: number;
+  unitId: string;
+  explanation: string;
+}): Promise<PracticeResult<ExplainItBackResult>> {
+  return practiceFetch<ExplainItBackResult>("/practice/explain/evaluate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: params.studentId,
+      unit_id: params.unitId,
+      explanation: params.explanation,
+    }),
+  });
 }

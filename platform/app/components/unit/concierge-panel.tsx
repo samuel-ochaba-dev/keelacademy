@@ -29,8 +29,8 @@ type ConciergePanelProps = {
  */
 function reasonFor(mode: ConciergeMode): string {
   return mode === "guard"
-    ? "You have finished the practice route for this unit, so questions get worked through with you rather than answered outright. It will not write the deliverable for you."
-    : "You are still on the practice route, so it explains freely and will write you extra exercises on request.";
+    ? "You finished the practice route for this unit. Questions now walk through steps with you — it does not write the deliverable."
+    : "You are on the practice route. It explains concepts and writes extra exercises on request.";
 }
 
 export function ConciergePanel({
@@ -88,7 +88,7 @@ export function ConciergePanel({
         if (res.status === 429) {
           setIsBudgetExhausted(true);
           setErrorMsg(
-            "Your grading and question budget for this unit is used up, so no more questions can go through right now. Your dashboard shows the budget.",
+            "You used the grading and question budget for this unit. No more questions can go through. Your dashboard shows the budget.",
           );
           return;
         }
@@ -97,7 +97,7 @@ export function ConciergePanel({
           const errData = await res.json().catch(() => ({}));
           setErrorMsg(
             errData.message ||
-              "That question did not go through. Nothing was charged. Try it again in a moment.",
+              "That question did not go through. You kept your budget. Try it again.",
           );
           return;
         }
@@ -120,11 +120,9 @@ export function ConciergePanel({
         setLatestAnswer(data.answer);
         setLatestTokens(data.tokens_charged);
         setQuestion("");
-      } catch (err) {
+      } catch {
         setErrorMsg(
-          `That question did not reach the assistant, so nothing was charged. ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          "That question did not reach the assistant. You kept your budget. Try it again.",
         );
       }
     });
@@ -140,9 +138,9 @@ export function ConciergePanel({
               Ask about this unit
             </h2>
             <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              An assistant that has read this unit and nothing else. Ask why a concept works, ask
-              for another exercise, or get unblocked on an error at any hour. It is an AI, not a
-              person, and it will not write your deliverable.
+              An assistant that has read this unit and nothing else. Ask about a concept.
+              Ask for another exercise. Ask about an error. It is an AI — it does not
+              write your deliverable.
             </p>
           </div>
           )}
@@ -151,7 +149,7 @@ export function ConciergePanel({
             {currentMode === "teach" ? (
               <span className="chip chip-live text-[11px]">EXPLAINS FREELY</span>
             ) : (
-              <span className="chip chip-outline text-[11px]">WORKS IT THROUGH WITH YOU</span>
+              <span className="chip chip-outline text-[11px]">GUIDED</span>
             )}
             <p className="text-[12px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               {modeReason}
@@ -162,8 +160,7 @@ export function ConciergePanel({
         {/* Service State Gate */}
         {serviceDown ? (
           <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border text-[14px] text-phosphor-white">
-            The assistant is not answering just now. Nothing you asked earlier is lost. Try again in
-            a moment.
+            The assistant is down. Your earlier questions remain. Try again.
           </div>
         ) : !isSignedIn ? (
           <div className="p-6 rounded-lg bg-carbon-veil border border-circuit-border space-y-3">
@@ -180,10 +177,10 @@ export function ConciergePanel({
         ) : !isEnrolled ? (
           <div className="p-6 rounded-lg bg-carbon-veil border border-circuit-border space-y-3">
             <p className="text-[15px] text-phosphor-white">
-              Questions on Unit {unitId} open up when you enroll in it.
+              You ask questions on Unit {unitId} after you enroll in it.
             </p>
             <Link href={`/units/${unitId}#build`} className="btn btn-primary btn-sm">
-              See what enrolling includes
+              See enrollment steps
             </Link>
           </div>
         ) : (
@@ -209,8 +206,8 @@ export function ConciergePanel({
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder={
                   currentMode === "teach"
-                    ? "Ask why a concept works, ask for another exercise, or ask what a line of the lesson means."
-                    : "Paste the error, say what you expected, and say what you have already tried."
+                    ? "Ask about a concept in this lesson."
+                    : "Paste the error and what you expected."
                 }
                 disabled={isPending || isBudgetExhausted}
                 className="field-input text-[14.5px]"
@@ -234,7 +231,7 @@ export function ConciergePanel({
                   disabled={!question.trim() || isPending || isBudgetExhausted}
                   className="btn btn-accent btn-sm"
                 >
-                  {isPending ? <span>Thinking...</span> : <span>Ask</span>}
+                  {isPending ? <span>Working…</span> : <span>Ask</span>}
                 </button>
               </div>
             </form>

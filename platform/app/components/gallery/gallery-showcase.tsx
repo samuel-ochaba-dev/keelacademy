@@ -60,7 +60,7 @@ export function GalleryShowcase({
         setIsEditing(false);
         setSuccessMsg("This is live in the gallery now.");
       } else {
-        setErrorMsg(data.message || data.error || "The gallery would not accept that.");
+        setErrorMsg(data.message || data.error || "The gallery did not accept that. Try again.");
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Network error");
@@ -109,8 +109,8 @@ export function GalleryShowcase({
         Put this in the gallery
       </h2>
       <p className="mt-4 max-w-[70ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        Publishing is your choice and you can take it down again. What goes public is what you
-        write below, your name, and the verdict that passed this submission.
+        Publishing is your choice, and you can take it down again. The public page shows
+        your text, your name, and the passing verdict.
       </p>
 
       {project && project.published && !isEditing ? (
@@ -147,7 +147,7 @@ export function GalleryShowcase({
               disabled={isSubmitting}
               className="btn btn-ghost btn-sm"
             >
-              {isSubmitting ? "Taking it down..." : "Take it down"}
+              {isSubmitting ? "Taking it down" : "Take it down"}
             </button>
           </div>
         </div>
@@ -182,7 +182,7 @@ export function GalleryShowcase({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 required
-                placeholder="A few sentences. What it takes in, what it puts out, and what you would fix next."
+                placeholder="Three sentences: what it takes in, what it puts out, and what you would fix next."
                 className="field-input font-inter-variable"
               />
             </div>
@@ -221,14 +221,14 @@ export function GalleryShowcase({
                 type="url"
                 value={walkthroughVideoUrl}
                 onChange={(e) => setWalkthroughVideoUrl(e.target.value)}
-                placeholder="Optional. YouTube, Loom and Vimeo links embed on the project page."
+                placeholder="Optional. Links from supported video hosts embed on the project page."
                 className="field-input"
               />
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <button type="submit" disabled={isSubmitting} className="btn btn-accent btn-sm">
                 {isSubmitting
-                  ? "Saving..."
+                  ? "Saving"
                   : project?.published
                     ? "Save the changes"
                     : "Publish it"}

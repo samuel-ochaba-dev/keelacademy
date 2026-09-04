@@ -24,7 +24,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
       <div className="shell section">
         <div className="card-dark max-w-[62ch]">
           <p className="eyebrow">Nothing to buy here</p>
-          <h1 className="heading-lg mt-3">Unit {unitId} is not written yet</h1>
+          <h1 className="heading-lg mt-3">Unit {unitId} does not exist yet</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             You can only enroll in a unit that exists. Nothing was charged.
           </p>
@@ -45,8 +45,8 @@ export default async function CheckoutPage({ searchParams }: Props) {
           <p className="eyebrow">Checkout unavailable</p>
           <h1 className="heading-lg mt-3">We could not load the price</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The enrollment server did not answer, so we will not guess at a number. Nothing
-            was charged. Refresh in a moment.
+            We could not load the price, so we will not guess at a number. Nothing
+            was charged. Refresh and try again.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href={`/checkout?unit=${unitId}`} className="btn btn-primary btn-sm">
@@ -71,8 +71,8 @@ export default async function CheckoutPage({ searchParams }: Props) {
         <p className="eyebrow">Checkout</p>
         <h1 className="heading-xl mt-4">Enroll in unit {unitId}</h1>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          One unit, paid once. You keep access to it, and clearing a milestone gate sends
-          15% of what you paid back to the card you used.
+          One unit, paid once. You keep access. Clearing a milestone gate sends
+          15% back to the card you used.
         </p>
       </header>
 

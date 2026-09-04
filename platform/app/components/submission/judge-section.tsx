@@ -6,21 +6,21 @@ export function JudgeSection({ judge }: { judge: JudgeVerdict | null | undefined
   const totalCount = judge?.criteria.length ?? 0;
 
   return (
-    <section id="layer-2" aria-labelledby="rubric-title" className="card-dark scroll-mt-24">
+    <section id="rubric-review" aria-labelledby="rubric-title" className="card-dark scroll-mt-24">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h2 id="rubric-title" className="heading-md">
           Rubric review
         </h2>
         {judge ? (
           <span className="font-code-mono text-[13px] text-moss-70">
-            {`${passCount} of ${totalCount} criteria passed`}
+            {`${passCount} of ${totalCount} rubric criteria passed`}
           </span>
         ) : null}
       </div>
 
       <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        Each criterion is judged against the published rubric and has to quote the lines of
-        your code it relied on. If there is no quote, there is no verdict.
+        We judge each criterion against the published rubric. Each one quotes the lines
+        of your code it relied on.
       </p>
 
       {judge && judge.criteria.length > 0 ? (
@@ -59,7 +59,7 @@ export function JudgeSection({ judge }: { judge: JudgeVerdict | null | undefined
         </div>
       ) : (
         <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          No rubric review was recorded for this submission.
+          This submission has no rubric review.
         </p>
       )}
     </section>

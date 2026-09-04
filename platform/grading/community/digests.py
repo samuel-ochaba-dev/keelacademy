@@ -33,13 +33,13 @@ from community.pods import current_cohort_week
 CURRICULUM_UNITS = [
     {"id": "0.1", "phase": 0, "title": "Warmup: System Invariant Harness"},
     {"id": "1.1", "phase": 1, "title": "Pydantic Extraction Parser"},
-    {"id": "1.2", "phase": 1, "title": "Deterministic Layer-1 Sandbox"},
-    {"id": "1.3", "phase": 1, "title": "Calibrated LLM Proxy & Budget"},
+    {"id": "1.2", "phase": 1, "title": "Deterministic Sandbox Checks"},
+    {"id": "1.3", "phase": 1, "title": "API Budgets & Spending Caps"},
     {"id": "1.4", "phase": 1, "title": "Immutable Events Spine"},
     {"id": "1.5", "phase": 1, "title": "Phase 1 Integration Gate"},
     {"id": "2.1", "phase": 2, "title": "Async Task Queue & Workers"},
     {"id": "2.2", "phase": 2, "title": "Live Log Stream & SSE"},
-    {"id": "2.3", "phase": 2, "title": "Learner Submission Cockpit"},
+    {"id": "2.3", "phase": 2, "title": "Submission History & Status"},
     {"id": "2.4", "phase": 2, "title": "Managed Auth & Identities"},
     {"id": "2.5", "phase": 2, "title": "Stripe Checkout & Billing"},
     {"id": "2.6", "phase": 2, "title": "Rebate Ledger & Transitions"},
@@ -53,7 +53,7 @@ CURRICULUM_UNITS = [
     {"id": "4.2", "phase": 4, "title": "Peer Accountability Pods"},
     {"id": "4.3", "phase": 4, "title": "Weekly Retention Digest"},
     {"id": "5.1", "phase": 5, "title": "Phase 5 Multi-Agent Triage Gate"},
-    {"id": "12.1", "phase": 12, "title": "Production Insurance Capstone"},
+    {"id": "12.1", "phase": 12, "title": "OmniSupply Operations Capstone"},
 ]
 
 CURRICULUM_MAP = {u["id"]: u for u in CURRICULUM_UNITS}
@@ -311,7 +311,7 @@ ROLLBACK;
         "pledged_cents": pledged_cents,
         "currency": "usd",
         "milestones": rebates_list,
-        "summary": f"${earned_cents // 100} earned of ${pledged_cents // 100} pledged 30% completion rebate.",
+        "summary": f"${earned_cents // 100} earned of ${pledged_cents // 100} pledged completion rebate (15% per gate).",
     }
 
     content_json = {
@@ -375,7 +375,7 @@ def render_digest_email_text(digest_json: dict[str, Any]) -> str:
 
     lines.extend([
         "============================================================",
-        "4. 30% REBATE LEDGER & DEADLINE TIMERS",
+        "4. REBATE LEDGER & DEADLINE TIMERS",
         "============================================================",
         f"• Total Earned: ${rebate.get('earned_cents', 0) // 100} / ${rebate.get('pledged_cents', 60000) // 100}",
     ])
@@ -383,7 +383,7 @@ def render_digest_email_text(digest_json: dict[str, Any]) -> str:
         lines.append(f"  - {m.get('gate_id')}: ${m.get('amount_cents', 0) // 100} [{m.get('status').upper()}]")
     lines.append(f"• Summary: {rebate.get('summary')}\n")
 
-    lines.append("Open your student cockpit: https://keel.academy/me\n")
+    lines.append("Open your dashboard: https://keel.academy/me\n")
     return "\n".join(lines)
 
 
@@ -481,7 +481,7 @@ def render_digest_email_html(digest_json: dict[str, Any]) -> str:
       <!-- Pillar 4 -->
       <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
         <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 8px;">
-          4. 30% Completion Rebate Status
+          4. Completion Rebate Status
         </div>
         {rebate_html}
         <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 8px;">
@@ -491,7 +491,7 @@ def render_digest_email_html(digest_json: dict[str, Any]) -> str:
 
       <div style="text-align: center; margin-top: 16px;">
         <a href="https://keel.academy/me" style="background-color: #10b981; color: #09090b; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block;">
-          Open Learner Cockpit &rarr;
+          Open Your Dashboard &rarr;
         </a>
       </div>
     </td>

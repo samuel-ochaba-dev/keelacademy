@@ -31,7 +31,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
         <div className="card-dark space-y-6">
           <div className="border-b border-phosphor-blue-black pb-4">
             <h3 className="eyebrow text-[12px]">
-              HOW TO SUBMIT IT
+              How to submit it
             </h3>
           </div>
 
@@ -61,7 +61,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
               {contract.cli ? (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-carbon-veil border border-circuit-border">
                   <span className="eyebrow text-[11px]">
-                    THE COMMAND THE CHECKS RUN
+                    The command the automated checks run
                   </span>
                   <code className="font-code-mono text-[13px] text-lime-pulse">
                     {contract.cli}
@@ -70,7 +70,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
               ) : null}
             </div>
           ) : (
-            <ContentArriving what="The submission contract from the checks file" />
+            <ContentArriving what="The submission contract for this unit" />
           )}
         </div>
 
@@ -78,7 +78,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="card-dark space-y-3">
             <span className="eyebrow text-[11px]">
-              WHAT TO NAME YOUR REPOSITORY
+              What to name your repository
             </span>
             <div className="block">
               <code className="code-inline text-[15px] font-code-mono text-phosphor-white">
@@ -86,14 +86,14 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
               </code>
             </div>
             <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              Push it to GitHub under that exact name. The name is how your push gets matched to
-              unit {unit.id}, so a typo means the checks never run.
+              Push it to GitHub under that exact name. GitHub matches that name to
+              unit {unit.id} — a typo skips the automated checks entirely.
             </p>
           </div>
 
           <div className="card-dark space-y-3">
             <span className="eyebrow text-[11px]">
-              THE DATA YOU BUILD AGAINST
+              The data you build against
             </span>
             <div className="block">
               <code className="code-inline text-[15px] font-code-mono text-lime-pulse">
@@ -101,15 +101,15 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
               </code>
             </div>
             <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              The fixture corpus this unit&rsquo;s checks run against. It ships with the unit, so
-              you can run the checks locally and get the same result the grader gets.
+              The automated checks run against this fixture corpus. It ships with the unit, so
+              run them locally first — you will get the same result the grader gets.
             </p>
           </div>
         </div>
 
         {/* Submit guide link */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-lg bg-carbon-veil border border-circuit-border">
-          <span className="text-[15px] text-phosphor-white">Ready to push your work up for grading?</span>
+          <span className="text-[15px] text-phosphor-white">Push your work for grading.</span>
           <Link href="/submit" className="btn btn-accent btn-sm">
             Read how submitting works
           </Link>

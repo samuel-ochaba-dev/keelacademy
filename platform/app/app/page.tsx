@@ -28,15 +28,21 @@ export default function HomePage() {
         <div>
           <p className="eyebrow">Applied AI engineering program</p>
           <h1 className="display-heading mt-5">
-            <span className="text-lime-pulse">Learn AI engineering</span> by
-            shipping one real system.
+            Stop demoing.{" "}
+            <span className="text-lime-pulse">
+              Ship an AI system that survives real invoices.
+            </span>
           </h1>
           <p className="lead mt-6">
-            Across {phaseCount} phases you build an invoice reconciliation and
-            dispute triage pipeline for OmniSupply Operations, a simulated B2B
-            distributor, from first commit to deployed system. Every submission
-            runs against real tests and a published rubric. It passes only when
-            the work holds up.
+            Most AI courses end right where things get interesting — the
+            moment the demo meets messy vendor PDFs and the model starts
+            inventing totals. I have watched brilliant engineers stall at
+            exactly that wall. Keel starts there: across {phaseCount}{" "}
+            phases you build an invoice reconciliation and dispute triage
+            pipeline for OmniSupply Operations, a simulated B2B
+            distributor, from first commit to deployed system. Every
+            submission runs against real tests and a published rubric. It
+            passes only when the work holds up.
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
             <Link href="/sign-up" className="btn btn-accent">
@@ -47,7 +53,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-5 text-[14px] text-[color:var(--text-faint-on-dark)]">
-            Enroll per unit, clear milestone gates, earn a rebate as you go.
+            Enroll per unit. Clear a milestone gate. Get 15% back.
           </p>
         </div>
 
@@ -65,9 +71,10 @@ export default function HomePage() {
               <span className="chip chip-outline">Unit {first.id}</span>
             </div>
             <p className="mt-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              Every unit publishes its rubric before you build. Your submission
-              is graded against each criterion, and each verdict has to quote
-              the lines of your own code that earned it.
+              Here is the deal: every unit publishes its rubric before you
+              build. Automated checks and rubric review grade your submission
+              against each criterion — and each verdict has to quote the lines
+              of your own code that earned it. No quotes, no pass.
             </p>
             <ul className="mt-6 space-y-5">
               {rubricCriteria.slice(0, 4).map((criterion) => (
@@ -93,7 +100,11 @@ export default function HomePage() {
                     <p className="font-goga text-[15px] font-medium text-phosphor-white">
                       {criterion.id
                         .split("-")
-                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .map((w, i) =>
+                          i === 0
+                            ? w.charAt(0).toUpperCase() + w.slice(1)
+                            : w,
+                        )
                         .join(" ")}
                     </p>
                     <p className="mt-1 text-[13.5px] leading-relaxed text-[color:var(--text-faint-on-dark)]">
@@ -104,9 +115,10 @@ export default function HomePage() {
               ))}
             </ul>
             <p className="mt-7 border-t border-[color:var(--line-on-dark)] pt-4 text-[12.5px] text-[color:var(--text-faint-on-dark)]">
-              The published rubric for Unit {first.id}, loaded live from the
-              curriculum. {firstUnit?.checks?.length ?? 0} automated checks run
-              on every submission first.
+              This is the real rubric for Unit {first.id}, loaded live from
+              the curriculum — the same file the grader reads.{" "}
+              {firstUnit?.checks?.length ?? 0} automated checks run on every
+              submission first.
             </p>
           </aside>
         ) : null}
@@ -140,12 +152,14 @@ export default function HomePage() {
           <div className="max-w-[62ch]">
             <p className="eyebrow">How a unit works</p>
             <h2 className="heading-xl mt-4">
-              Six steps, the same loop in every unit.
+              Six steps. Same loop, every unit — you will know it by heart
+              by week two.
             </h2>
             <p className="lead mt-5">
-              Each unit is a small engineering engagement: learn the concept,
-              practice on a parallel task, build the deliverable, get it graded,
-              unblock yourself fast when stuck, and move on.
+              Each unit is a small build with the same heartbeat: learn the
+              concept, practice on a parallel task, ship the deliverable, get
+              it graded, get unstuck fast, move on. No surprises after unit
+              one — the surprise budget goes to the ideas, where it belongs.
             </p>
           </div>
 
@@ -154,32 +168,32 @@ export default function HomePage() {
               {
                 step: "01",
                 title: "Learn",
-                body: "One written lesson, read start to finish. It works the concept, then the client's numbers, then the exact thing you are about to produce, with checkpoints you answer before you read an answer.",
+                body: "One written lesson, read start to finish. It opens with the concept, grounds it in the client's numbers, then shows exactly what you are about to produce — with checkpoints you answer before you peek. (Peeking is allowed. Peeking first is noticeable.)",
               },
               {
                 step: "02",
                 title: "Practice",
-                body: "Study a fully worked example of a parallel task, then fill the gaps in a completion problem that is auto-graded on every save.",
+                body: "Study a fully worked example of a parallel task, then fill the gaps in a completion problem. Automated checks grade every save, so you always know exactly where you stand.",
               },
               {
                 step: "03",
                 title: "Build",
-                body: "Ship the deliverable to your own git repository. The deliverable and the submission contract are published up front.",
+                body: "Ship the deliverable to your own git repository. The deliverable and the submission contract are published up front — you will never have to guess what 'done' means.",
               },
               {
                 step: "04",
                 title: "Verify",
-                body: "Your push triggers the checks and the rubric review. Every verdict quotes evidence from your code, so you know exactly what to fix.",
+                body: "Push, and automated checks plus rubric review get to work. Every verdict quotes evidence from your code, so a Not yet always tells you what to fix.",
               },
               {
                 step: "05",
                 title: "Unstuck",
-                body: "Every unit lists its common failure modes with the specific fix, and an assistant scoped to that unit answers questions any hour.",
+                body: "Every unit lists the ways it usually breaks, each with its fix. And an assistant that has read that exact unit answers questions — yes, at 2am.",
               },
               {
                 step: "06",
                 title: "Move on",
-                body: "Passing a unit unlocks the next. Passing a milestone gate earns a 15% rebate. Progress is measured only in verified work.",
+                body: "Pass a unit and the next one opens. Pass a milestone gate and 15% comes back to your card. Only verified work moves you forward — that is the whole transcript.",
               },
             ].map((item) => (
               <li
@@ -207,12 +221,11 @@ export default function HomePage() {
           <div className="max-w-[62ch]">
             <p className="eyebrow">Graded for real</p>
             <h2 className="heading-xl mt-4">
-              A pass means the work was checked, not watched.
+              A pass means the work held up. Here is exactly how we check.
             </h2>
             <p className="lead mt-5">
-              Most courses grade what you watched. This program grades what you
-              shipped. Every deliverable is checked three ways, and the bar is
-              published before you write a line.
+              This program grades what you shipped, against a bar you read
+              before you started. Three stages, every milestone:
             </p>
           </div>
 
@@ -221,17 +234,17 @@ export default function HomePage() {
               {
                 num: "1",
                 title: "Automated checks",
-                body: "Your code runs in a clean, isolated environment against the unit's test suite and data. The results name every check that passed or failed, with the command output to read.",
+                body: "Your code runs in an isolated run against the unit's test suite and data. Results list each automated check as Passed or Not yet, with the full command output — you see exactly what the grader saw.",
               },
               {
                 num: "2",
                 title: "Rubric review",
-                body: "A language model grades your submission against the unit's published criteria, and every verdict has to quote the lines of your own code that earned it. No evidence, no pass.",
+                body: "A language model reads your submission against the unit's published criteria and quotes the lines of your code behind every verdict. No quoted evidence? The verdict reads Not yet. That is the rule that keeps the whole system honest.",
               },
               {
                 num: "3",
                 title: "Defend the build",
-                body: "Milestone work is defended in conversation, once to a technical reviewer and once to the budget holder. Both are AI following a written brief, and your side of the transcript is scored against a rubric you can read first.",
+                body: "Milestone work gets defended out loud — once to a technical reviewer, once to the budget holder. Both are AI playing a written brief you can read first, and your side is scored against a rubric. Paste-and-pray does not survive this room.",
               },
             ].map((stage) => (
               <article key={stage.num} className="card-dark p-8">
@@ -262,9 +275,9 @@ export default function HomePage() {
                 Help that shows up at 2am, scoped to the exact lesson.
               </h2>
               <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Stuck is normal. What matters is how fast you get unstuck. Each
-                unit carries its own failure-mode list, and an assistant that
-                knows the lesson answers questions whenever you have them.
+                Stuck is normal — stuck for a week is a curriculum bug, and we
+                treat it like one. Each unit ships its failure modes with
+                fixes, plus an assistant that knows the lesson.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link href="/curriculum" className="btn btn-primary">
@@ -279,19 +292,19 @@ export default function HomePage() {
               {[
                 {
                   title: "An assistant scoped to the unit",
-                  body: "Ask why a concept works, request another practice exercise, or get unblocked on an error. It knows the curriculum, not the internet.",
+                  body: "Ask why a concept works. Ask for another exercise. Ask about the error that has been glaring at you since midnight. It answers from the curriculum only — it will not hallucinate a syllabus.",
                 },
                 {
                   title: "Planned failure modes, published",
-                  body: "Every unit lists what usually breaks, with the specific fix linked. Most stuck moments end in one click.",
+                  body: "Every unit lists what usually breaks, each with its fix linked. Most stuck moments end in one click — the rest end in the assistant.",
                 },
                 {
                   title: "A pod that ships with you",
-                  body: "You post what shipped, what broke, and what is next, every week. Peers review milestone work against the same rubric the platform uses.",
+                  body: "Each week you post what shipped, what broke, and what is next. Peers review milestone work against the same rubric the platform uses — harsh, but it is the same harsh for everyone.",
                 },
                 {
                   title: "A public gallery of real work",
-                  body: "Passed projects can be published with their verification attached. Your portfolio proves itself.",
+                  body: "Passed projects can go public with their verification attached. Employers never have to take your word for it — they can read the verdict.",
                 },
               ].map((item) => (
                 <li key={item.title} className="flex gap-4">
@@ -318,13 +331,13 @@ export default function HomePage() {
       <section className="shell section" id="units">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-[56ch]">
-            <p className="eyebrow">Curriculum Units</p>
+            <p className="eyebrow">Curriculum units</p>
             <h2 className="heading-lg mt-4">
-              Units open for enrollment.
+              Start here. These units are open today.
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              Each unit page shows the full lesson, the practice set, the
-              deliverable, and the exact rubric before you pay.
+              Every unit page shows the lesson, the practice set, the
+              deliverable, and the rubric — all four, before you pay a cent.
             </p>
           </div>
           <Link href="/curriculum" className="btn btn-ghost btn-sm">
@@ -365,11 +378,11 @@ export default function HomePage() {
       <section className="shell pb-8">
         <div className="card-dark flex flex-col items-start justify-between gap-8 p-12 md:flex-row md:items-center">
           <div>
-            <h2 className="heading-lg">Your first submission is one push away.</h2>
+            <h2 className="heading-lg">Your first submission is one push away. Seriously.</h2>
             <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Create an account
-              {placement ? `, take the ${placement.est_minutes}-minute placement check,` : ","} and
-              open your first unit the same session.
+              {placement ? `, take the ${placement.est_minutes}-minute placement check — or skip it,` : ","} and
+              open your first unit in the same session.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-4">

@@ -112,7 +112,7 @@ export function UnitExitCard({
 
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[color:var(--line-on-dark)] pt-5">
           <Link href="/me" className="btn btn-quiet btn-sm">
-            Wrap up here
+            Wrap up
           </Link>
           {wrapUpLine ? (
             <p className="text-[13px] leading-relaxed text-[color:var(--text-faint-on-dark)]">
@@ -141,14 +141,14 @@ function recapLine(
     );
   }
   if (retrievalPassedCount !== null) {
-    sentences.push(`${retrievalPassedCount} of ${retrievalSeedCount} retrieval drills passed.`);
+    sentences.push(`${retrievalPassedCount} of ${retrievalSeedCount} retrieval drills show Passed.`);
   }
   if (verdict === "pass") {
     sentences.push("Your latest verdict on this unit is Passed.");
   } else if (verdict === "not-yet") {
     sentences.push("Your latest verdict on this unit is Not yet.");
   } else if (verdict === "grading") {
-    sentences.push("Your latest submission for this unit is still being graded.");
+    sentences.push("Your latest submission for this unit is waiting for grading.");
   }
   return sentences.length > 0 ? sentences.join(" ") : coverage;
 }

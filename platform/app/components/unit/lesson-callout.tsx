@@ -1,3 +1,5 @@
+"use client";
+
 import type { LessonBlock } from "@/lib/content";
 
 /**
@@ -9,7 +11,7 @@ import type { LessonBlock } from "@/lib/content";
 export function LessonCallout({ title, html }: { title: string; html: string }) {
   return (
     <aside className="callout callout-gotcha">
-      <p className="callout-label">Gotcha</p>
+      <p className="callout-label">Watch out</p>
       <p className="callout-title">{title}</p>
       <div className="lesson-prose callout-body" dangerouslySetInnerHTML={{ __html: html }} />
     </aside>
@@ -36,6 +38,14 @@ export function LessonCheckpoint({
   inputId: string;
 }) {
   const isCheckpoint = block.type === "checkpoint";
+
+  const handleToggle = (e: React.SyntheticEvent<HTMLDetailsElement>) => {
+    if (e.currentTarget.open) {
+      const body = e.currentTarget.querySelector<HTMLElement>(".reveal-body");
+      body?.focus();
+    }
+  };
+
   return (
     <section className="callout callout-checkpoint" aria-label={isCheckpoint ? "Checkpoint" : "Practice prompt"}>
       <p className="callout-label callout-label-accent">
@@ -72,15 +82,31 @@ export function LessonCheckpoint({
           aria-describedby={`${inputId}-note`}
         />
         <p id={`${inputId}-note`} className="callout-scratch-note">
-          Scratch space. Nothing here is saved or graded. It is here so you commit to an
-          answer before you read one.
+          Scratch space. Nothing here saves or grades. Commit to an answer before you
+          read one.
         </p>
       </div>
 
-      <details className="reveal">
+      {block.hintsHtml && block.hintsHtml.length > 0 ? (
+        <div className="callout-hints my-3 space-y-2">
+          {block.hintsHtml.map((hintHtml, idx) => (
+            <details key={idx} className="reveal reveal-hint" onToggle={handleToggle}>
+              <summary>{`Hint ${idx + 1}`}</summary>
+              <div
+                tabIndex={-1}
+                className="lesson-prose reveal-body focus:outline-none"
+                dangerouslySetInnerHTML={{ __html: hintHtml }}
+              />
+            </details>
+          ))}
+        </div>
+      ) : null}
+
+      <details className="reveal" onToggle={handleToggle}>
         <summary>Show the answer</summary>
         <div
-          className="lesson-prose reveal-body"
+          tabIndex={-1}
+          className="lesson-prose reveal-body focus:outline-none"
           dangerouslySetInnerHTML={{ __html: block.answerHtml }}
         />
       </details>

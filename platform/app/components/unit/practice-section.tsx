@@ -1,12 +1,14 @@
 import { ContentArriving } from "@/components/content-arriving";
 import { PracticeWorkbench } from "@/components/unit/practice-workbench";
 import { RetrievalDrill } from "@/components/unit/retrieval-drill";
+import { ExplainItBackCard } from "@/components/unit/explain-it-back-card";
 import type { MarkdownDoc } from "@/lib/content";
 import type {
   PracticeAttemptSummary,
   PracticeManifest,
   PracticeRouteData,
   RetrievalAttemptSummary,
+  ReviewQueueItem,
 } from "@/lib/practice";
 
 /**
@@ -33,7 +35,7 @@ export function PracticeRouteStrip({
                 <span className="chip chip-outline text-[11px] font-code-mono">SIGN IN</span>
               </div>
               <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Sign in and enroll, and your route through this practice set shows up here.
+                Sign in and enroll to see your route through this practice set.
               </p>
             </div>
           ) : !isEnrolled ? (
@@ -53,8 +55,7 @@ export function PracticeRouteStrip({
                 <span className="chip chip-outline text-[11px] font-code-mono">NOT ANSWERING</span>
               </div>
               <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Your route is not loading just now. Nothing you have already done is lost, and the
-                practice below still works.
+                Your route is down. Your past work remains. The practice below still works.
               </p>
             </div>
           ) : (
@@ -162,7 +163,7 @@ export function PracticeRouteStrip({
               {routeData.scaffold_callout && (
                 <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border space-y-2">
                   <div className="font-code-mono text-[12px] font-medium text-phosphor-white">
-                    GO BACK TO THE WORKED EXAMPLE
+                    Go back to the worked example
                   </div>
                   <div className="text-[14px] text-phosphor-white">
                     {routeData.scaffold_callout.summary}
@@ -178,7 +179,7 @@ export function PracticeRouteStrip({
                       href={routeData.scaffold_callout.type === "drill_retry" ? "#retrieval-drill" : "#completion-problem"}
                       className="btn btn-accent btn-sm text-[12px]"
                     >
-                      {routeData.scaffold_callout.type === "drill_retry" ? "Jump to drill" : "Jump to workbench"}
+                      {routeData.scaffold_callout.type === "drill_retry" ? "Open the drill" : "Open the workbench"}
                     </a>
                   </div>
                 </div>
@@ -191,8 +192,8 @@ export function PracticeRouteStrip({
                     SHORTER ROUTE
                   </div>
                   <div className="text-[14px] text-phosphor-white">
-                    You cleared every retrieval drill first time, so the worked example is optional
-                    here. Go straight to the completion problem if you want to.
+                    You cleared every retrieval drill on the first try. The worked example is
+                    optional — start the completion problem.
                   </div>
                   <div className="pt-1">
                     <a
@@ -209,10 +210,10 @@ export function PracticeRouteStrip({
               {routeData.status === "completed" && (
                 <div className="p-4 rounded-lg bg-carbon-veil border border-lime-pulse/40 space-y-2">
                   <div className="font-code-mono text-[12px] font-medium text-lime-pulse">
-                    PRACTICE DONE
+                    Practice done
                   </div>
                   <div className="text-[14px] text-phosphor-white">
-                    Every retrieval drill and the completion problem passed. Start the deliverable.
+                    You passed every retrieval drill and the completion problem. Start the deliverable.
                   </div>
                   <div className="pt-1">
                     <a
@@ -240,7 +241,7 @@ export function WorkedExampleCard({
   return (
     <div id="worked-example" className="apparatus">
       <div className="apparatus-head">
-        <h3 className="apparatus-label">A worked example, annotated</h3>
+          <h3 className="apparatus-label">A worked example with notes</h3>
         {routeData?.fast_pass_active && (
           <span className="chip chip-outline text-[11px] font-code-mono">
             OPTIONAL
@@ -308,6 +309,14 @@ export function CompletionWorkbenchCard({
           serviceDown={serviceDown}
         />
       </div>
+
+      {initialAttempts.some((a) => a.passed) ? (
+        <ExplainItBackCard
+          unitId={unitId}
+          isSignedIn={isSignedIn}
+          isEnrolled={isEnrolled}
+        />
+      ) : null}
     </div>
   );
 }
@@ -320,6 +329,7 @@ export function RetrievalDrillCard({
   isEnrolled,
   isSignedIn,
   serviceDown,
+  reviewItems = [],
 }: {
   unitId: string;
   retrievalSeeds: string[];
@@ -328,6 +338,7 @@ export function RetrievalDrillCard({
   isEnrolled: boolean;
   isSignedIn: boolean;
   serviceDown: boolean;
+  reviewItems?: ReviewQueueItem[];
 }) {
   return (
     <div id="retrieval-drill" className="card-dark space-y-6">
@@ -340,8 +351,8 @@ export function RetrievalDrillCard({
       {retrievalSeeds.length > 0 ? (
         <div className="space-y-6">
           <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Close the lesson and explain each idea from memory. Each answer is graded against
-            the lesson, and the ones you get wrong come back to you a few days later.
+            Close the lesson and explain each idea from memory. The lesson grades each answer —
+            wrong ones return for review.
           </p>
 
           <RetrievalDrill
@@ -352,6 +363,7 @@ export function RetrievalDrillCard({
             isEnrolled={isEnrolled}
             isSignedIn={isSignedIn}
             serviceDown={serviceDown}
+            reviewItems={reviewItems}
           />
         </div>
       ) : (

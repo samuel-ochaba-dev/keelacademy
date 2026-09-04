@@ -6,28 +6,38 @@ judge:
   model_tier: mid
 golden_set: golden/0.1/
 criteria:
-  - id: jargon-free-problem-statement
+  - id: zero-jargon
     description: >-
-      The problem statement describes OmniSupply's operational intake and
-      triage challenge completely in plain language without using technology
-      buzzwords (such as AI, LLM, machine learning, agent, or neural network). It
-      articulates the 4,000 monthly transactions volume, multi-format inputs (PDFs,
-      packing slips, emails, dispute tickets), and 2-3 day manual triage latency.
+      The submission describes OmniSupply's operational intake and triage challenges
+      purely in business and operational domain terms, with zero occurrences of
+      artificial intelligence, LLM, agent, machine learning, or related technology buzzwords.
     evidence: >-
-      Quote the problem statement sentences and verify absence of buzzwords.
-  - id: three-stakeholder-definitions
+      Quote the problem statement and operational requirements to confirm zero
+      buzzword occurrences, or quote the specific offending buzzwords.
+  - id: root-cause-scale
     description: >-
-      The submission provides three distinct and concrete definitions of success
-      tailored to the operational constraints of the operations manager (speed and
-      backlog), compliance officer (auditability and vendor contract citations), and
-      CFO (cost per transaction and unit economics).
+      The submission defines OmniSupply's root operational problem in exactly 2 to 3
+      sentences, explicitly stating the monthly volume (~4,000 transactions, invoices, or
+      disputes), multi-artifact friction across disparate inputs (e.g. scanned PDFs, packing
+      slips, delivery photos, emails, tickets), and business impact (2 to 3 day triage latency
+      and financial leakage from unrecovered credits or billing errors).
     evidence: >-
-      Quote the success criteria for operations manager, compliance officer, and CFO.
-  - id: operational-workflow-mapping
+      Quote the 2 to 3 sentences defining the root problem, showing volume (~4k/mo),
+      multi-artifact friction, and both cycle time and financial leakage.
+  - id: stakeholder-trilemma
     description: >-
-      The submission demonstrates understanding of the end-to-end document lifecycle
-      from intake receipt to account settlement, identifying specific
-      current failure modes (manual cross-referencing, dropped records) and target
-      controls (schema validation, audit logs).
+      The submission formulates three distinct, quantified KPIs covering the competing
+      priorities of Operations (throughput, processing volume, or triage speed),
+      Compliance (audit provenance, audit trail completeness, or 100% verification against
+      supplier contract and SLA clauses), and the CFO (financial leakage prevention, dispute
+      dollar recovery, or transaction unit cost).
     evidence: >-
-      Quote the workflow analysis detailing current failure modes and target requirements.
+      Quote the distinct, quantified KPI statements for Operations, Compliance, and CFO.
+  - id: hitl-thresholds
+    description: >-
+      The submission specifies at least 3 concrete, quantitative boundary rules (human-in-the-loop
+      thresholds) that halt automated processing and route transactions to human operations
+      specialists for manual review (such as dispute dollar limits, line-item price variance caps,
+      confidence score floors, or supplier dispute frequency spikes).
+    evidence: >-
+      Quote the at least 3 quantitative boundary rules halting automation for human review.

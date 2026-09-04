@@ -24,7 +24,7 @@ const PERSONA_CONFIGS: Record<string, PersonaConfig> = {
     name: "Sarah Jenkins",
     role: "VP of Operations, OmniSupply Operations",
     description:
-      "Her team reconciles about 4,000 invoices a month and it takes two to three days. Find out what is costing her that time before you offer to build anything.",
+      "Her team reconciles 4,000 invoices a month and it takes two to three days. Find what costs that time before you offer a build.",
     scorecardTitle: "How this call was scored",
   },
   "technical-stakeholder": {
@@ -32,7 +32,7 @@ const PERSONA_CONFIGS: Record<string, PersonaConfig> = {
     name: "Marcus Vance",
     role: "Staff AI Architect, OmniSupply Operations",
     description:
-      "He has read your code before the call. Expect questions about your evaluation set, your cost per invoice, your latency, and what the system does when the model is wrong.",
+      "He has read your code before the call. Expect questions on your evaluation set, cost per invoice, latency, and what the system does when the model is wrong.",
     scorecardTitle: "How this defence was scored",
   },
   "business-owner": {
@@ -40,7 +40,7 @@ const PERSONA_CONFIGS: Record<string, PersonaConfig> = {
     name: "Elena Rostova",
     role: "Managing Director, OmniSupply Operations",
     description:
-      "She owns the P&L for an $80M distribution business. Say what your build saves in hours and in money, and what happens on a disputed invoice, without a single acronym.",
+      "She owns profit and loss for an $80M distribution business. Say what your build saves in hours and money — and what happens on a disputed invoice. Plain words only.",
     scorecardTitle: "How this defence was scored",
   },
 };
@@ -153,12 +153,12 @@ export function SimulationWorkbench({
       : session.status === "in_progress"
         ? "In progress"
         : session.status === "abandoned"
-          ? "Left unfinished"
+          ? "Not yet"
           : session.verdict
             ? session.verdict.passed
               ? "Passed"
               : "Not yet"
-            : "Scored";
+            : "Not yet";
 
   return (
     <div className="space-y-8">
@@ -172,8 +172,8 @@ export function SimulationWorkbench({
           {persona.description}
         </p>
         <p className="mt-6 max-w-[70ch] rounded-lg border border-circuit-border bg-carbon-veil p-4 text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          {persona.name} is an AI following a written brief, not a real person at a real company.
-          Your side of the transcript is scored against a rubric you can read in the unit.
+          {persona.name} is an AI. It follows a written brief. Your side of the transcript
+          is scored against a rubric you can read in the unit.
         </p>
       </section>
 
@@ -189,11 +189,11 @@ export function SimulationWorkbench({
       {!session ? (
         <section aria-labelledby="start-title" className="card-dark max-w-[62ch]">
           <h2 id="start-title" className="heading-md">
-            Nothing started yet
+            Nothing has started yet
           </h2>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            You type, {persona.name} answers, and the transcript is saved. You can end the
-            conversation whenever you want and run it again as many times as you like.
+            You type. {persona.name} answers. We save the transcript. End when you want —
+            run it again as often as you like.
           </p>
           <button
             type="button"
@@ -201,11 +201,11 @@ export function SimulationWorkbench({
             disabled={starting || studentId === 0}
             className="btn btn-accent btn-sm mt-7"
           >
-            {starting ? "Starting..." : "Start the conversation"}
+            {starting ? "Starting" : "Start the conversation"}
           </button>
           {studentId === 0 ? (
             <p className="mt-4 text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              We could not read your account, so nothing can be saved yet. Refresh in a moment.
+              We could not read your account, so we cannot save yet. Refresh.
             </p>
           ) : null}
         </section>
@@ -230,7 +230,7 @@ export function SimulationWorkbench({
                 disabled={concluding || loading}
                 className="btn btn-primary btn-sm"
               >
-                {concluding ? "Scoring..." : "End it and get scored"}
+                {concluding ? "Scoring" : "End it and get scored"}
               </button>
             ) : (
               <button
@@ -239,7 +239,7 @@ export function SimulationWorkbench({
                 disabled={starting}
                 className="btn btn-primary btn-sm"
               >
-                {starting ? "Starting..." : "Run it again"}
+                {starting ? "Starting" : "Run it again"}
               </button>
             )}
           </section>
@@ -250,7 +250,7 @@ export function SimulationWorkbench({
             </h2>
             {session.turns.length === 0 ? (
               <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                {`Nothing said yet. Open with whatever you would actually open with.`}
+                {`Nothing said yet. Open as you would on a real call.`}
               </p>
             ) : (
               <ol className="mt-6 space-y-4">
@@ -287,7 +287,7 @@ export function SimulationWorkbench({
                 aria-live="polite"
                 className="mt-6 font-code-mono text-[13px] text-moss-70"
               >
-                {`${persona.name} is typing...`}
+                {`${persona.name} is typing`}
               </p>
             ) : null}
           </section>
@@ -311,7 +311,7 @@ export function SimulationWorkbench({
                 disabled={loading || !inputMessage.trim()}
                 className="btn btn-accent btn-sm mt-5"
               >
-                {loading ? "Sending..." : "Send"}
+                {loading ? "Sending" : "Send"}
               </button>
             </form>
           ) : null}

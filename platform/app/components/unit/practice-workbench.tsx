@@ -87,14 +87,14 @@ export function PracticeWorkbench({
         setAttempts((prev) => [newSummary, ...prev]);
       } else if (res.state === "unreachable") {
         setErrorBanner(
-          "The checks did not run because the grading service did not answer. Your work in the editor is still here. Try again in a moment.",
+          "The checks did not run. Your work in the editor remains. Try again.",
         );
       } else if (res.state === "rejected") {
         setErrorBanner(
           res.message ||
             (res.code === "not_enrolled"
               ? "Running the checks needs an active enrollment in this unit."
-              : "The checks did not run. Nothing was charged. Try again in a moment."),
+              : "The checks did not run. You kept your budget. Try again."),
         );
       }
     });
@@ -104,8 +104,7 @@ export function PracticeWorkbench({
     return (
       <div className="rounded-lg border border-circuit-border bg-carbon-veil p-5">
         <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          The practice editor is not loading just now, so there is nothing to type into yet. The
-          lesson and the worked example above are unaffected. Reload in a moment.
+          The practice editor is down. The lesson and worked example above remain. Reload.
         </p>
       </div>
     );
@@ -120,7 +119,7 @@ export function PracticeWorkbench({
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-lime-pulse" />
             <span className="font-code-mono text-[12px] font-medium text-phosphor-white">
-              practice-workbench
+              practice
             </span>
           </div>
 
@@ -207,8 +206,8 @@ export function PracticeWorkbench({
               </p>
             ) : (
               <p>
-                These are the same automated checks that grade a submission. They run in a clean
-                environment, cost you nothing, and you can run them as often as you like.
+                These automated checks grade a submission. They run in isolation. They cost
+                nothing.
               </p>
             )}
           </div>
@@ -223,7 +222,7 @@ export function PracticeWorkbench({
               {isPending ? (
                 <>
                   <span className="h-2 w-2 rounded-full bg-void-black animate-pulse" />
-                  Running the checks...
+                  Running the checks
                 </>
               ) : (
                 "Run the checks"
@@ -253,7 +252,7 @@ export function PracticeWorkbench({
                   latestResult.passed ? "chip-live" : "chip-alert"
                 }`}
               >
-                {latestResult.passed ? "ALL CHECKS PASSED" : "NOT YET"}
+                {latestResult.passed ? "PASSED" : "NOT YET"}
               </span>
               <span className="font-code-mono text-[13px] text-phosphor-white">
                 {`${latestResult.pass_count} / ${latestResult.total_checks} checks passing`}

@@ -64,7 +64,7 @@ export default async function GalleryProjectDetailPage(props: Props) {
         <div className="card-dark max-w-[62ch]">
           <h1 className="heading-lg">We could not load this project</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The server that holds published projects did not answer. Refresh in a moment.
+            We could not load this project. Refresh.
           </p>
           <Link href="/gallery" className="btn btn-primary btn-sm mt-7">
             Back to the gallery
@@ -172,8 +172,7 @@ export default async function GalleryProjectDetailPage(props: Props) {
             </span>
           </div>
           <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            This is the same verdict the student saw. It is published with the project, not
-            written about it afterwards.
+            This is the same verdict the student saw, published with the project.
           </p>
 
           {criteria.length > 0 ? (
@@ -211,7 +210,7 @@ export default async function GalleryProjectDetailPage(props: Props) {
           {layer1Checks.length > 0 ? (
             <div className="mt-8">
               <h3 className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
-                Automated checks · {layer1Checks.length} of them
+                Automated checks · {layer1Checks.length}
               </h3>
               <ul className="mt-4">
                 {layer1Checks.map((chk, i) => (
@@ -221,7 +220,7 @@ export default async function GalleryProjectDetailPage(props: Props) {
                   >
                     <span className="text-[15px] text-phosphor-white">{humanizeId(chk.id)}</span>
                     <span className={chk.status === "pass" ? "chip chip-live" : "chip chip-alert"}>
-                      {chk.status === "pass" ? "PASSED" : chk.status.toUpperCase()}
+                        {chk.status === "pass" ? "PASSED" : "NOT YET"}
                     </span>
                   </li>
                 ))}

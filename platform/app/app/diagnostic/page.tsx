@@ -30,8 +30,8 @@ export default async function DiagnosticPage() {
         <div className="card-dark max-w-[62ch]">
           <h1 className="heading-lg">We could not load the placement check</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Nothing is wrong with your account. Refresh in a moment, or start at the beginning
-            and skip this entirely.
+            Nothing is wrong with your account. Refresh, or start at the beginning
+            and skip this.
           </p>
           <Link href="/map" className="btn btn-primary btn-sm mt-7">
             Open your map
@@ -54,13 +54,13 @@ export default async function DiagnosticPage() {
       <header className="shell border-b border-[color:var(--line-on-dark)] pb-10 pt-14">
         <p className="eyebrow">Placement check</p>
         <h1 className="heading-xl mt-4 max-w-[28ch]">
-          Skip what you already know, or start at the beginning
+          Already know Python? Prove it and skip ahead.
         </h1>
         <p className="lead mt-5 max-w-[68ch]">
-          {`${diagnostic.questions.length} multiple-choice questions, about ${diagnostic.est_minutes} minutes. Score ${diagnostic.passing_threshold_pct}% or better and units ${diagnostic.pass_skip_units.join(", ")} open without you working through them. Score under that and you start at ${diagnostic.fail_baseline_units.join(", ")}, which is where everyone else starts.`}
+          {`${diagnostic.questions.length} multiple-choice questions, ${diagnostic.est_minutes} minutes. Score ${diagnostic.passing_threshold_pct}% or better and units ${diagnostic.pass_skip_units.join(", ")} open for you. Score under that and you start at ${diagnostic.fail_baseline_units.join(", ")} — where everyone else starts.`}
         </p>
         <p className="mt-5 max-w-[68ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          This is not graded work and it costs nothing. You can skip it and lose nothing.
+          This check carries no grade and costs nothing. Skip it if you want — nobody will know, and nothing breaks.
         </p>
       </header>
 

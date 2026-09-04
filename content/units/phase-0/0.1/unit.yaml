@@ -4,12 +4,12 @@ phase: 0
 est_hours: 1
 prereq_units: []
 last_verified:
-  concept_core: 2026-08-25
-  applied_context: 2026-08-25
-  tool_specifics: 2026-08-25
-learn: units/phase-0/0.1/learn.md
+  concept_core: 2026-09-03
+  applied_context: 2026-09-03
+  tool_specifics: 2026-09-03
+learn: learn.md
 practice:
-  worked_example: units/phase-0/0.1/worked-example/
+  worked_example: worked-example/
   completion_problem:
     prompt: "State OmniSupply's core operational problem in three plain sentences without using the words AI, agent, or LLM. Then define success concretely for the operations manager, the compliance officer, and the CFO."
     instructions: "Provide a 2-3 paragraph synthesis describing the operational triage bottleneck and articulating distinct success criteria for each of the three key stakeholders."
@@ -20,7 +20,7 @@ practice:
     - "why stating a client problem without technology buzzwords prevents premature architecture traps"
     - "why invoice and dispute reconciliation cannot be solved by a standalone text prompt"
 build:
-  deliverable: "Author a one-page OmniSupply Operations client brief document detailing the business problem, three stakeholder definitions of done, current workflow failure modes, and target pipeline requirements."
+  deliverable: "Submit a one-page Client Brief document for OmniSupply Operations."
   submission: file
   data_variant: omnisupply@v0
 verify:
@@ -30,6 +30,8 @@ gate:
   unlocks: ["0.2"]
 unstuck:
   - symptom: "Using AI buzzwords instead of describing operational workflow bottlenecks"
-    fix_ref: faq/0.1.md#buzzwords-trap
+    fix_ref: faq/0.1.md#zero-jargon-trap
   - symptom: "Conflating the compliance officer's audit requirements with the operations manager's speed metrics"
-    fix_ref: faq/0.1.md#stakeholder-conflict
+    fix_ref: faq/0.1.md#trilemma-conflicts
+  - symptom: "Drafting vague escalation rules without numeric boundaries"
+    fix_ref: faq/0.1.md#hitl-boundaries

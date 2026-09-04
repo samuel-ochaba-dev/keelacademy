@@ -35,13 +35,11 @@ export function UnstuckList({ unit, faq }: { unit: UnitYaml; faq: FaqEntry[] | n
                 >
                   <summary className="flex items-center justify-between gap-4 p-5 cursor-pointer bg-carbon-veil select-none hover:bg-carbon-veil/80 transition-colors list-none">
                     <div className="flex items-center gap-3">
-                      <span className="font-code-mono text-lime-pulse text-[14px]" aria-hidden>
-                        !
-                      </span>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-lime-pulse" aria-hidden />
                       <span className="font-goga text-[16px] font-medium text-phosphor-white">{entry.symptom}</span>
                     </div>
                     <span className="flex shrink-0 items-center gap-2">
-                      <span className="chip chip-outline text-[11px]">Fix</span>
+                      <span className="chip chip-outline text-[11px]">FIX</span>
                       <svg
                         aria-hidden
                         viewBox="0 0 12 12"

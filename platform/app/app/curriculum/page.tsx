@@ -28,12 +28,13 @@ export default function CurriculumPage() {
           {map.phases.length} phases. One system. No filler.
         </h1>
         <p className="lead mt-5">
-          You build an invoice reconciliation and dispute triage pipeline for
-          OmniSupply Operations, a simulated B2B wholesale distributor with messy
-          real-world data. Every phase exists because the pipeline needs it: from
-          Python foundations and model fundamentals through agents, evaluation,
-          governance, deployment, and the client work that turns the system into
-          a business.
+          Here is the whole route before you pay for step one. You build an
+          invoice reconciliation and dispute triage pipeline for OmniSupply
+          Operations, a simulated B2B wholesale distributor with messy
+          real-world data. Each phase adds a part the pipeline needs to run.
+          Python and APIs first. Then models, prompts, retrieval, and agents.
+          Then the part that keeps it honest in production: evaluation, cost,
+          security, and deployment.
         </p>
         <div className="mt-10 flex flex-wrap gap-x-14 gap-y-8">
           <div>
@@ -50,10 +51,9 @@ export default function CurriculumPage() {
           </div>
         </div>
         <p className="mt-8 max-w-[68ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          {openModules} of these {totalModules} units are written and open for
-          enrollment today. The rest are mapped and listed here as planned, so you
-          can see the whole route before you start. Planned units do not link
-          anywhere yet.
+          {openModules} of these {totalModules} units are open today — the
+          rest are mapped below so you can see the whole route before you
+          spend a cent. Planned units show a title only until they open.
         </p>
       </header>
 
@@ -85,12 +85,12 @@ export default function CurriculumPage() {
                 </p>
                 <p className="mt-2.5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
                   <strong className="font-medium text-phosphor-white">
-                    You come out with:
+                    You walk away with:
                   </strong>{" "}
                   {phase.outcome}
                 </p>
                 <p className="mt-2.5 text-[14px] leading-relaxed text-[color:var(--text-faint-on-dark)]">
-                  Built into the pipeline as: {phase.pipeline_role}
+                  Its job in the pipeline: {phase.pipeline_role}
                 </p>
               </div>
             </div>

@@ -156,7 +156,17 @@ function ScriptItems({
         if (item.type === "recap") {
           return (
             <aside key={key} className="callout callout-recap" aria-label={item.title}>
-              <p className="callout-label">TL;DR</p>
+              <p className="callout-label">Recap</p>
+              <p className="callout-title">{item.title}</p>
+              <div className="lesson-prose callout-body" dangerouslySetInnerHTML={{ __html: item.html }} />
+            </aside>
+          );
+        }
+
+        if (item.type === "coda") {
+          return (
+            <aside key={key} className="callout callout-coda" aria-label={item.title}>
+              <p className="callout-label">Closing</p>
               <p className="callout-title">{item.title}</p>
               <div className="lesson-prose callout-body" dangerouslySetInnerHTML={{ __html: item.html }} />
             </aside>

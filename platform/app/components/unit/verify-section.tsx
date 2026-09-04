@@ -5,17 +5,17 @@ const LAYER_INFO = [
   {
     num: 1,
     name: "Automated checks",
-    note: "Your code runs in a clean container and the checks below either pass or they do not.",
+    note: "The automated checks below run your code in isolation. They show Passed or Not yet.",
   },
   {
     num: 2,
     name: "Rubric review",
-    note: "A grader reads your commit against the rubric below and has to quote your code for every criterion.",
+    note: "A grader reads your commit against the rubric below and quotes your code for every criterion.",
   },
   {
     num: 3,
     name: "Defend your work",
-    note: "You answer questions generated from the code you just wrote.",
+    note: "You answer questions generated from the code you wrote.",
   },
   {
     num: 4,
@@ -45,7 +45,7 @@ export function ProveItCard({ curriculum }: { curriculum: CurriculumAnchor | nul
   return (
     <div className="apparatus">
       <div className="apparatus-head">
-        <p className="apparatus-label">What this phase has to prove</p>
+        <p className="apparatus-label">What this phase must prove</p>
       </div>
       <p className="apparatus-note">{curriculum.proveIt}</p>
     </div>
@@ -57,7 +57,7 @@ export function GradingModesCard({ unit }: { unit: UnitYaml }) {
   const appliesHere =
     applies.length > 0
       ? `This unit is graded by ${listOf(applies.map((layer) => layer.name.toLowerCase()))}.`
-      : "This unit is not graded on its own. Your work on it is checked at the phase gate.";
+      : "This unit carries no grade. A later review checks your work.";
 
   return (
     <div className="apparatus">
@@ -66,10 +66,10 @@ export function GradingModesCard({ unit }: { unit: UnitYaml }) {
       </div>
       <div className="space-y-4">
         <p className="apparatus-note">
-          {appliesHere} Every criterion below is the one a grader works from, word for word.
+          {appliesHere} A grader works from every criterion below, exactly as written.
         </p>
         <details className="reveal reveal-flush">
-          <summary>All four ways work gets checked</summary>
+          <summary>How your work gets checked</summary>
           <div className="reveal-body grid gap-4 sm:grid-cols-2">
             {LAYER_INFO.map((layer) => {
               const appliesToUnit = unit.verify.layers.includes(layer.num);
@@ -113,8 +113,8 @@ export function AutomatedChecksCard({ checks }: { checks: Check[] | null }) {
   return (
     <div className="apparatus">
       <div className="apparatus-head">
-        <h3 className="apparatus-label">Automated checks, {checks.length} of them</h3>
-        <span className="chip chip-outline font-code-mono text-[11px]">CLEAN CONTAINER</span>
+          <h3 className="apparatus-label">{checks.length} automated checks</h3>
+        <span className="chip chip-outline font-code-mono text-[11px]">ISOLATED</span>
       </div>
 
       <div className="overflow-x-auto">
@@ -156,7 +156,7 @@ export function RubricCard({ rubric }: { rubric: Rubric | null }) {
     <div className="apparatus">
       <div className="apparatus-head">
         <h3 className="apparatus-label">
-          Rubric review, {rubric.criteria.length} criteria
+          {rubric.criteria.length} rubric criteria
         </h3>
         <span className="chip chip-outline font-code-mono text-[11px]">
           {rubric.id} v{rubric.version}
@@ -177,7 +177,7 @@ export function RubricCard({ rubric }: { rubric: Rubric | null }) {
               </h4>
             </div>
             <details className="reveal reveal-flush mt-3">
-              <summary>What the grader has to find</summary>
+              <summary>What the grader must find</summary>
               <div className="reveal-body space-y-2">
                 <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
                   {criterion.description}

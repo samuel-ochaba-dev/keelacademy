@@ -34,8 +34,8 @@ export function CommitmentForm({
             className={box}
           />
           <span>
-            Later units open as you clear the units before them, so buying this one does not
-            open the whole program.
+            Later units open as you clear earlier units. Buying this one opens only this
+            one — not the whole program.
           </span>
         </label>
         <label className={row}>
@@ -58,8 +58,8 @@ export function CommitmentForm({
             className={box}
           />
           <span>
-            Rebates go back to the card you paid with, and only after a passing verdict
-            inside the window for that gate.
+            Rebates go back to the card you paid with — after a Passed verdict inside the
+            window for that gate.
           </span>
         </label>
       </fieldset>
@@ -68,7 +68,7 @@ export function CommitmentForm({
         Pay {priceLabel}
       </button>
       <p className="mt-3 text-[13px] text-[color:var(--text-faint-on-dark)]">
-        Payment is handled by Stripe. We never see your card number.
+        Stripe handles payment. We never see your card number — we never want to.
       </p>
     </form>
   );

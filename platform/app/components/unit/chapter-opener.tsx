@@ -20,14 +20,13 @@ export function ChapterOpener({
   phase,
   title,
   specs,
-  beats,
 }: {
   unitId: string;
   phase: number;
   title: string;
   /** Short mono facts, already phrased: "PHASE 3", "6 CHECKS, 5 CRITERIA". */
   specs: string[];
-  beats: ChapterBeat[];
+  beats?: ChapterBeat[];
 }) {
   return (
     <header className="lesson-canvas flow chapter-opener">
@@ -46,29 +45,6 @@ export function ChapterOpener({
           <span key={spec}>{spec}</span>
         ))}
       </p>
-
-      {beats.length > 0 ? (
-        <nav aria-label="The beats in this lesson" className="chapter-beats">
-          <p className="eyebrow chapter-beats-title">In this lesson</p>
-          <ol className="chapter-beats-list">
-            {beats.map((beat, index) => (
-              <li key={beat.id}>
-                <a href={`#${beat.id}`} className="chapter-beat">
-                  <span className="chapter-beat-index" aria-hidden="true">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="chapter-beat-text">{beat.name}</span>
-                  {beat.estMinutes ? (
-                    <span className="chapter-beat-time" aria-label={`${beat.estMinutes} minute read`}>
-                      {beat.estMinutes} min
-                    </span>
-                  ) : null}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      ) : null}
     </header>
   );
 }

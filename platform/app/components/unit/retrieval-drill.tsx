@@ -6,6 +6,7 @@ import { runRetrievalAttemptAction } from "@/app/units/[unitId]/practice-actions
 import type {
   RetrievalAttemptResult,
   RetrievalAttemptSummary,
+  ReviewQueueItem,
 } from "@/lib/practice";
 import { formatUtc } from "@/lib/grading";
 
@@ -17,6 +18,14 @@ type RetrievalDrillProps = {
   isEnrolled: boolean;
   isSignedIn: boolean;
   serviceDown: boolean;
+  reviewItems?: ReviewQueueItem[];
+};
+
+type DrillQuestion = {
+  unitId: string;
+  seedIndex: number;
+  prompt: string;
+  isReview: boolean;
 };
 
 export function RetrievalDrill({
@@ -27,7 +36,23 @@ export function RetrievalDrill({
   isEnrolled,
   isSignedIn,
   serviceDown,
+  reviewItems = [],
 }: RetrievalDrillProps) {
+  const questions: DrillQuestion[] = [
+    ...seeds.map((prompt, seedIndex) => ({
+      unitId,
+      seedIndex,
+      prompt,
+      isReview: false,
+    })),
+    ...reviewItems.map((r) => ({
+      unitId: r.unit_id,
+      seedIndex: r.seed_index,
+      prompt: r.seed_prompt,
+      isReview: true,
+    })),
+  ];
+
   const [currentIndex, setCurrentIndex] = useState<number>(() =>
     dueSeedIndices.length > 0 ? Math.min(...dueSeedIndices) : 0,
   );
@@ -42,7 +67,8 @@ export function RetrievalDrill({
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [dueSet, setDueSet] = useState<Set<number>>(() => new Set(dueSeedIndices));
 
-  const currentSeed = seeds[currentIndex] ?? "";
+  const currentQuestion = questions[currentIndex] ?? null;
+  const currentSeed = currentQuestion?.prompt ?? "";
   const currentAnswer = answers[currentIndex] ?? "";
 
   function handleAnswerChange(val: string) {
@@ -61,7 +87,7 @@ export function RetrievalDrill({
   }
 
   function handleNextQuestion() {
-    if (currentIndex < seeds.length - 1) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setLatestResult(null);
       setErrorBanner(null);
@@ -69,13 +95,13 @@ export function RetrievalDrill({
   }
 
   function handleSubmit() {
-    if (!currentAnswer.trim()) return;
+    if (!currentAnswer.trim() || !currentQuestion) return;
     setErrorBanner(null);
     startTransition(async () => {
       const res = await runRetrievalAttemptAction(
-        unitId,
-        currentIndex,
-        currentSeed,
+        currentQuestion.unitId,
+        currentQuestion.seedIndex,
+        currentQuestion.prompt,
         currentAnswer.trim(),
       );
       if (res.state === "ok") {
@@ -83,9 +109,9 @@ export function RetrievalDrill({
         if (res.data.passed) {
           // A passing attempt on a due seed is the re-check: clear it locally.
           setDueSet((prev) => {
-            if (!prev.has(res.data.seed_index)) return prev;
+            if (!prev.has(currentQuestion.seedIndex)) return prev;
             const next = new Set(prev);
-            next.delete(res.data.seed_index);
+            next.delete(currentQuestion.seedIndex);
             return next;
           });
         }
@@ -104,12 +130,12 @@ export function RetrievalDrill({
         setAttempts((prev) => [newSummary, ...prev]);
       } else if (res.state === "unreachable") {
         setErrorBanner(
-          "Your answer was not graded because the grading service did not answer. What you typed is still here. Try again in a moment.",
+          "The lesson did not grade your answer. What you typed remains. Try again.",
         );
       } else if (res.state === "rejected") {
         if (res.code === "budget_exceeded" || res.status === 429) {
           setErrorBanner(
-            "Your grading and question budget for this unit is used up, so this answer was not graded. Your dashboard shows the budget.",
+            "You used the grading and question budget for this unit. This answer stayed ungraded. Your dashboard shows the budget.",
           );
         } else if (res.code === "not_enrolled" || res.status === 403) {
           setErrorBanner(
@@ -118,7 +144,7 @@ export function RetrievalDrill({
         } else {
           setErrorBanner(
             res.message ||
-              "Your answer was not graded. Nothing was charged. Try again in a moment.",
+              "Your answer stayed ungraded. You kept your budget. Try again.",
           );
         }
       }
@@ -129,14 +155,13 @@ export function RetrievalDrill({
     return (
       <div className="rounded-lg border border-circuit-border bg-carbon-veil p-5">
         <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          The drills are not loading just now, so there is nothing to answer yet. The lesson above
-          is unaffected. Reload in a moment.
+          The drills are down. The lesson above remains. Reload.
         </p>
       </div>
     );
   }
 
-  if (!seeds || seeds.length === 0) {
+  if (!questions || questions.length === 0) {
     return null;
   }
 
@@ -148,18 +173,18 @@ export function RetrievalDrill({
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-lime-pulse" />
             <span className="font-code-mono text-[12px] font-medium text-phosphor-white">
-              retrieval-drill
+              retrieval
             </span>
           </div>
 
           <span className="font-code-mono text-[12px] text-moss-70">
-            Question {currentIndex + 1} of {seeds.length}
+            Question {currentIndex + 1} of {questions.length}
           </span>
         </div>
 
         {/* Question selector tabs */}
         <div className="flex items-center gap-1 p-2 bg-ground-iron border-b border-phosphor-blue-black overflow-x-auto">
-          {seeds.map((_, idx) => (
+          {questions.map((_, idx) => (
             <button
               key={idx}
               type="button"
@@ -173,7 +198,7 @@ export function RetrievalDrill({
               Question {idx + 1}
               {dueSet.has(idx) ? (
                 <span data-keel-drill-due className="chip chip-alert text-[9px]">
-                  Due
+                  DUE
                 </span>
               ) : null}
             </button>
@@ -188,7 +213,7 @@ export function RetrievalDrill({
               className="rounded border border-circuit-border bg-carbon-veil p-3.5 text-[13px] text-phosphor-white"
             >
               <p>
-                This one is due for a second look. A passing answer here clears it.
+                This question is due for review. A passing answer clears the due flag.
               </p>
             </div>
           ) : null}
@@ -228,7 +253,7 @@ export function RetrievalDrill({
               onChange={(e) => handleAnswerChange(e.target.value)}
               disabled={isPending || !isEnrolled}
               rows={5}
-              placeholder="Explain the idea in your own words. Say how it works, not just what it is called."
+              placeholder="Explain the idea in your own words. Describe how it works and name its parts."
               spellCheck={false}
               className="w-full text-[14.5px] leading-relaxed p-4 bg-void-black text-phosphor-white border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
             />
@@ -261,8 +286,7 @@ export function RetrievalDrill({
               </p>
             ) : (
               <p>
-                Your answer is graded against the lesson, and anything you get wrong comes back to
-                you a few days later.
+                The lesson grades your answer. Wrong answers return for review.
               </p>
             )}
           </div>
@@ -277,7 +301,7 @@ export function RetrievalDrill({
               {isPending ? (
                 <>
                   <span className="h-2 w-2 rounded-full bg-void-black animate-pulse" />
-                  Grading your answer...
+                  Grading your answer
                 </>
               ) : (
                 "Grade this answer"
@@ -311,8 +335,8 @@ export function RetrievalDrill({
               </span>
               <span className="text-[14.5px] font-medium text-phosphor-white">
                 {latestResult.passed
-                  ? "You explained it"
-                  : "Not quite there yet"}
+                  ? "That explanation passes"
+                  : "Not yet"}
               </span>
             </div>
 
@@ -329,7 +353,7 @@ export function RetrievalDrill({
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border space-y-1.5">
               <span className="eyebrow text-[11px]">
-                What the grading came back with
+                Feedback on your answer
               </span>
               <p className="text-[14.5px] leading-relaxed text-phosphor-white">
                 {latestResult.feedback}
@@ -339,7 +363,7 @@ export function RetrievalDrill({
             {latestResult.evidence ? (
               <div className="p-4 rounded-lg bg-carbon-veil border border-circuit-border space-y-1.5">
                 <span className="eyebrow text-[11px]">
-                  The line from the lesson it checked against
+                  The lesson passage your answer met
                 </span>
                 <p className="font-code-mono text-[13px] leading-relaxed text-moss-80">
                   &ldquo;{latestResult.evidence}&rdquo;
@@ -357,7 +381,7 @@ export function RetrievalDrill({
               Try again
             </button>
 
-            {currentIndex < seeds.length - 1 ? (
+            {currentIndex < questions.length - 1 ? (
               <button
                 type="button"
                 onClick={handleNextQuestion}

@@ -1,3 +1,0 @@
-OmniSupply processes about 4,000 transactions monthly across scanned invoices, packing slips, damage photos, and dispute emails. Triage takes two to three days of manual work by specialists checking line items against purchase orders and supplier return terms.
-For the operations manager, success is cutting triage time to one hour. For compliance, success is having complete audit logs and a supplier contract citation on every adjustment.
-The workflow moves from intake to schema validation to line-item extraction to supplier agreement checking to specialist sign-off, replacing the hand-copying step where records are currently dropped.

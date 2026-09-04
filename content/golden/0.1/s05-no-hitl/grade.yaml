@@ -1,0 +1,11 @@
+submission: s05-no-hitl
+expected: fail
+criteria:
+  zero-jargon: pass
+  root-cause-scale: pass
+  stakeholder-trilemma: pass
+  hitl-thresholds: fail
+overall: fail
+grader_notes: "Fails hitl-thresholds. Proposes only subjective, qualitative guidelines ('looks suspicious', 'seems irregular', 'whenever daily operational bandwidth permits') with zero concrete quantitative boundaries or thresholds. Meets zero-jargon, root-cause-scale, and stakeholder-trilemma criteria."
+graded_by: human
+graded_on: 2026-09-03

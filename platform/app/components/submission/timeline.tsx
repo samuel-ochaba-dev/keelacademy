@@ -18,7 +18,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
         What happened, in order
       </h2>
       <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        Every step the grading run recorded for this commit.
+        Every step the grading run took for this commit, in order.
       </p>
 
       {events.length > 0 ? (
@@ -50,7 +50,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
         </ol>
       ) : (
         <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          No events recorded yet.
+          No events yet.
         </p>
       )}
     </section>

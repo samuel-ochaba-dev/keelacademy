@@ -33,8 +33,8 @@ export default async function CheckoutReturnPage({ searchParams }: Props) {
             {unitId ? `You are enrolled in unit ${unitId}` : "You are enrolled"}
           </h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The payment cleared and your account has access. Start with the lesson, then work
-            through the drills before you build.
+            The payment cleared and your account has access. Start with the lesson, work
+            the drills, then build — in that order, and it will go well.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             {unitId ? (
@@ -52,8 +52,8 @@ export default async function CheckoutReturnPage({ searchParams }: Props) {
           <span className="chip chip-outline">CONFIRMING</span>
           <h1 className="heading-lg mt-4">Confirming your payment</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The payment provider is still telling us the charge went through. This usually
-            takes a few seconds.
+            The payment provider still shows the charge as pending. Check again — it
+            almost always lands within a minute.
           </p>
           <Link
             href={`/checkout/return?session_id=${encodeURIComponent(sessionId ?? "")}${unitId ? `&unit=${unitId}` : ""}`}
@@ -65,7 +65,7 @@ export default async function CheckoutReturnPage({ searchParams }: Props) {
       ) : (
         <div className="card-dark max-w-[62ch]">
           <span className="chip chip-outline">PROCESSING</span>
-          <h1 className="heading-lg mt-4">We are still waiting on the payment provider</h1>
+          <h1 className="heading-lg mt-4">The payment provider has not confirmed yet</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             Your enrollment appears on your dashboard as soon as the charge is confirmed.
             Nothing is lost if you close this page.

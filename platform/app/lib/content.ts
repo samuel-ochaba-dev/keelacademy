@@ -129,6 +129,7 @@ export type PlacementDiagnostic = {
 };
 
 export type UnitYaml = {
+  kind?: "code" | "conceptual";
   id: string;
   phase: number;
   est_hours: number;
@@ -136,12 +137,14 @@ export type UnitYaml = {
   last_verified: LastVerified;
   learn: string;
   practice: {
-    worked_example: string;
-    completion_problem: { base: string; checks: string };
+    worked_example?: string;
+    completion_problem:
+      | { base: string; checks: string }
+      | { prompt: string; instructions: string; rubric: string };
     retrieval_seeds: string[];
   };
   build: { deliverable: string; submission: string; data_variant: string };
-  verify: { layers: number[]; deterministic_checks: string; rubric: string };
+  verify: { layers: number[]; deterministic_checks?: string; rubric?: string };
   gate: { unlocks: string[] };
   unstuck: { symptom: string; fix_ref: string }[];
 };
@@ -184,10 +187,21 @@ export type LessonBlock =
   | { type: "prose"; html: string }
   /** `> **Gotcha: <title>**` and the blockquote body under it. */
   | { type: "callout"; title: string; html: string }
-  /** `### Checkpoint`, a `> **Predict, then check.**` scenario, then the answer. */
-  | { type: "checkpoint"; scenarioHtml: string; questionHtml: string; answerHtml: string }
+  /** `### Checkpoint`, a `> **Predict, then check.**` scenario, optional hints, then the answer. */
+  | {
+      type: "checkpoint";
+      scenarioHtml: string;
+      questionHtml: string;
+      answerHtml: string;
+      hintsHtml?: string[];
+    }
   /** A bold-led practice prompt whose next paragraph opens `One good answer:`. */
-  | { type: "exercise"; promptHtml: string; answerHtml: string };
+  | {
+      type: "exercise";
+      promptHtml: string;
+      answerHtml: string;
+      hintsHtml?: string[];
+    };
 
 /**
  * A unit script: one authored file that teaches a whole unit top to bottom.
@@ -216,7 +230,9 @@ export type ScriptItem =
   /** `::: aside <title>` up to the closing `:::`. */
   | { type: "aside"; id: string; title: string; html: string }
   /** `::: recap <title>` — author-provided summary after a long beat. */
-  | { type: "recap"; id: string; title: string; html: string };
+  | { type: "recap"; id: string; title: string; html: string }
+  /** `::: coda <title>` — closing design note card (U9). */
+  | { type: "coda"; id: string; title: string; html: string };
 
 export type ScriptContentsEntry = {
   id: string;
@@ -549,12 +565,37 @@ function parseLessonBlocks(md: string): LessonBlock[] {
         });
         continue;
       }
-      // A predict-then-check blockquote: scenario, then the question, then the
-      // answer in the paragraph that follows it.
+      // A predict-then-check blockquote: scenario, then the question, optional hints,
+      // then the answer in the paragraph that follows it.
       if (PREDICT_RE.test(firstLine.trim())) {
         const lines = body.split("\n").filter((line) => line.trim() !== "");
         const scenario = lines[0].replace(PREDICT_RE, "").trim();
-        const question = lines.slice(1).join("\n").trim();
+        const remaining = lines.slice(1);
+        const questionLines: string[] = [];
+        const hintLines: string[] = [];
+
+        for (const l of remaining) {
+          const trimmed = l.trim();
+          const hintMatch = /^\*{0,2}Hint(?:\s+\d+)?:?\*{0,2}\s*(.+)/i.exec(trimmed);
+          if (hintMatch) {
+            hintLines.push(hintMatch[1].trim());
+          } else {
+            questionLines.push(l);
+          }
+        }
+
+        const hintsHtml: string[] = [];
+        for (const h of hintLines) {
+          hintsHtml.push(renderMarkdown(h));
+        }
+
+        while (paragraphs[i + 1] && /^>\s*\*{0,2}Hint/i.test(paragraphs[i + 1])) {
+          i += 1;
+          const hintBody = unquote(paragraphs[i]).replace(/^\*{0,2}Hint(?:\s+\d+)?:?\*{0,2}\s*/i, "").trim();
+          hintsHtml.push(renderMarkdown(hintBody));
+        }
+
+        const question = questionLines.join("\n").trim();
         const next = paragraphs[i + 1];
         const answer = next && !/^#{1,6}\s/.test(next) && !next.startsWith(">") ? next : "";
         if (answer) i += 1;
@@ -563,6 +604,7 @@ function parseLessonBlocks(md: string): LessonBlock[] {
           scenarioHtml: renderMarkdown(scenario),
           questionHtml: renderMarkdown(question),
           answerHtml: renderMarkdown(answer),
+          ...(hintsHtml.length > 0 ? { hintsHtml } : {}),
         });
         continue;
       }
@@ -808,6 +850,7 @@ function parseUnitScript(md: string): UnitScript | null {
   let inFence = false;
   let aside: { title: string; lines: string[] } | null = null;
   let recap: { title: string; lines: string[] } | null = null;
+  let coda: { title: string; lines: string[] } | null = null;
 
   /**
    * Turn the markdown collected since the last marker into items, injecting ids
@@ -884,6 +927,21 @@ function parseUnitScript(md: string): UnitScript | null {
       }
       continue;
     }
+    if (coda) {
+      if (marker && marker[1] === "") {
+        const codaTitle = coda.title;
+        current.push({
+          type: "coda",
+          id: uniqueId(`coda ${codaTitle}`),
+          title: codaTitle,
+          html: renderMarkdown(coda.lines.join("\n").trim()),
+        });
+        coda = null;
+      } else {
+        coda.lines.push(line);
+      }
+      continue;
+    }
 
     if (!marker) {
       buffer.push(line);
@@ -916,6 +974,13 @@ function parseUnitScript(md: string): UnitScript | null {
       continue;
     }
 
+    if (keyword === "coda") {
+      flush();
+      const codaTitle = rest.join(" ").trim() || "Design note";
+      coda = { title: codaTitle, lines: [] };
+      continue;
+    }
+
     if (SCRIPT_SLOTS.has(payload)) {
       flush();
       current.push({ type: "slot", name: payload });
@@ -930,7 +995,7 @@ function parseUnitScript(md: string): UnitScript | null {
     flush();
   }
 
-  // An aside or recap left open at the end of the file still renders what it collected.
+  // An aside, recap, or coda left open at the end of the file still renders what it collected.
   if (aside) {
     current.push({
       type: "aside",
@@ -945,6 +1010,14 @@ function parseUnitScript(md: string): UnitScript | null {
       id: uniqueId(`recap ${recap.title}`),
       title: recap.title,
       html: renderMarkdown(recap.lines.join("\n").trim()),
+    });
+  }
+  if (coda) {
+    current.push({
+      type: "coda",
+      id: uniqueId(`coda ${coda.title}`),
+      title: coda.title,
+      html: renderMarkdown(coda.lines.join("\n").trim()),
     });
   }
   flush();
@@ -1087,17 +1160,21 @@ export function loadUnit(unitId: string): Unit | null {
   const yamlText = readFileSync(path.join(/* turbopackIgnore: true */ unitDir, "unit.yaml"), "utf8");
   const yaml = parseYaml(yamlText) as UnitYaml;
 
-  const resolve = (relative: string) => path.join(/* turbopackIgnore: true */ contentRoot, relative);
+  const resolve = (relative: string) => {
+    const inUnit = path.join(/* turbopackIgnore: true */ unitDir, relative);
+    if (existsSync(inUnit)) return inUnit;
+    return path.join(/* turbopackIgnore: true */ contentRoot, relative);
+  };
 
   const lessonMd = yaml.learn ? readIfExists(resolve(yaml.learn)) : null;
   const workedMd = yaml.practice.worked_example
     ? readIfExists(path.join(/* turbopackIgnore: true */ resolve(yaml.practice.worked_example), "README.md"))
     : null;
-  const completionMd = yaml.practice.completion_problem.base
-    ? readIfExists(
-        path.join(/* turbopackIgnore: true */ resolve(yaml.practice.completion_problem.base), "README.md"),
-      )
-    : null;
+  const completionBase = (yaml.practice.completion_problem as { base?: string })?.base;
+  const completionPath = completionBase
+    ? path.join(/* turbopackIgnore: true */ resolve(completionBase), "README.md")
+    : path.join(/* turbopackIgnore: true */ unitDir, "completion", "README.md");
+  const completionMd = readIfExists(completionPath);
   const checksText = yaml.verify.deterministic_checks
     ? readIfExists(resolve(yaml.verify.deterministic_checks))
     : null;

@@ -3,7 +3,7 @@ import { Space_Grotesk, Inter, Fira_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AuthProviders } from "@/components/auth/providers";
-import { themeInitScript } from "@/components/theme-toggle";
+import { ThemeScript } from "@/components/theme-toggle";
 import "./globals.css";
 
 /*
@@ -50,9 +50,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${inter.variable} ${firaMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${grotesk.variable} ${inter.variable} ${firaMono.variable}`}
+    >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <ThemeScript />
       </head>
       <body>
         <a href="#main" className="skip-link">

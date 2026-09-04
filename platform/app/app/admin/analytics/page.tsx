@@ -22,8 +22,8 @@ export default async function AdminAnalyticsPage() {
         <div className="card-dark max-w-[62ch]">
           <h1 className="heading-lg">This page is for staff</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            It shows cohort-wide numbers, so it is not open on student accounts. Your own progress
-            and your own grading records are on your dashboard.
+            It shows cohort-wide numbers, so student accounts cannot open it. Your progress
+            and grading records are on your dashboard.
           </p>
           <Link href="/me" className="btn btn-primary btn-sm mt-7">
             Go to your dashboard
@@ -49,8 +49,8 @@ export default async function AdminAnalyticsPage() {
         <p className="eyebrow">Staff view</p>
         <h1 className="heading-xl mt-4">Curriculum telemetry</h1>
         <p className="lead mt-5 max-w-[68ch]">
-          Where students slow down, where they stop, and what they ask about. Read it before
-          rewriting a unit.
+          Where students slow down, where they stop, what they ask about. Read it before
+          rewriting a unit — the numbers usually indict the lesson, not the students.
         </p>
       </header>
 

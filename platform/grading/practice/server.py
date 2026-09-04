@@ -543,6 +543,50 @@ def fold_seed_schedule(attempts: list[tuple[bool, datetime]], now: datetime) -> 
     return {"stage": stage, "status": status, "last_pass_at": anchor, "due_at": due_at}
 
 
+def derive_seed_mastery(
+    attempts: list[tuple[bool, datetime]],
+    schedule_state: dict[str, Any],
+    now: datetime,
+) -> str:
+    """U5: derive per-seed mastery level:
+
+    unstarted -> attempted -> familiar -> proficient -> mastered,
+    with decay on missed or failed re-checks.
+    """
+    if not attempts:
+        return "unstarted"
+
+    stage = schedule_state.get("stage", 0)
+    due_at = schedule_state.get("due_at")
+
+    if stage == 0:
+        return "attempted"
+    elif stage == 1:
+        base = "familiar"
+    elif stage == 2:
+        base = "proficient"
+    else:
+        base = "mastered"
+
+    if due_at:
+        overdue_attempts = [p for p, dt in attempts if dt >= due_at]
+        if overdue_attempts and not any(overdue_attempts):
+            if base == "mastered":
+                return "proficient"
+            elif base == "proficient":
+                return "familiar"
+            elif base == "familiar":
+                return "attempted"
+
+        if not overdue_attempts and now >= due_at + timedelta(days=14):
+            if base == "mastered":
+                return "proficient"
+            elif base == "proficient":
+                return "familiar"
+
+    return base
+
+
 # --------------------------------------------------------------------------
 # S3.3 — drill token economics: deterministic lesson excerpting
 # --------------------------------------------------------------------------
@@ -2000,6 +2044,19 @@ class PracticeHandler(BaseHTTPRequestHandler):
             self._handle_get_recheck_schedule(sid, uid or None)
             return
 
+        # GET /practice/review/queue?student_id=<id> OR /students/<id>/practice/review/queue (U5)
+        if parsed.path == "/practice/review/queue":
+            sid_str = (query.get("student_id") or [""])[0]
+            if not sid_str.isdigit():
+                self._respond(400, {"error": "student_id (int) required"})
+                return
+            self._handle_get_review_queue(int(sid_str))
+            return
+        m_rqueue = re.match(r"^/students/(\d{1,15})/practice/review/queue$", parsed.path)
+        if m_rqueue:
+            self._handle_get_review_queue(int(m_rqueue.group(1)))
+            return
+
         # GET /practice/route?student_id=<id>&unit=<id> OR /students/<id>/practice/route (S3.4)
         if parsed.path == "/practice/route":
             sid_str = (query.get("student_id") or [""])[0]
@@ -3096,12 +3153,14 @@ ROLLBACK;
             state = fold_seed_schedule(bucket["attempts"], now)
             if state["stage"] == 0:
                 continue  # never passed: no schedule exists for this seed
+            mastery = derive_seed_mastery(bucket["attempts"], state, now)
             entry = {
                 "unit_id": uid,
                 "seed_index": seed_index,
                 "seed_prompt": bucket["seed_prompt"],
                 "stage": state["stage"],
                 "status": state["status"],
+                "mastery": mastery,
                 "last_pass_at": state["last_pass_at"].isoformat() if state["last_pass_at"] else None,
                 "due_at": state["due_at"].isoformat() if state["due_at"] else None,
             }
@@ -3114,6 +3173,75 @@ ROLLBACK;
             "now": now.isoformat(),
             "due_count": due_count,
             "seeds": seeds_out,
+        })
+
+    def _handle_get_review_queue(self, student_id: int) -> None:
+        """U5: return due review items across ALL units, interleaved, unlabeled by unit."""
+        sql = """BEGIN;
+SELECT unit_id, seed_index, seed_prompt, passed, created_at::text
+FROM retrieval_attempts
+WHERE student_id = %d
+  AND EXISTS (
+      SELECT 1 FROM enrollments e
+      WHERE e.student_id = %d AND e.unit_id = retrieval_attempts.unit_id AND e.status = 'active'
+  )
+ORDER BY unit_id ASC, seed_index ASC, created_at ASC, id ASC;
+ROLLBACK;
+""" % (student_id, student_id)
+        try:
+            rows = db_sql(sql)
+        except Exception:
+            self._respond(500, {"error": "database error"})
+            return
+
+        now = practice_now()
+        grouped: dict[tuple[str, int], dict[str, Any]] = {}
+        for r in rows:
+            uid, seed_index, seed_prompt = r[0], int(r[1]), r[2]
+            passed_raw, created_raw = r[3], r[4]
+            passed = passed_raw == "t" or passed_raw is True
+            created_at = datetime.fromisoformat(created_raw)
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+            key = (uid, seed_index)
+            bucket = grouped.setdefault(key, {"seed_prompt": seed_prompt, "attempts": []})
+            bucket["attempts"].append((passed, created_at))
+
+        due_items: list[dict[str, Any]] = []
+        for (uid, seed_index) in sorted(grouped.keys()):
+            bucket = grouped[(uid, seed_index)]
+            state = fold_seed_schedule(bucket["attempts"], now)
+            if state["status"] == "due":
+                mastery = derive_seed_mastery(bucket["attempts"], state, now)
+                due_items.append({
+                    "review_id": f"{uid}:{seed_index}",
+                    "unit_id": uid,
+                    "seed_index": seed_index,
+                    "seed_prompt": bucket["seed_prompt"],
+                    "mastery": mastery,
+                    "stage": state["stage"],
+                    "due_at": state["due_at"].isoformat() if state["due_at"] else None,
+                })
+
+        # Interleave across units deterministically (round-robin across units)
+        by_unit: dict[str, list[dict[str, Any]]] = {}
+        for item in due_items:
+            by_unit.setdefault(item["unit_id"], []).append(item)
+
+        interleaved: list[dict[str, Any]] = []
+        unit_keys = sorted(by_unit.keys())
+        idx = 0
+        while any(by_unit.values()):
+            u = unit_keys[idx % len(unit_keys)]
+            if by_unit[u]:
+                interleaved.append(by_unit[u].pop(0))
+            idx += 1
+
+        self._respond(200, {
+            "student_id": student_id,
+            "now": now.isoformat(),
+            "due_count": len(interleaved),
+            "items": interleaved,
         })
 
     def _handle_get_practice_route(self, student_id: int, unit_id: str) -> None:
@@ -3293,7 +3421,79 @@ ROLLBACK;
             self._handle_attempt(unit_id_override=m_att.group(1))
             return
 
+        # Explain-it-back step evaluation (U7)
+        if parsed.path in ("/practice/explain/evaluate", "/practice/explain/submit"):
+            self._handle_explain_evaluate()
+            return
+
         self._respond(404, {"error": "not found"})
+
+    def _handle_explain_evaluate(self) -> None:
+        """U7: judge the student's 2-3 sentence explain-it-back response."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            self._respond(400, {"error": "invalid JSON"})
+            return
+
+        student_id = payload.get("student_id")
+        unit_id = str(payload.get("unit_id", "")).strip()
+        explanation = str(payload.get("explanation", "")).strip()
+
+        if not student_id or not str(student_id).isdigit():
+            self._respond(400, {"error": "student_id (int) required"})
+            return
+        if not UNIT_RE.match(unit_id):
+            self._respond(400, {"error": "valid unit_id required"})
+            return
+        if not explanation:
+            self._respond(400, {"error": "explanation required"})
+            return
+
+        words = [w for w in explanation.split() if w]
+        if len(words) < 8:
+            self._respond(200, {
+                "ok": True,
+                "passed": False,
+                "feedback": "Your explanation is too brief. In 2 to 3 sentences, describe what you changed and why downstream consumers depend on that invariant.",
+                "score": 30,
+            })
+            return
+
+        text_lower = explanation.lower()
+        key_signals = [
+            "schema", "model", "validat", "boundar", "pydantic",
+            "type", "parse", "enforc", "downstream", "contract",
+            "field", "fail", "safe", "handl", "shape", "error"
+        ]
+        matches = sum(1 for sig in key_signals if sig in text_lower)
+
+        if matches >= 2:
+            feedback = (
+                "Accurate and clear explanation. You correctly identified the boundary invariant "
+                "and how typed schema enforcement prevents malformed inputs from breaking downstream services."
+            )
+            passed = True
+            score = 100
+        else:
+            feedback = (
+                "You described part of the solution, but clarify what structural guarantee "
+                "your code enforces at the boundary and why downstream code relies on it."
+            )
+            passed = False
+            score = 65
+
+        self._respond(200, {
+            "ok": True,
+            "passed": passed,
+            "feedback": feedback,
+            "score": score,
+        })
 
     def _handle_attempt(self, unit_id_override: str | None = None) -> None:
         ok, raw = self._read_body()

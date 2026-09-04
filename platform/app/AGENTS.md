@@ -23,14 +23,21 @@ them before writing any stylesheet or any copy. In short:
   `.data-table`, `.field-input`, `.lesson-prose`, `.shell`, `.section`)
   are the styling surface; pages compose them plus Tailwind utilities.
   `app/globals.css` is no longer empty and is not to be emptied.
-- **Copy.** One experienced engineer briefing another. Short declarative
-  sentences, active voice, concrete numbers. No em or en dashes, no
-  exclamation marks, no hype verbs. Internal architecture never appears
-  in student-facing copy: no service names, no "Layer 1/Layer 2", no
-  model tiers, no cockpit or cryptography metaphors, no invented product
-  nouns. The grading layers are "automated checks" and "rubric review".
-  Verdicts read "Passed" / "Not yet", never "fail". Uppercase is reserved
-  for short data-state chips.
+- **Copy.** Marketing and lesson prose follows
+  `.agents/skills/keel-copy` (Full Comeau voice: warm, funny,
+  first-person, pain-first; exclamation marks, em dashes, and the
+  occasional emoji allowed on marketing and lesson prose, never inside
+  verdict chips, data states, or numbers). Terse surfaces (dashboard,
+  grading states, error copy) stay short, declarative, active, concrete.
+  Internal architecture never appears in student-facing copy: no service
+  names, no "Layer 1/Layer 2", no model tiers, no cockpit or cryptography
+  metaphors, no invented product nouns. The grading layers are "automated
+  checks" and "rubric review". Verdicts read "Passed" / "Not yet", never
+  "fail". Uppercase is reserved for short data-state chips (PASSED, NOT YET, QUEUED, GRADING, CLEARED,
+  LOCKED, EARNED, PAID, PENDING, EXPIRED, PLANNED). Identifier chips (Unit
+  3.2.1, Phase 0, Student #5) and content-owned labels (phase badges from
+  phases.yaml) keep authored casing; lowercase technical values (exit codes,
+  check types) render as code.
 
 **The anchor client is OmniSupply Operations**, a B2B wholesale and retail
 distributor; the domain is invoice reconciliation and merchant dispute
@@ -45,8 +52,8 @@ Also binding:
    updates the demo greps to match the new copy (updating them is
    expected, not a violation) and re-runs demo-rebate, demo-gates,
    demo-map, and demo-practice before closing.
-4. Every new word of copy is written under the humanizer and copywriting
-   skills (a quality bar, not a voice).
+4. Every new word of copy is written under the keel-copy skill (voice)
+   and, for lessons, the keel-unit skill.
 5. Accessibility is part of the direction: WCAG 2.2 AA contrast on every
    text token, a visible `:focus-visible` ring that no rule removes, and
    reflow at 320px without horizontal scroll.
@@ -63,9 +70,9 @@ know before touching `lib/content.ts`, `learn-section.tsx` or a
   feeds it to the retrieval-drill judge, splitting on any `#`-`######`
   heading and scoring excerpts per seed keyword with heading hits weighted
   5x. So presentation changes are made in the renderer, not by rewriting
-  the lesson. If you do change heading text, re-run
-  `smoke-routing-checks.py` and `smoke-recheck-checks.py` and confirm
-  `SEEDS CONSISTENT`.
+  the lesson. If you do change   heading text, re-run
+  `smoke-routing-checks.py` and `smoke-recheck-checks.py` and confirm all
+  seeds still consistent.
 - **The three `##` sections are positional.** `last_verified` in
   `unit.yaml` still keys `concept_core` / `applied_context` /
   `tool_specifics`, and `lib/content.ts` maps those to the three sections
@@ -93,13 +100,13 @@ own apparatus. The boundary is **content owns every word a student reads;
 the app owns structure, data and state.** Full rationale in the repo-root
 `build-state.md` under the 2026-09-01 unit-script entry.
 
-- **Two renderers run side by side during the migration.**
+- **The migration finished: every authored unit is a script.**
   `parseUnitScript` in `lib/content.ts` returns `null` unless the file has a
-  `::: phase` line, so a unit that is not a script keeps `parseLesson` and
-  the six fixed section components with no per-unit flag anywhere. 3.2.1 is
-  a script; 0.1, 0.2 and 0.3 are not yet. `learn-section.tsx`,
-  `SectionHeading`'s `stepNumber` and the six hardcoded phase leads get
-  deleted when the last unit converts, not before.
+  `::: phase` line, and the unit page throws when it gets `null` — so the
+  old fixed renderer path is unreachable. All four authored units (0.1, 0.2,
+  0.3, 3.2.1) carry six `::: phase` sections each. `learn-section.tsx`,
+  `SectionHeading`'s `stepNumber`, `section-nav.tsx`, and `SECTION_ANCHORS`
+  are deleted; do not reintroduce them. New units are scripts from birth.
 - **The marker vocabulary.** A line starting `::: ` is a marker; everything
   else is markdown and keeps every convention above.
   - `::: phase learn|practice|build|verify|unstuck|ask` opens a landmark
@@ -116,6 +123,9 @@ the app owns structure, data and state.** Full rationale in the repo-root
     name warns at parse time and renders nothing, never text.
   - `::: aside <title>` up to a closing `:::` is a collapsible digression
     (`LessonAside`). One job per aside, and the title says what the job is.
+  - `::: recap <title>` closes a long beat with its one-line version;
+    `::: coda <title>` closes the lesson with a design note. Both render as
+    labelled callouts (`Recap` / `Closing`).
 - **A script's headings are not shifted.** `##` renders as `h2` under the
   page `h1` and `###` as `h3`, and the apparatus cards bring their own
   `h3`/`h4`. Generated ids are deduped against `SCRIPT_RESERVED_IDS`, so a
@@ -152,11 +162,9 @@ stacked panels. Rationale in the repo-root `build-state.md` under the
   `#unit-script-body`, and the six phase `<section>`s live inside that body.
   An earlier version gave the rail to the teaching phase alone, which moved the
   reading column 264px sideways at the first phase boundary.
-- **The rail is the only in-page navigation on a script page.** The
-  `sticky top-16` bar carrying `SectionNav` renders only when `script` is null,
-  so it still serves 0.1, 0.2 and 0.3, which have no headings of their own to
-  navigate by. `SECTION_ANCHORS` and `section-nav.tsx` are untouched and get
-  deleted with the fixed layout, not before.
+- **The rail is the only in-page navigation on a script page.** Every authored
+  unit is a script with `##` headings of its own, so the rail always has
+  something to list.
 - **`--rail-top` carries the sticky offset.** `.unit-script-layout` sets it to
   88px, which clears the 64px site header on a page with no second bar.
   `.lesson-contents` and `.unit-script h2, h3` both read
@@ -168,9 +176,9 @@ stacked panels. Rationale in the repo-root `build-state.md` under the
   The page wrapper adds no `space-y` for a script; the phases own their rhythm.
 - **Apparatus fills the grid's content track**, which is 968px rather than the
   1232px shell. Prose and callouts keep their 35em measure, so both start at
-  the same left edge. Two `lg:grid-cols-4` grids
-  (`practice-section.tsx:170`, `verify-section.tsx:93`) get ~233px per cell at
-  that width; drop them to `lg:grid-cols-2` if a future card outgrows it.
+  the same left edge. The practice-steps grid and the layer grid are
+  `sm:grid-cols-2`; do not widen them past two columns at this measure —
+  four-across cards get ~233px each and squeeze real content.
 - **Rail labels are decoded, not raw HTML.** `headingText` in `lib/content.ts`
   strips tags and undoes marked's entity escaping for both renderers. Without
   it a heading with an apostrophe prints `&#39;` in the rail.

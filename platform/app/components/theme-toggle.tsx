@@ -2,6 +2,7 @@
 
 /* eslint-disable react-hooks/set-state-in-effect -- hydrating from localStorage after mount is intentional, and placeholder swap avoids hydration mismatch */
 import { useEffect, useState } from "react";
+import { useServerInsertedHTML } from "next/navigation";
 
 type Theme = "dark" | "light";
 
@@ -76,5 +77,15 @@ export function ThemeToggle() {
 }
 
 // Inline script to set theme before React hydrates, avoiding flash.
-// Injected via dangerouslySetInnerHTML in layout.
 export const themeInitScript = `(function(){try{var s=localStorage.getItem('keel-theme');var t=s||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();`;
+
+export function ThemeScript() {
+  useServerInsertedHTML(() => (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: themeInitScript,
+      }}
+    />
+  ));
+  return null;
+}

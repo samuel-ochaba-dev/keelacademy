@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Straight answers about how Keel Academy works, what is graded, and what exists today.",
+  description: "How Keel Academy works. How grading works. What exists today.",
 };
 
 export default function FaqPage() {
@@ -22,23 +22,23 @@ export default function FaqPage() {
   const monthsAtTwelve = Math.round(totalHours / 12 / 4.33);
   const placement = loadPlacementDiagnostic("placement-phase-1");
   const placementLine = placement
-    ? `Pass the ${placement.est_minutes}-minute placement check and ${placement.pass_skip_units.length} Phase 1 units open without you working through them.`
+    ? `Pass the ${placement.est_minutes}-minute placement check and we open ${placement.pass_skip_units.length} Phase 1 units for you.`
     : "";
 
   const FAQS = [
     {
       question: "What is Keel Academy?",
-      answer: `A project-based program for learning applied AI engineering. Instead of watching lessons and taking quizzes, you build one production system end to end: an invoice reconciliation and dispute triage pipeline for OmniSupply Operations, a simulated B2B distribution client. The curriculum is planned as ${phaseCount} phases and ${totalHours} hours of build work.`,
+      answer: `Keel Academy is where tutorials end and the real work starts. You learn applied AI engineering through projects: one production system built end to end, an invoice reconciliation and dispute triage pipeline for OmniSupply Operations, a simulated B2B distributor. The curriculum has ${phaseCount} phases and ${totalHours} hours of build work — and every hour of it is building.`,
     },
     {
       question: "How does grading actually work?",
       answer:
-        "You submit by pushing a git repository. Your code runs first against the unit's automated checks in a clean container, so the result does not depend on what is installed on your machine. Then a language model grades it against the unit's published rubric, and it has to quote the lines of your own code that earned each verdict. You can read the rubric before you start and you see the same verdict text the grader wrote.",
+        "Here is the part we are proudest of. You submit by pushing a git repository. Your code runs first against the unit automated checks in an isolated run, so the result never depends on your machine. Then a language model grades it against the unit's published rubric — and it has to quote the lines of your own code that earned each verdict. You read the rubric before you start, and you see the same verdict text the grader wrote. No black boxes.",
     },
     {
       question: "Can I get through this with another AI tool?",
       answer:
-        "You can write code with one. Every working engineer does. What you cannot do is hand in output you do not understand: the rubric review quotes your own code back at you, the automated checks run it rather than read it, and the two capstone defences are conversations you hold live against a technical reviewer and a budget holder. Nobody can promise a bar that is impossible to game. This one is not a quiz you can paste an answer into.",
+        "You can write code with one. Every working engineer does. You cannot hand in output you do not understand. Rubric review quotes your own code back at you. Automated checks run your code. The two capstone defences are live conversations with a technical reviewer and a budget holder. Pasted answers do not pass — and honestly, that is the feature.",
     },
     {
       question: "How long does it take?",
@@ -47,22 +47,22 @@ export default function FaqPage() {
     {
       question: "What exists right now?",
       answer:
-        `The platform is built and running: accounts, per-unit enrollment, the whole grading loop, practice drills, the assistant, pods, the gallery, and the practice conversations. Units publish as they finish authoring${liveList ? `; open today: unit ${liveList}` : ""}. The recorded walkthrough stage is not built yet, and no unit asks you for a video. Every unit page states what is graded and what opens next.`,
+        `The platform runs today. It handles accounts and per-unit enrollment. It runs the full grading loop. It runs practice drills, the assistant, pods and the gallery. We publish units as we finish them${liveList ? `: open today: unit ${liveList}` : ""}. No unit asks for a video today. We have not built recorded walkthroughs yet. Every unit page states what automated checks and rubric review grade and what opens next.`,
     },
     {
       question: "What does it cost?",
       answer:
-        "You enroll one unit at a time and the price is on the unit before you pay. There is no subscription. There are two milestone gates, one at the Phase 5 integration project and one at the capstone. You commit to a window for a gate up front, and clearing it inside that window returns 15% of what you paid for the unit as a refund to the card you paid with. Clearing the gate records the rebate straight away; the refund itself is issued by a person, not by a script.",
+        "You enroll one unit at a time and the price is on the unit before you pay. There is no subscription. There are two milestone gates, one at the Phase 5 integration project and one at the capstone. You commit to a window for a gate up front, and clearing it inside that window returns 15% of what you paid for the unit as a refund to the card you paid with. Clearing the gate records the rebate straight away. A person issues the refund. No script issues it automatically.",
     },
     {
       question: "Who is this for?",
       answer:
-        "Engineers who want to do real AI systems work, not prompt tricks: model integration, structured outputs, retrieval, agents, evaluation, governance, and deployment, plus the client conversations that come with shipping for a business. You should be comfortable writing code regularly. Complete beginners should start with a general programming foundation first.",
+        "It fits engineers who want AI systems work — the unglamorous, employable kind. That work covers model integration and structured outputs. It covers retrieval and agents. It covers evaluation, governance and deployment, plus the client conversations that come with shipping for a business. You write code each week, and you are comfortable with Python and APIs. Complete beginners start with a general programming foundation — we will still be here when you are ready.",
     },
     {
       question: "What do I leave with?",
       answer:
-        "A deployed, documented system that passed a published bar, the verdicts that passed it, two defences held against a technical reviewer and a budget holder, and a proposal you can send to a real client. The portfolio is the credential: every piece of it was checked against a rubric you could read before you started.",
+        "You leave with a deployed system. It passed a published bar. You keep the verdicts and two defences. You keep a proposal you can send to a real client. Automated checks and rubric review checked every piece against a rubric you read before you started. That is not a certificate. It is better — it is checkable.",
     },
   ];
 
@@ -70,10 +70,10 @@ export default function FaqPage() {
     <div>
       <header className="shell pb-12 pt-14">
         <p className="eyebrow">FAQ</p>
-        <h1 className="heading-xl mt-4">Straight answers.</h1>
+        <h1 className="heading-xl mt-4">Straight answers</h1>
         <p className="lead mt-5">
-          If a question you care about is missing, it belongs on this page.
-          Everything below describes how the program actually behaves today.
+          If your question is missing, that is a bug — tell us and it will
+          land here. Everything below describes how the program behaves today.
         </p>
       </header>
 

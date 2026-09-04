@@ -93,12 +93,12 @@ export function AnalyticsDashboard({
     try {
       const res = await fetch(`/api/admin/analytics/units/${encodeURIComponent(unitId)}`);
       if (!res.ok) {
-        setDrilldownError(`The unit detail request came back ${res.status}.`);
+        setDrilldownError("We could not load that unit.");
         return;
       }
       setDrilldownData((await res.json()) as UnitDetailResponse);
-    } catch (err) {
-      setDrilldownError(err instanceof Error ? err.message : "The unit detail request failed.");
+    } catch {
+      setDrilldownError("We could not load that unit.");
     } finally {
       setDrilldownLoading(false);
     }
@@ -116,8 +116,8 @@ export function AnalyticsDashboard({
         <div className="card-dark max-w-[62ch]">
           <h2 className="heading-md">No telemetry came back</h2>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The analytics service did not answer. Nothing here is cached, so this page is empty
-            rather than stale. Refresh in a moment.
+            No telemetry came back. Refresh — this page shows live numbers or nothing, never
+            stale ones.
           </p>
         </div>
       ) : null}
@@ -162,7 +162,7 @@ export function AnalyticsDashboard({
             How far students get
           </h2>
           <p className="mt-3 font-code-mono text-[13px] text-moss-70">
-            {`${initialFunnel.total_enrolled.toLocaleString("en-US")} enrolled at the top of the funnel`}
+            {`${initialFunnel.total_enrolled.toLocaleString("en-US")} enrolled`}
           </p>
           <div className="mt-6 overflow-x-auto">
             <table className="data-table">
@@ -197,8 +197,7 @@ export function AnalyticsDashboard({
           Unit by unit
         </h2>
         <p className="mt-3 max-w-[70ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          Friction is the composite score the analytics service computes. Sort by it to find the
-          units worth rewriting first.
+          Friction scores each unit. Sort to find what to rewrite first.
         </p>
 
         <div className="mt-7 flex flex-wrap items-end gap-4">
@@ -250,7 +249,7 @@ export function AnalyticsDashboard({
               <option value="friction">Friction score</option>
               <option value="dropoff">Stopped here</option>
               <option value="attempts">Attempts to pass</option>
-              <option value="retrieval">Retrieval checks failed first try</option>
+              <option value="retrieval">Retrieval checks missed first try</option>
               <option value="concierge">Questions asked</option>
             </select>
           </div>
@@ -308,7 +307,7 @@ export function AnalyticsDashboard({
                     <td>{u.phase}</td>
                     <td>{`${u.drop_off_rate_pct}%`}</td>
                     <td>{u.avg_attempts_to_pass.toFixed(1)}</td>
-                    <td>{`${u.retrieval_first_try_fail_rate_pct}% failed`}</td>
+                    <td>{`${u.retrieval_first_try_fail_rate_pct}% missed`}</td>
                     <td>{u.concierge_turn_volume.toLocaleString("en-US")}</td>
                     <td>{u.friction_score.toFixed(1)}</td>
                     <td>
@@ -341,7 +340,7 @@ export function AnalyticsDashboard({
 
           {drilldownLoading ? (
             <p className="mt-6 font-code-mono text-[13px] text-moss-70" aria-live="polite">
-              Loading...
+              Loading
             </p>
           ) : drilldownError ? (
             <p
@@ -369,7 +368,7 @@ export function AnalyticsDashboard({
                     value={drilldownData.unit.completions_count.toLocaleString("en-US")}
                   />
                   <Stat
-                    label="Median hours to clear"
+                    label="Median hours to pass"
                     value={String(drilldownData.unit.median_time_to_clear_hrs)}
                   />
                 </dl>
@@ -401,7 +400,7 @@ export function AnalyticsDashboard({
               {drilldownData.retrieval_seed_failures?.length > 0 ? (
                 <div>
                   <h4 className="text-[12px] uppercase tracking-[0.14em] text-[color:var(--text-faint-on-dark)]">
-                    {`Retrieval prompts that fail first try · ${drilldownData.retrieval_seed_failures.length}`}
+                    {`Retrieval prompts students miss first try · ${drilldownData.retrieval_seed_failures.length}`}
                   </h4>
                   <ul className="mt-4">
                     {drilldownData.retrieval_seed_failures.map(

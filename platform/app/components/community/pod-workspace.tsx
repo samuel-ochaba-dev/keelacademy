@@ -57,7 +57,7 @@ export function PodWorkspace({
         }
       } else {
         const err = await res.json().catch(() => ({}));
-        setErrorMsg(err.message || err.error || "Failed to assign pod.");
+        setErrorMsg(err.message || err.error || "We could not assign a pod. Try again.");
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Network error.");
@@ -94,7 +94,7 @@ export function PodWorkspace({
         setNextText("");
       } else {
         const err = await res.json().catch(() => ({}));
-        setErrorMsg(err.message || err.error || "Failed to post check-in.");
+        setErrorMsg(err.message || err.error || "We could not post the check-in. Try again.");
       }
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Network error.");
@@ -108,8 +108,8 @@ export function PodWorkspace({
       <div className="card-dark max-w-[56ch]">
         <h2 className="heading-md">You are not in a pod yet</h2>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          Joining puts you with students at roughly the same point in the curriculum. You can
-          do it now.
+          Joining puts you with students at the same point in the curriculum. Come as you
+          are — lurkers welcome, posters celebrated.
         </p>
         <button
           type="button"
@@ -117,7 +117,7 @@ export function PodWorkspace({
           disabled={isAssigning}
           className="btn btn-accent btn-sm mt-7"
         >
-          {isAssigning ? "Joining..." : "Join a pod"}
+          {isAssigning ? "Joining" : "Join a pod"}
         </button>
         {errorMsg ? (
           <p
@@ -205,7 +205,7 @@ export function PodWorkspace({
               onChange={(e) => setShippedText(e.target.value)}
               rows={3}
               required
-              placeholder="Units you finished, code you pushed, anything that is now done."
+              placeholder="Units you finished, code you pushed — anything that is now done."
               className="field-input"
             />
           </div>
@@ -219,7 +219,7 @@ export function PodWorkspace({
               onChange={(e) => setBrokeText(e.target.value)}
               rows={3}
               required
-              placeholder="Checks that would not pass, a concept that did not land, time you lost."
+              placeholder="Checks that did not pass, concepts that did not land, time you lost. Be honest — everyone else is."
               className="field-input"
             />
           </div>
@@ -233,12 +233,12 @@ export function PodWorkspace({
               onChange={(e) => setNextText(e.target.value)}
               rows={3}
               required
-              placeholder="The next unit, a gate you are preparing for, the capstone."
+              placeholder="The next unit and the gate you are aiming at."
               className="field-input"
             />
           </div>
           <button type="submit" disabled={isPosting} className="btn btn-accent btn-sm">
-            {isPosting ? "Posting..." : "Post check-in"}
+            {isPosting ? "Posting" : "Post check-in"}
           </button>
         </form>
 
@@ -263,7 +263,7 @@ export function PodWorkspace({
 
         {posts.length === 0 ? (
           <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Nobody has posted yet. You can go first.
+            Nobody has posted yet. You get to go first — a genuine honor.
           </p>
         ) : (
           <ul className="mt-7">

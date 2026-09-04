@@ -26,6 +26,7 @@ import {
   type PracticeResult,
   type RecheckSchedule,
 } from "@/lib/practice";
+import { ReadingContinueCard } from "@/components/dashboard/reading-continue-card";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,9 @@ export const metadata: Metadata = {
 };
 
 const CHECKOUT_ERRORS: Record<string, string> = {
-  unreachable: "We could not reach the enrollment server. Try again in a moment.",
-  app_not_configured: "This site is missing its enrollment secret (KEEL_ENROLL_SECRET).",
-  stripe_not_wired: "Payments are not configured on the enrollment server yet.",
+  unreachable: "We could not reach enrollment. Try again.",
+  app_not_configured: "Enrollment is not configured yet. Try again.",
+  stripe_not_wired: "Payments are not configured yet.",
   stripe_unreachable: "The payment provider did not answer. Nothing was charged.",
   stripe_error: "The payment provider rejected the request. Nothing was charged.",
   email_linked_to_other_account:
@@ -94,8 +95,8 @@ export default async function MePage({ searchParams }: Props) {
           <div className="card-dark max-w-[62ch]">
             <h2 className="heading-lg">We could not load your progress</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-              You are signed in, but the server that holds enrollments and verdicts did
-              not answer. Nothing is lost. Refresh in a moment.
+              You are signed in, but enrollments and verdicts would not load.
+              Nothing is lost. Refresh.
             </p>
           </div>
         )}
@@ -150,12 +151,13 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
           </div>
 
           <p className="mt-4 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The budget is spent when rubric review reads your commit. The automated checks
-            do not draw on it, so you can run those as often as you like.
+            Rubric review spends your budget when it reads your commit.
+            Automated checks are free — run them as often as you like.
           </p>
         </section>
       ) : null}
 
+      <ReadingContinueCard />
       <RecheckSection result={recheckResult} />
 
       <section aria-labelledby="units-title" className="card-dark">
@@ -170,7 +172,7 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
 
         {profileResult.state !== "ok" ? (
           <p className="mt-5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            We could not load your enrollments. Refresh in a moment.
+            We could not load your enrollments. Refresh.
           </p>
         ) : (
           <div className="mt-6 overflow-x-auto">
@@ -285,12 +287,12 @@ function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLooku
       </h2>
       <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
         Two gates decide what opens next. Each one needs a passing verdict on a single
-        unit, and each one returns 15% of what you have paid.
+        unit — and each one sends 15% of what you have paid back to your card.
       </p>
 
       {lookup.state !== "ok" ? (
         <p className="mt-5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          We could not load your gate status. Refresh in a moment.
+          We could not load your gate status. Refresh.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
@@ -343,15 +345,15 @@ function rebateStatusLine(rebate: Rebate): string {
   const amount = formatPrice(rebate.amount_cents, rebate.currency);
   switch (rebate.status) {
     case "pending":
-      return `Window open until ${formatUtc(rebate.window_ends_at)}. Pass the gate before then and ${amount} comes back to your card.`;
+      return `Window open until ${formatUtc(rebate.window_ends_at)}. Pass the gate before then and ${amount} comes back to your card — 15% for finishing on time.`;
     case "earned":
-      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. We refund it to your card by hand, so it lands a few days later.`;
+      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. We refund it to your card by hand — it lands within 5 business days.`;
     case "paid":
       return `Refunded ${amount} to your payment method on ${formatUtc(rebate.paid_at ?? rebate.earned_at ?? rebate.pledged_at)}.`;
     case "forfeited":
       return `Forfeited on ${formatUtc(rebate.forfeited_at ?? rebate.pledged_at)}.`;
     case "expired":
-      return `Window closed on ${formatUtc(rebate.expired_at ?? rebate.window_ends_at)} without a passing verdict, so this one is gone.`;
+      return `Window closed on ${formatUtc(rebate.expired_at ?? rebate.window_ends_at)} without a passing verdict. This rebate expired.`;
   }
 }
 
@@ -362,8 +364,8 @@ function RebateSection({ rebates }: { rebates: Rebate[] }) {
         Completion rebates
       </h2>
       <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        Clear both gates inside their windows and 30% of what you paid comes back, 15% at a
-        time. Each row carries its own deadline.
+        Clear both gates inside their windows and 15% comes back twice — once per gate.
+        Each row carries its own deadline — check the dates.
       </p>
 
       <div className="mt-6 overflow-x-auto">
@@ -430,11 +432,11 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
       <div className="mt-5">
         {!schedule ? (
           <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            We could not load your re-check schedule. Refresh in a moment.
+            We could not load your re-check schedule. Refresh.
           </p>
         ) : dueSeeds.length === 0 ? (
           <p className="max-w-[70ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Nothing due. A question you answered correctly comes back three days later, then
+            Nothing due — enjoy it. A question you answered correctly comes back three days later, then
             seven days after that, so it sticks.
             {nextDueAt ? ` Next one: ${formatUtc(nextDueAt)}.` : ""}
           </p>
@@ -446,9 +448,14 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
                 className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-circuit-border bg-carbon-veil p-4"
               >
                 <div className="max-w-[62ch]">
-                  <span className="font-code-mono text-[12px] text-moss-70">
-                    Unit {s.unit_id} · question {s.seed_index + 1}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-code-mono text-[12px] text-moss-70">
+                      Unit {s.unit_id} · question {s.seed_index + 1}
+                    </span>
+                    <span className="chip chip-outline font-code-mono text-[10px]">
+                      {(s.mastery ?? "familiar").toUpperCase()}
+                    </span>
+                  </div>
                   <p className="mt-2 text-[15px] leading-relaxed text-phosphor-white">
                     {s.seed_prompt}
                   </p>
@@ -482,7 +489,7 @@ function SubmissionsBody({
   if (result.state === "unreachable" || result.state === "rejected") {
     return (
       <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        We could not load your grading history. Refresh in a moment.
+        We could not load your grading history. Refresh.
       </p>
     );
   }
@@ -491,7 +498,7 @@ function SubmissionsBody({
     return (
       <div>
         <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          No submissions yet. You submit by pushing a commit and pasting its hash.
+          No submissions yet — your first push changes that. You submit by pushing a commit and pasting its hash.
         </p>
         <Link href="/submit" className="btn btn-ghost btn-sm mt-5">
           Read the submission steps

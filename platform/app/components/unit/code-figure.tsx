@@ -57,7 +57,7 @@ export function CodeFigureRuntime() {
             // A denied clipboard permission is the reader's own setting, so say
             // what happened on the button and leave the code where it is.
             console.warn("[code-figure] copy refused:", error);
-            button.textContent = "Blocked";
+            button.textContent = "Copy blocked";
           },
         );
       });

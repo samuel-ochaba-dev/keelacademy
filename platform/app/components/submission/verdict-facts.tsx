@@ -16,8 +16,8 @@ export function VerdictFacts({ view }: { view: SubmissionView }) {
         What this verdict was graded against
       </h2>
       <p className="mt-3 max-w-[74ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        The rubric is versioned, so a verdict can always be traced back to the exact wording
-        that produced it.
+        We version the rubric, so each verdict links back to the exact wording we
+        graded against.
       </p>
 
       <dl className="mt-7 grid gap-px overflow-hidden rounded-lg border border-circuit-border bg-circuit-border sm:grid-cols-2 lg:grid-cols-4">
@@ -46,10 +46,10 @@ export function VerdictFacts({ view }: { view: SubmissionView }) {
               : "0 tokens"}
           </dd>
         </Record>
-        <Record label="Run ID">
+        <Record label="Grading ID">
           <dd className="mt-2">
             <code className="font-code-mono text-[13px] break-all text-phosphor-white">
-              {verdict.json?.trace?.call_id ?? "not recorded"}
+              {verdict.json?.trace?.call_id ?? "No run ID recorded"}
             </code>
           </dd>
         </Record>
