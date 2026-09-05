@@ -34,7 +34,7 @@ export default async function CheckoutReturnPage({ searchParams }: Props) {
           </h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             The payment cleared and your account has access. Start with the lesson, work
-            the drills, then build — in that order, and it will go well.
+            the drills, then build, in that order, and it will go well.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             {unitId ? (
@@ -52,7 +52,7 @@ export default async function CheckoutReturnPage({ searchParams }: Props) {
           <span className="chip chip-outline">CONFIRMING</span>
           <h1 className="heading-lg mt-4">Confirming your payment</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The payment provider still shows the charge as pending. Check again — it
+            The payment provider still shows the charge as pending. Check again, as it
             almost always lands within a minute.
           </p>
           <Link

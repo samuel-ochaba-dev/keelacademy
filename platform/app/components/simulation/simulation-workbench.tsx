@@ -40,7 +40,7 @@ const PERSONA_CONFIGS: Record<string, PersonaConfig> = {
     name: "Elena Rostova",
     role: "Managing Director, OmniSupply Operations",
     description:
-      "She owns profit and loss for an $80M distribution business. Say what your build saves in hours and money — and what happens on a disputed invoice. Plain words only.",
+      "She owns profit and loss for an $80M distribution business. Say what your build saves in hours and money, and what happens on a disputed invoice. Plain words only.",
     scorecardTitle: "How this defence was scored",
   },
 };
@@ -192,7 +192,7 @@ export function SimulationWorkbench({
             Nothing has started yet
           </h2>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            You type. {persona.name} answers. We save the transcript. End when you want —
+            You type. {persona.name} answers. We save the transcript. End when you want, and
             run it again as often as you like.
           </p>
           <button

@@ -410,8 +410,8 @@ function PlannedUnit({ phase, module }: { phase: MapPhase; module: MapModule }) 
         </p>
         <p className="mt-6 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
           This unit is mapped and its place in the build is fixed. The lesson, the practice
-          set and the rubric are not written yet — nothing here is enrollable, and nothing
-          is hiding behind a payment. When the unit opens, this page becomes the unit —
+          set and the rubric are not written yet: nothing here is enrollable, and nothing
+          is hiding behind a payment. When the unit opens, this page becomes the unit:
           same URL, nothing to re-bookmark.
         </p>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">

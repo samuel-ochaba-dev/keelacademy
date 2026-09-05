@@ -116,13 +116,14 @@ Copy the scaffold below into your workspace, read the prompt guides in each sect
 
 ## Grading Rubric and Self-Evaluation Checklist
 
-Your submission will be evaluated against `rubrics/0.1/v1.yaml` across three core criteria:
+Your submission will be evaluated against `rubrics/0.1/v1.yaml` across four core criteria:
 
 | Rubric Criterion | Passing Standard | How to Verify Before Submitting |
 |---|---|---|
-| **jargon-free-problem-statement** | The problem statement describes OmniSupply's operational challenge completely in plain language without technology buzzwords. It cites 4,000 monthly transactions, all five intake formats, and the 2 to 3 day manual delay. | Count sentences: exactly 3. Search text for `AI`, `LLM`, `agent`, `model`, `machine learning`. Confirm zero hits. Verify 4,000 volume and 2 to 3 day latency are explicitly stated. |
-| **three-stakeholder-definitions** | The submission provides distinct, concrete definitions of success tailored to the operations manager (speed and backlog), compliance officer (auditability and citations), and CFO (unit cost and economics). | Verify three separate sections. Confirm Operations cites turnaround latency and capacity; Compliance cites clause attribution and audit trail; Finance cites per-transaction cost ceiling and financial leakage. |
-| **operational-workflow-mapping** | The submission demonstrates complete understanding of the document lifecycle from receipt to settlement, detailing failure modes and controls across all 5 formats, plus 3 quantitative HITL escalation triggers. | Confirm all 5 formats are detailed in the workflow table. Check that Section 4 contains at least three quantitative thresholds with specific numeric cutoffs and assigned human queues. |
+| **zero-jargon** | The problem statement and operational descriptions describe OmniSupply's challenges purely in business domain terms, with zero occurrences of AI, LLM, agent, machine learning, or related technology buzzwords. | Search text for `AI`, `artificial intelligence`, `LLM`, `agent`, `model`, `machine learning`, `ML`, `neural network`, `prompt`, `RAG`, `vector database`, `embeddings`. Confirm zero hits. |
+| **root-cause-scale** | The submission defines OmniSupply's root operational problem in exactly 2 to 3 sentences, explicitly citing ~4,000 monthly transactions, multi-format friction across disparate inputs, and business impact (2 to 3 day triage latency and financial leakage). | Count sentences in the problem statement: exactly 2 to 3. Confirm monthly volume (~4,000), multi-format intake, 2 to 3 day latency, and financial leakage are all stated. |
+| **stakeholder-trilemma** | The submission formulates three distinct, quantified KPIs covering the competing priorities of Operations (speed and backlog), Compliance (clause attribution and audit trail), and Finance (unit cost and financial leakage). | Verify three separate sections. Confirm Operations cites turnaround latency and capacity; Compliance cites clause attribution and audit trail; Finance cites per-transaction cost ceiling and financial leakage. |
+| **hitl-thresholds** | The submission specifies at least 3 concrete, quantitative boundary rules (human-in-the-loop thresholds) that halt automated processing and route transactions to human operations specialists for manual review. | Confirm Section 4 contains at least three quantitative thresholds with specific numeric cutoffs, operational rationales, and assigned human queues. |
 
 ### Pre-Submission Sanity Checks
 - Word count is between 600 and 1,200 words.

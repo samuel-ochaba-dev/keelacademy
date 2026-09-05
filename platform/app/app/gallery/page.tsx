@@ -111,7 +111,7 @@ export default async function GalleryPage({ searchParams }: Props) {
             <h2 className="heading-md">Nothing matches that</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               {search || phase
-                ? "No published project matches those filters yet. Widen the search — the gallery is young."
+                ? "No published project matches those filters yet. Widen the search, as the gallery is young."
                 : "No projects have been published yet. Yours could be first."}
             </p>
           </div>

@@ -1,6 +1,6 @@
 # keelacademy grading CLI
 
-Two layers:
+Three layers:
 
 - **Layer 1** (`python -m grader.l1`): runs a submission's checks in a sandboxed
   Docker container (no network) and parses per-test results. See `grader/l1.py`.

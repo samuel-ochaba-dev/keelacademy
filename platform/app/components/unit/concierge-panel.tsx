@@ -29,7 +29,7 @@ type ConciergePanelProps = {
  */
 function reasonFor(mode: ConciergeMode): string {
   return mode === "guard"
-    ? "You finished the practice route for this unit. Questions now walk through steps with you — it does not write the deliverable."
+    ? "You finished the practice route for this unit. Questions now walk through steps with you, but it does not write the deliverable."
     : "You are on the practice route. It explains concepts and writes extra exercises on request.";
 }
 
@@ -139,7 +139,7 @@ export function ConciergePanel({
             </h2>
             <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               An assistant that has read this unit and nothing else. Ask about a concept.
-              Ask for another exercise. Ask about an error. It is an AI — it does not
+              Ask for another exercise. Ask about an error. It is an AI, so it does not
               write your deliverable.
             </p>
           </div>

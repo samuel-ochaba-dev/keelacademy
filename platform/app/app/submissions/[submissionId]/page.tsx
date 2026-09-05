@@ -62,7 +62,7 @@ export default async function SubmissionPage(props: Props) {
     return (
       <div className="shell section">
         <div className="card-dark max-w-[62ch]">
-          <h1 className="heading-lg">One moment — checking this is yours</h1>
+          <h1 className="heading-lg">One moment. Checking this is yours</h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             A verdict page opens only for the account that pushed the commit. We could not
             confirm yours. Refresh.
@@ -144,7 +144,7 @@ export default async function SubmissionPage(props: Props) {
             <h2 className="heading-md">What an error means</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               We wrote no verdict. The run broke before it finished, or you had spent
-              your grading budget. An error is never a failed attempt — the timeline
+              your grading budget. An error is never a failed attempt: the timeline
               below names which of the two it was.
             </p>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
@@ -165,7 +165,7 @@ export default async function SubmissionPage(props: Props) {
             <h2 className="heading-md">While you wait</h2>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Automated checks run first, then rubric review reads your commit. This page
-              fills in as each finishes — reload to see the current state.
+              fills in as each finishes: reload to see the current state.
             </p>
             <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Go make coffee. The result will be here whenever you come back.

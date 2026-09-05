@@ -42,7 +42,7 @@ export default async function PricingPage() {
           Pay per unit. Get paid back for finishing.
         </h1>
         <p className="lead mt-5">
-          Subscriptions are how you pay for courses you never finish — so
+          Subscriptions are how you pay for courses you never finish, so
           there isn&rsquo;t one. You enroll unit by unit, and every unit shows its
           exact price before you pay anything. Clear a milestone gate inside
           its window and we refund 15% of what you paid for that unit to the
@@ -73,7 +73,7 @@ export default async function PricingPage() {
             {priced.length === 1 ? "One unit is open" : `${priced.length} units are open`}
           </h2>
           <p className="mt-4 max-w-[64ch] text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            The numbers below come from the same checkout that charges you —
+            The numbers below come from the same checkout that charges you:
             what you see is what you pay. We publish units as we finish them.
             Each has its own price.
           </p>
@@ -121,7 +121,7 @@ export default async function PricingPage() {
           <p className="eyebrow">The completion rebate</p>
           <h2 className="heading-lg mt-4">Two gates pay 15% back.</h2>
           <p className="mt-4 max-w-[64ch] text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            You earn the rebate the moment you clear a gate inside its window — no forms, no asking. A person
+            You earn the rebate the moment you clear a gate inside its window, with no forms and no asking. A person
             issues the refund to the card you paid with. It lands within 5 business days. Miss the window and the rebate expires, but
             your progress never resets: the units stay open and you keep building. Your dashboard
             shows the state of both rebates and the date each window closes.
@@ -159,10 +159,10 @@ export default async function PricingPage() {
           <p className="eyebrow">Every unit enrollment includes</p>
           <div className="mt-7 grid gap-x-12 gap-y-5 md:grid-cols-2">
             {[
-              "The full written lesson — the concept, the client numbers, the thing you are about to build",
+              "The full written lesson: the concept, the client numbers, the thing you are about to build",
               "A worked example plus a completion problem, graded by automated checks on every save",
               "Retrieval drills that resurface right before you would forget them",
-              "An assistant that has read that exact unit — ask it anything, at 2am",
+              "An assistant that has read that exact unit, ready to answer questions at 2am",
               "Automated checks and rubric review on every submission, with quoted evidence from your code",
               "Your submission history and every verdict, kept on your dashboard",
             ].map((item) => (
@@ -214,7 +214,7 @@ export default async function PricingPage() {
               <ul className="mt-3 space-y-2.5 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
                 <li>
                   Finish, and you leave with a working production system that
-                  passed a published bar — plus a proposal you can send to a
+                  passed a published bar, plus a proposal you can send to a
                   real client the same week.
                 </li>
                 <li>

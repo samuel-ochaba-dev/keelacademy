@@ -32,7 +32,7 @@ export async function SiteFooter() {
         <div>
           <p className="font-goga text-[17px] font-medium text-phosphor-white">Keel Academy</p>
           <p className="mt-3 max-w-[36ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Learn AI engineering by building one production system end to end —
+            Learn AI engineering by building one production system end to end,
             graded for real, by automated checks and rubric review, on every
             submission.
           </p>
@@ -70,7 +70,7 @@ export async function SiteFooter() {
       <div className="border-t border-[color:var(--line-on-dark)]">
         <div className="shell flex flex-wrap items-center justify-between gap-3 py-6 text-[13.5px] text-[color:var(--text-faint-on-dark)]">
           <p>© {new Date().getFullYear()} Keel Academy</p>
-          <p>Every unit page shows what gets graded and how — before you pay.</p>
+          <p>Every unit page shows what gets graded and how, before you pay.</p>
         </div>
       </div>
     </footer>

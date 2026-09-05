@@ -87,7 +87,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
             </div>
             <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Push it to GitHub under that exact name. GitHub matches that name to
-              unit {unit.id} — a typo skips the automated checks entirely.
+              unit {unit.id}; a typo skips the automated checks entirely.
             </p>
           </div>
 
@@ -102,7 +102,7 @@ export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) 
             </div>
             <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               The automated checks run against this fixture corpus. It ships with the unit, so
-              run them locally first — you will get the same result the grader gets.
+              run them locally first; you will get the same result the grader gets.
             </p>
           </div>
         </div>

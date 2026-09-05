@@ -152,7 +152,7 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
 
           <p className="mt-4 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             Rubric review spends your budget when it reads your commit.
-            Automated checks are free — run them as often as you like.
+            Automated checks are free, so run them as often as you like.
           </p>
         </section>
       ) : null}
@@ -287,7 +287,7 @@ function GatesSection({ rules, lookup }: { rules: GateRule[]; lookup: GatesLooku
       </h2>
       <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
         Two gates decide what opens next. Each one needs a passing verdict on a single
-        unit — and each one sends 15% of what you have paid back to your card.
+        unit, and each one sends 15% of what you have paid back to your card.
       </p>
 
       {lookup.state !== "ok" ? (
@@ -345,9 +345,9 @@ function rebateStatusLine(rebate: Rebate): string {
   const amount = formatPrice(rebate.amount_cents, rebate.currency);
   switch (rebate.status) {
     case "pending":
-      return `Window open until ${formatUtc(rebate.window_ends_at)}. Pass the gate before then and ${amount} comes back to your card — 15% for finishing on time.`;
+      return `Window open until ${formatUtc(rebate.window_ends_at)}. Pass the gate before then and ${amount} comes back to your card: 15% for finishing on time.`;
     case "earned":
-      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. We refund it to your card by hand — it lands within 5 business days.`;
+      return `Earned ${amount} on ${formatUtc(rebate.earned_at ?? rebate.pledged_at)}. We refund it to your card by hand, and it lands within 5 business days.`;
     case "paid":
       return `Refunded ${amount} to your payment method on ${formatUtc(rebate.paid_at ?? rebate.earned_at ?? rebate.pledged_at)}.`;
     case "forfeited":
@@ -364,8 +364,8 @@ function RebateSection({ rebates }: { rebates: Rebate[] }) {
         Completion rebates
       </h2>
       <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-        Clear both gates inside their windows and 15% comes back twice — once per gate.
-        Each row carries its own deadline — check the dates.
+        Clear both gates inside their windows and 15% comes back twice, once per gate.
+        Each row carries its own deadline: check the dates.
       </p>
 
       <div className="mt-6 overflow-x-auto">
@@ -436,7 +436,7 @@ function RecheckSection({ result }: { result: PracticeResult<RecheckSchedule> })
           </p>
         ) : dueSeeds.length === 0 ? (
           <p className="max-w-[70ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Nothing due — enjoy it. A question you answered correctly comes back three days later, then
+            Nothing due, so enjoy it. A question you answered correctly comes back three days later, then
             seven days after that, so it sticks.
             {nextDueAt ? ` Next one: ${formatUtc(nextDueAt)}.` : ""}
           </p>
@@ -498,7 +498,7 @@ function SubmissionsBody({
     return (
       <div>
         <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          No submissions yet — your first push changes that. You submit by pushing a commit and pasting its hash.
+          No submissions yet, and your first push changes that. You submit by pushing a commit and pasting its hash.
         </p>
         <Link href="/submit" className="btn btn-ghost btn-sm mt-5">
           Read the submission steps

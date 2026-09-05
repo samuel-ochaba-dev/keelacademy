@@ -50,7 +50,7 @@ export default async function AdminAnalyticsPage() {
         <h1 className="heading-xl mt-4">Curriculum telemetry</h1>
         <p className="lead mt-5 max-w-[68ch]">
           Where students slow down, where they stop, what they ask about. Read it before
-          rewriting a unit — the numbers usually indict the lesson, not the students.
+          rewriting a unit, because the numbers usually indict the lesson, not the students.
         </p>
       </header>
 

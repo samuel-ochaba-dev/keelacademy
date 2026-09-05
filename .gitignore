@@ -12,6 +12,7 @@ __pycache__/
 .patch-*
 .inspect-*
 .cleanup-*
+.doc-audit/
 
 # Never commit secrets
 *.env

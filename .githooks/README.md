@@ -19,10 +19,15 @@ Runs on every push:
 python3 content/tools/validate.py        # units (discovered), examples, variants, personas
 python3 content/tools/validate-rubrics.py  # rubrics + filename/version layout
 python3 content/tools/validate-gates.py    # gate rules + filename/gate-id layout
+python3 content/tools/validate-map.py      # curriculum map (phases.yaml)
+python3 content/tools/validate-routing.py  # adaptive routing rules
+python3 content/tools/validate-guard-evals.py # concierge guard evals
+python3 content/tools/validate-diagnostics.py # diagnostic assessments & commitment declarations
+python3 platform/grading/scripts/check-concierge-structural.py # concierge structural contract
 ```
 
-Either validator failing blocks the push; the validator output names the
-offending file(s). GitHub CI runs the same two commands on content PRs
+Any validator failing blocks the push; the validator output names the
+offending file(s). GitHub CI runs the same validation checks on content PRs
 (`.github/workflows/content-gate.yml`).
 
 ## Bypass (scripted tooling only)
@@ -31,6 +36,6 @@ offending file(s). GitHub CI runs the same two commands on content PRs
 KEEL_SKIP_CONTENT_GATE=1 git push
 ```
 
-Skips both validators with a loud one-line notice. For scripts that push
+Skips all validators with a loud one-line notice. For scripts that push
 non-content commits in bulk; never use it to push content you would not
 submit to CI.

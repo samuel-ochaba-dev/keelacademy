@@ -66,7 +66,7 @@ export function ExplainItBackCard({
 
       <p className="max-w-[70ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
         The tests pass. Now say it back: in 2 to 3 sentences, state the boundary rule your
-        code enforces — and why downstream systems need it.
+        code enforces, and why downstream systems need it.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

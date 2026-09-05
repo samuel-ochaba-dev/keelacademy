@@ -116,7 +116,7 @@ export function AnalyticsDashboard({
         <div className="card-dark max-w-[62ch]">
           <h2 className="heading-md">No telemetry came back</h2>
           <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            No telemetry came back. Refresh — this page shows live numbers or nothing, never
+            No telemetry came back. Refresh. This page shows live numbers or nothing, never
             stale ones.
           </p>
         </div>

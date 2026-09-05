@@ -61,7 +61,7 @@ export default async function CommunityPage() {
         <p className="lead mt-5 max-w-[68ch]">
           A pod is a small crew of students in the same phase as you. Once a week, each of
           you posts three short answers: what shipped, what broke, what is next. That is
-          the whole thing — shipping in public, with witnesses.
+          the whole thing: shipping in public, with witnesses.
         </p>
       </header>
 

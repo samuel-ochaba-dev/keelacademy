@@ -15,7 +15,7 @@ const STATUS_TAXONOMY = [
     status: "QUEUED",
     summary: "Your push arrived.",
     detail:
-      "We recorded the commit. It waits in line to run — nothing has run yet.",
+      "We recorded the commit. It waits in line to run, and nothing has run yet.",
   },
   {
     status: "GRADING",
@@ -33,7 +33,7 @@ const STATUS_TAXONOMY = [
     status: "ERROR",
     summary: "Grading stopped early.",
     detail:
-      "The run broke, or you had spent your grading budget. We wrote no verdict — and this does not count as an attempt.",
+      "The run broke, or you had spent your grading budget. We wrote no verdict, and this does not count as an attempt.",
   },
 ];
 
@@ -44,21 +44,20 @@ const LIFECYCLE_STEPS = [
     code: "git add .\ngit commit -m 'unit 3.2.1: reconcile invoice lines'\ngit push origin main",
   },
   {
-    name: "We lock in the commit",
-    detail:
-      "We record the exact commit hash you pushed. Grading reads that commit and no other, so the same push always produces the same verdict.",
+    name: "We accept the commit",
+    detail: "GitHub sends a webhook. We verify its signature and enqueue grading.",
     code: "keel: submission received for commit 4f2a1c9",
   },
   {
     name: "Automated checks run in isolation",
     detail:
-      "We clone your repository into a fresh, isolated run — nothing left over from anyone else. The unit's automated checks run against it.",
+      "We clone your repository into a fresh, isolated run with nothing left over from anyone else. The unit's automated checks run against it.",
     code: "pytest -v tests/",
   },
   {
     name: "The rubric review reads your code",
     detail:
-      "We judge each criterion against the published rubric. Each one quotes the lines it relied on — no quote, no verdict.",
+      "We judge each criterion against the published rubric. Each one quotes the lines it relied on: no quote, no verdict.",
     code: "criterion 1: Passed",
   },
 ];
@@ -75,7 +74,7 @@ export default function SubmitPage() {
         <h1 className="heading-xl mt-4 max-w-[24ch]">How to push your work for grading</h1>
         <p className="lead mt-5">
           You write code in your own repository. Push it and grading starts on
-          its own — nothing to upload, no form to fill in. Pushing{" "}
+          its own, with nothing to upload and no form to fill in. Pushing{" "}
           <em>is</em> the submission.
         </p>
       </header>
@@ -180,7 +179,7 @@ export default function SubmitPage() {
           </h2>
           <ul className="mt-5 space-y-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
             <li>
-              There is no submit button — you submit by pushing. We would rather say so
+              There is no submit button because you submit by pushing. We would rather say so
               than build a button that just tells you to go and push.
             </li>
             <li>

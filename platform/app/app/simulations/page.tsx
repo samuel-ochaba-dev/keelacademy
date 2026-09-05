@@ -33,7 +33,7 @@ const TRACKS = [
     persona: "Marcus Vance",
     role: "Staff AI Architect, OmniSupply Operations",
     description:
-      "Answer for accuracy, cost, latency, and failure handling. Bring numbers — charm does not count.",
+      "Answer for accuracy, cost, latency, and failure handling. Bring numbers, as charm does not count.",
     href: "/simulations/technical-stakeholder",
   },
   {
@@ -43,7 +43,7 @@ const TRACKS = [
     persona: "Elena Rostova",
     role: "Managing Director, OmniSupply Operations",
     description:
-      "Say what it saves in hours and money. Plain words only — she signs invoices, not architecture diagrams.",
+      "Say what it saves in hours and money. Plain words only, because she signs invoices, not architecture diagrams.",
     href: "/simulations/business-owner",
   },
 ] as const;
@@ -92,11 +92,11 @@ export default async function SimulationsDirectoryPage() {
         </h1>
         <p className="lead mt-5 max-w-[68ch]">
           Sooner or later someone who did not build it will ask you to explain what you
-          built. These three conversations are the rehearsal room — run them as many
+          built. These three conversations are the rehearsal room: run them as many
           times as you want.
         </p>
         <p className="mt-6 max-w-[68ch] rounded-lg border border-circuit-border bg-carbon-veil p-4 text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          You talk with an AI following a written brief — no real employee joins these calls.
+          You talk with an AI following a written brief. No real employee joins these calls.
           You can read the brief in the curriculum before you start.
         </p>
       </header>

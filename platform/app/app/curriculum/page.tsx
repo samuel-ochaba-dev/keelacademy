@@ -51,7 +51,7 @@ export default function CurriculumPage() {
           </div>
         </div>
         <p className="mt-8 max-w-[68ch] text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          {openModules} of these {totalModules} units are open today — the
+          {openModules} of these {totalModules} units are open today, and the
           rest are mapped below so you can see the whole route before you
           spend a cent. Planned units show a title only until they open.
         </p>

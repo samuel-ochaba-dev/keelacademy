@@ -193,7 +193,7 @@ export function PracticeRouteStrip({
                   </div>
                   <div className="text-[14px] text-phosphor-white">
                     You cleared every retrieval drill on the first try. The worked example is
-                    optional — start the completion problem.
+                    optional; start the completion problem.
                   </div>
                   <div className="pt-1">
                     <a
@@ -351,7 +351,7 @@ export function RetrievalDrillCard({
       {retrievalSeeds.length > 0 ? (
         <div className="space-y-6">
           <p className="text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Close the lesson and explain each idea from memory. The lesson grades each answer —
+            Close the lesson and explain each idea from memory. The lesson grades each answer, and
             wrong ones return for review.
           </p>
 

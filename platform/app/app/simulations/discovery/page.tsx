@@ -52,7 +52,7 @@ export default async function DiscoverySimulationPage() {
         <h1 className="heading-xl mt-7 max-w-[28ch]">Run a discovery call</h1>
         <p className="lead mt-5 max-w-[68ch]">
           You have thirty minutes with an operations lead who has a problem and no brief.
-          Find the problem first — pitching comes later, and only if she asks.
+          Find the problem first: pitching comes later, and only if she asks.
         </p>
       </header>
 

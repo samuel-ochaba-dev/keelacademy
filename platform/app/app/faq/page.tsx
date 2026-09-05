@@ -28,17 +28,17 @@ export default function FaqPage() {
   const FAQS = [
     {
       question: "What is Keel Academy?",
-      answer: `Keel Academy is where tutorials end and the real work starts. You learn applied AI engineering through projects: one production system built end to end, an invoice reconciliation and dispute triage pipeline for OmniSupply Operations, a simulated B2B distributor. The curriculum has ${phaseCount} phases and ${totalHours} hours of build work — and every hour of it is building.`,
+      answer: `Keel Academy is where tutorials end and the real work starts. You learn applied AI engineering through projects: one production system built end to end, an invoice reconciliation and dispute triage pipeline for OmniSupply Operations, a simulated B2B distributor. The curriculum has ${phaseCount} phases and ${totalHours} hours of build work, and every hour of it is building.`,
     },
     {
       question: "How does grading actually work?",
       answer:
-        "Here is the part we are proudest of. You submit by pushing a git repository. Your code runs first against the unit automated checks in an isolated run, so the result never depends on your machine. Then a language model grades it against the unit's published rubric — and it has to quote the lines of your own code that earned each verdict. You read the rubric before you start, and you see the same verdict text the grader wrote. No black boxes.",
+        "Here is the part we are proudest of. You submit by pushing a git repository. Your code runs first against the unit automated checks in an isolated run, so the result never depends on your machine. Then a language model grades it against the unit's published rubric, and it has to quote the lines of your own code that earned each verdict. You read the rubric before you start, and you see the same verdict text the grader wrote. No black boxes.",
     },
     {
       question: "Can I get through this with another AI tool?",
       answer:
-        "You can write code with one. Every working engineer does. You cannot hand in output you do not understand. Rubric review quotes your own code back at you. Automated checks run your code. The two capstone defences are live conversations with a technical reviewer and a budget holder. Pasted answers do not pass — and honestly, that is the feature.",
+        "You can write code with one. Every working engineer does. You cannot hand in output you do not understand. Rubric review quotes your own code back at you. Automated checks run your code. The two capstone defences are live conversations with a technical reviewer and a budget holder. Pasted answers do not pass, and honestly, that is the feature.",
     },
     {
       question: "How long does it take?",
@@ -57,12 +57,12 @@ export default function FaqPage() {
     {
       question: "Who is this for?",
       answer:
-        "It fits engineers who want AI systems work — the unglamorous, employable kind. That work covers model integration and structured outputs. It covers retrieval and agents. It covers evaluation, governance and deployment, plus the client conversations that come with shipping for a business. You write code each week, and you are comfortable with Python and APIs. Complete beginners start with a general programming foundation — we will still be here when you are ready.",
+        "It fits engineers who want AI systems work: the unglamorous, employable kind. That work covers model integration and structured outputs. It covers retrieval and agents. It covers evaluation, governance and deployment, plus the client conversations that come with shipping for a business. You write code each week, and you are comfortable with Python and APIs. Complete beginners start with a general programming foundation; we will still be here when you are ready.",
     },
     {
       question: "What do I leave with?",
       answer:
-        "You leave with a deployed system. It passed a published bar. You keep the verdicts and two defences. You keep a proposal you can send to a real client. Automated checks and rubric review checked every piece against a rubric you read before you started. That is not a certificate. It is better — it is checkable.",
+        "You leave with a deployed system. It passed a published bar. You keep the verdicts and two defences. You keep a proposal you can send to a real client. Automated checks and rubric review checked every piece against a rubric you read before you started. That is not a certificate. It is better: it is checkable.",
     },
   ];
 
@@ -72,7 +72,7 @@ export default function FaqPage() {
         <p className="eyebrow">FAQ</p>
         <h1 className="heading-xl mt-4">Straight answers</h1>
         <p className="lead mt-5">
-          If your question is missing, that is a bug — tell us and it will
+          If your question is missing, that is a bug. Tell us and it will
           land here. Everything below describes how the program behaves today.
         </p>
       </header>

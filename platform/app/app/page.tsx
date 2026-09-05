@@ -34,7 +34,7 @@ export default function HomePage() {
             </span>
           </h1>
           <p className="lead mt-6">
-            Most AI courses end right where things get interesting — the
+            Most AI courses end right where things get interesting, at the
             moment the demo meets messy vendor PDFs and the model starts
             inventing totals. I have watched brilliant engineers stall at
             exactly that wall. Keel starts there: across {phaseCount}{" "}
@@ -73,7 +73,7 @@ export default function HomePage() {
             <p className="mt-4 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Here is the deal: every unit publishes its rubric before you
               build. Automated checks and rubric review grade your submission
-              against each criterion — and each verdict has to quote the lines
+              against each criterion, and each verdict has to quote the lines
               of your own code that earned it. No quotes, no pass.
             </p>
             <ul className="mt-6 space-y-5">
@@ -116,7 +116,7 @@ export default function HomePage() {
             </ul>
             <p className="mt-7 border-t border-[color:var(--line-on-dark)] pt-4 text-[12.5px] text-[color:var(--text-faint-on-dark)]">
               This is the real rubric for Unit {first.id}, loaded live from
-              the curriculum — the same file the grader reads.{" "}
+              the curriculum, the same file the grader reads.{" "}
               {firstUnit?.checks?.length ?? 0} automated checks run on every
               submission first.
             </p>
@@ -152,14 +152,14 @@ export default function HomePage() {
           <div className="max-w-[62ch]">
             <p className="eyebrow">How a unit works</p>
             <h2 className="heading-xl mt-4">
-              Six steps. Same loop, every unit — you will know it by heart
+              Six steps. Same loop, every unit: you will know it by heart
               by week two.
             </h2>
             <p className="lead mt-5">
               Each unit is a small build with the same heartbeat: learn the
               concept, practice on a parallel task, ship the deliverable, get
               it graded, get unstuck fast, move on. No surprises after unit
-              one — the surprise budget goes to the ideas, where it belongs.
+              one, because the surprise budget goes to the ideas, where it belongs.
             </p>
           </div>
 
@@ -168,7 +168,7 @@ export default function HomePage() {
               {
                 step: "01",
                 title: "Learn",
-                body: "One written lesson, read start to finish. It opens with the concept, grounds it in the client's numbers, then shows exactly what you are about to produce — with checkpoints you answer before you peek. (Peeking is allowed. Peeking first is noticeable.)",
+                body: "One written lesson, read start to finish. It opens with the concept, grounds it in the client's numbers, then shows exactly what you are about to produce, with checkpoints you answer before you peek. (Peeking is allowed. Peeking first is noticeable.)",
               },
               {
                 step: "02",
@@ -178,7 +178,7 @@ export default function HomePage() {
               {
                 step: "03",
                 title: "Build",
-                body: "Ship the deliverable to your own git repository. The deliverable and the submission contract are published up front — you will never have to guess what 'done' means.",
+                body: "Ship the deliverable to your own git repository. The deliverable and the submission contract are published up front, so you will never have to guess what 'done' means.",
               },
               {
                 step: "04",
@@ -188,12 +188,12 @@ export default function HomePage() {
               {
                 step: "05",
                 title: "Unstuck",
-                body: "Every unit lists the ways it usually breaks, each with its fix. And an assistant that has read that exact unit answers questions — yes, at 2am.",
+                body: "Every unit lists the ways it usually breaks, each with its fix. And an assistant that has read that exact unit answers questions, even at 2am.",
               },
               {
                 step: "06",
                 title: "Move on",
-                body: "Pass a unit and the next one opens. Pass a milestone gate and 15% comes back to your card. Only verified work moves you forward — that is the whole transcript.",
+                body: "Pass a unit and the next one opens. Pass a milestone gate and 15% comes back to your card. Only verified work moves you forward, and that is the whole transcript.",
               },
             ].map((item) => (
               <li
@@ -234,7 +234,7 @@ export default function HomePage() {
               {
                 num: "1",
                 title: "Automated checks",
-                body: "Your code runs in an isolated run against the unit's test suite and data. Results list each automated check as Passed or Not yet, with the full command output — you see exactly what the grader saw.",
+                body: "Your code runs in an isolated run against the unit's test suite and data. Results list each automated check as Passed or Not yet, with the full command output, so you see exactly what the grader saw.",
               },
               {
                 num: "2",
@@ -244,7 +244,7 @@ export default function HomePage() {
               {
                 num: "3",
                 title: "Defend the build",
-                body: "Milestone work gets defended out loud — once to a technical reviewer, once to the budget holder. Both are AI playing a written brief you can read first, and your side is scored against a rubric. Paste-and-pray does not survive this room.",
+                body: "Milestone work gets defended out loud, once to a technical reviewer and once to the budget holder. Both are AI playing a written brief you can read first, and your side is scored against a rubric. Paste-and-pray does not survive this room.",
               },
             ].map((stage) => (
               <article key={stage.num} className="card-dark p-8">
@@ -275,7 +275,7 @@ export default function HomePage() {
                 Help that shows up at 2am, scoped to the exact lesson.
               </h2>
               <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-                Stuck is normal — stuck for a week is a curriculum bug, and we
+                Stuck is normal; stuck for a week is a curriculum bug, and we
                 treat it like one. Each unit ships its failure modes with
                 fixes, plus an assistant that knows the lesson.
               </p>
@@ -292,19 +292,19 @@ export default function HomePage() {
               {[
                 {
                   title: "An assistant scoped to the unit",
-                  body: "Ask why a concept works. Ask for another exercise. Ask about the error that has been glaring at you since midnight. It answers from the curriculum only — it will not hallucinate a syllabus.",
+                  body: "Ask why a concept works. Ask for another exercise. Ask about the error that has been glaring at you since midnight. It answers from the curriculum only, so it will not hallucinate a syllabus.",
                 },
                 {
                   title: "Planned failure modes, published",
-                  body: "Every unit lists what usually breaks, each with its fix linked. Most stuck moments end in one click — the rest end in the assistant.",
+                  body: "Every unit lists what usually breaks, each with its fix linked. Most stuck moments end in one click, and the rest end in the assistant.",
                 },
                 {
                   title: "A pod that ships with you",
-                  body: "Each week you post what shipped, what broke, and what is next. Peers review milestone work against the same rubric the platform uses — harsh, but it is the same harsh for everyone.",
+                  body: "Each week you post what shipped, what broke, and what is next. Peers review milestone work against the same rubric the platform uses: harsh, but it is the same harsh for everyone.",
                 },
                 {
                   title: "A public gallery of real work",
-                  body: "Passed projects can go public with their verification attached. Employers never have to take your word for it — they can read the verdict.",
+                  body: "Passed projects can go public with their verification attached. Employers never have to take your word for it, because they can read the verdict.",
                 },
               ].map((item) => (
                 <li key={item.title} className="flex gap-4">
@@ -337,7 +337,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Every unit page shows the lesson, the practice set, the
-              deliverable, and the rubric — all four, before you pay a cent.
+              deliverable, and the rubric: all four, before you pay a cent.
             </p>
           </div>
           <Link href="/curriculum" className="btn btn-ghost btn-sm">
@@ -381,7 +381,7 @@ export default function HomePage() {
             <h2 className="heading-lg">Your first submission is one push away. Seriously.</h2>
             <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
               Create an account
-              {placement ? `, take the ${placement.est_minutes}-minute placement check — or skip it,` : ","} and
+              {placement ? `, take the ${placement.est_minutes}-minute placement check or skip it,` : ","} and
               open your first unit in the same session.
             </p>
           </div>

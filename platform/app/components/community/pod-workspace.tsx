@@ -109,7 +109,7 @@ export function PodWorkspace({
         <h2 className="heading-md">You are not in a pod yet</h2>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
           Joining puts you with students at the same point in the curriculum. Come as you
-          are — lurkers welcome, posters celebrated.
+          are, lurkers welcome, posters celebrated.
         </p>
         <button
           type="button"
@@ -205,7 +205,7 @@ export function PodWorkspace({
               onChange={(e) => setShippedText(e.target.value)}
               rows={3}
               required
-              placeholder="Units you finished, code you pushed — anything that is now done."
+              placeholder="Units you finished, code you pushed, anything that is now done."
               className="field-input"
             />
           </div>
@@ -219,7 +219,7 @@ export function PodWorkspace({
               onChange={(e) => setBrokeText(e.target.value)}
               rows={3}
               required
-              placeholder="Checks that did not pass, concepts that did not land, time you lost. Be honest — everyone else is."
+              placeholder="Checks that did not pass, concepts that did not land, time you lost. Be honest, everyone else is."
               className="field-input"
             />
           </div>
@@ -263,7 +263,7 @@ export function PodWorkspace({
 
         {posts.length === 0 ? (
           <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            Nobody has posted yet. You get to go first — a genuine honor.
+            Nobody has posted yet. You get to go first, a genuine honor.
           </p>
         ) : (
           <ul className="mt-7">

@@ -57,10 +57,10 @@ export default async function DiagnosticPage() {
           Already know Python? Prove it and skip ahead.
         </h1>
         <p className="lead mt-5 max-w-[68ch]">
-          {`${diagnostic.questions.length} multiple-choice questions, ${diagnostic.est_minutes} minutes. Score ${diagnostic.passing_threshold_pct}% or better and units ${diagnostic.pass_skip_units.join(", ")} open for you. Score under that and you start at ${diagnostic.fail_baseline_units.join(", ")} — where everyone else starts.`}
+          {`${diagnostic.questions.length} multiple-choice questions, ${diagnostic.est_minutes} minutes. Score ${diagnostic.passing_threshold_pct}% or better and units ${diagnostic.pass_skip_units.join(", ")} open for you. Score under that and you start at ${diagnostic.fail_baseline_units.join(", ")}, where everyone else starts.`}
         </p>
         <p className="mt-5 max-w-[68ch] text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          This check carries no grade and costs nothing. Skip it if you want — nobody will know, and nothing breaks.
+          This check carries no grade and costs nothing. Skip it if you want, because nobody will know, and nothing breaks.
         </p>
       </header>
 
