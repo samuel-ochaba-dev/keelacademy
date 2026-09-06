@@ -13,8 +13,8 @@ Problem: labels overflowed their boxes and text shrank. Root causes found in
 restyled with `!important` after Mermaid had measured the labels; `max-width` was removed so wide
 diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 
-- [ ] 1.1 Runtime: keep Mermaid's `max-width`, set `fontSize` 16px, enable `markdownAutoWrap` and `wrappingWidth`, stop mutating label styles after render. Proof: `npm run test`.
-- [ ] 1.2 CSS: remove the `!important` font and line-height overrides on `foreignObject` text; give `.diagram-frame` horizontal scroll so a wide diagram scrolls at 100% instead of shrinking. Proof: `npm run test`.
+- [x] 1.1 Runtime: keep Mermaid's `max-width`, set `fontSize` 16px, enable `markdownAutoWrap` and `wrappingWidth`, stop mutating label styles after render. Proof: `npm run test`.
+- [x] 1.2 CSS: remove the `!important` font and line-height overrides on `foreignObject` text; give `.diagram-frame` horizontal scroll so a wide diagram scrolls at 100% instead of shrinking. Proof: `npm run test`.
 - [ ] 1.3 `check-mermaid.mjs`: also fail on more than 6 nodes, any label line over 5 words or 28 characters, `LR` with more than 3 nodes, and subgraphs. Proof: script exits 1 on a fixture and 0 on the tree.
 - [ ] 1.4 Rewrite the two Unit 0.1 figures with short wrapped labels that pass 1.3. Proof: `check-mermaid.mjs` 2/2, `lint-lesson.py` clean.
 - [ ] 1.5 Authoring rule for diagrams added to `pedagogical_author` contract and the Shiffman skill. Proof: grep.
@@ -75,3 +75,4 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 ## Log
 
 - 2026-09-07 00:20 Plan created on branch `improve/review-2026-09` (stacked on `author/unit-0.1`, PR #1).
+- 2026-09-07 00:23 M1.1, M1.2 pushed: runtime keeps max-width with an 85% shrink floor, fontSize 16px, markdownAutoWrap + wrappingWidth 170; CSS no longer restyles label typography after layout. tsc + eslint green.
