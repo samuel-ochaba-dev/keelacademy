@@ -169,7 +169,7 @@ VALUES (3, 'rubric-5.1', 1, 'pass', jsonb_build_object(
 
 -- Carol: Submission 4 (Unit 12.1 -> PASS)
 INSERT INTO submissions (id, student_id, unit_id, commit_sha, repo_url, status, created_at)
-VALUES (4, 3, '12.1', 'd4e5f6a1b2c3', 'https://github.com/carol/capstone-omnisupply', 'graded', clock_timestamp() - interval '1 day');
+VALUES (4, 3, '12.1', 'd4e5f6a1b2c3', 'https://github.com/carol/capstone-omnicart', 'graded', clock_timestamp() - interval '1 day');
 
 INSERT INTO verdicts (submission_id, rubric_id, rubric_version, overall, verdict_json, issued_at)
 VALUES (4, 'rubric-12.1', 1, 'pass', jsonb_build_object(

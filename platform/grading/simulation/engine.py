@@ -74,7 +74,7 @@ def get_initial_greeting(persona_id: str) -> str:
     if persona_id == "discovery-call":
         return (
             "Hi, thanks for hopping on. As I mentioned in my note, I'm Sarah Jenkins, "
-            "VP of Operations here at OmniSupply. We're getting slammed with invoice and return dispute volume "
+            "VP of Operations here at OmniCart. We're getting slammed with return and refund dispute volume "
             "and our leadership is pushing us to look into AI automation. What would you like to know about our setup?"
         )
     if persona_id == "technical-stakeholder":
@@ -85,9 +85,9 @@ def get_initial_greeting(persona_id: str) -> str:
         )
     if persona_id == "business-owner":
         return (
-            "Thanks for meeting with me. I'm Elena Rostova. I oversee our wholesale distribution operations and P&L. "
+            "Thanks for meeting with me. I'm Elena Rostova. I oversee our multi-brand e-commerce retail operations and P&L. "
             "I've seen dozens of AI pitches that promise the moon and deliver costly maintenance headaches. "
-            "What does your system actually save OmniSupply, and what happens when it makes a mistake?"
+            "What does your system actually save OmniCart, and what happens when it makes a mistake?"
         )
     return f"Hello, I am ready to start our conversation regarding {persona_id}."
 
@@ -101,7 +101,7 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
         if any(w in msg_lower for w in ["works well", "great accuracy", "very reliable", "users love it", "prompt is robust", "super accurate", "high accuracy", "vibe"]):
             return (
                 "That sounds like a vibe, not an engineering metric. What is your exact golden evaluation "
-                "dataset size, what is your benchmark accuracy on supplier contract edge cases, and what is your CI regression score threshold?"
+                "dataset size, what is your benchmark accuracy on store policy edge cases, and what is your CI regression score threshold?"
             )
         # 2. Security, Injection & Failure Modes trigger
         if any(w in msg_lower for w in ["injection", "delimiter", "guardrail", "sanitization", "canary token", "untrusted inputs", "pdf"]):
@@ -118,7 +118,7 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
         # 4. Architecture justification trigger
         if any(w in msg_lower for w in ["rag", "fine-tuning", "finetuning", "hybrid search", "bm25", "vector", "architecture"]):
             return (
-                "Why RAG vs Fine-tuning for supplier contract rules? How did you justify the retrieval latency of hybrid BM25 and vector search over pure keyword matching?"
+                "Why RAG vs Fine-tuning for store policy rules? How did you justify the retrieval latency of hybrid BM25 and vector search over pure keyword matching?"
             )
         # 5. Technical Grounding / Defense synthesis trigger
         if any(w in msg_lower for w in ["golden set", "golden evaluation", "regression", "cascading router", "human-in-the-loop", "hit rate"]):
@@ -174,18 +174,18 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
     ]):
         return (
             "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured "
-            "supplier contract verification piece with a verifiable audit trail without my team having to redo the work, "
+            "store policy verification piece with a verifiable audit trail without my team having to redo the work, "
             "we have a real project."
         )
 
     # 2. Root problem / compliance / contract verification probing trigger
     if any(w in msg_lower for w in [
-        "contract", "supplier", "vendor", "purchase order", "audit", "compliance", "hallucinat",
+        "contract", "policy", "store policy", "vendor", "purchase order", "audit", "compliance", "hallucinat",
         "root cause", "underlying"
     ]):
         return (
             "The real nightmare isn't just extracting OCR fields, we can scan PDFs. "
-            "The hard part is verifying line items and credits accurately against complex supplier master agreements. "
+            "The hard part is verifying line items and refunds accurately against complex store master policies. "
             "If an automated system issues a credit our contract does not support, or fails a compliance audit, "
             "the margin loss is on us. We need zero-hallucination contract grounding."
         )
@@ -198,7 +198,7 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
     ]):
         return (
             "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT "
-            "and it hallucinated supplier discount rules. I'm not looking for another science experiment "
+            "and it hallucinated store discount rules. I'm not looking for another science experiment "
             "that makes my specialists double-check everything. How does that help us?"
         )
 
@@ -208,9 +208,9 @@ def _mock_persona_reply(persona_id: str, student_message: str, turns: list[dict[
         "specialist time", "hours", "cost", "error rate"
     ]):
         return (
-            "Right now we're processing around 4,000 transactions a month across our commercial suppliers. "
+            "Right now we're processing around 4,000 transactions a month across our consumer brands. "
             "Triage takes 2 to 3 business days per dispute. Our senior specialists are spending roughly "
-            "60% of their day just reading packing slips and damage reports and matching them against purchase orders and return terms."
+            "60% of their day just reading delivery slips and damage reports and matching them against customer orders and store return policies."
         )
 
     # Default conversational reply
@@ -300,7 +300,7 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
         }
     else:
         # Discovery Call Evaluation
-        c1_pass = any(w in student_text for w in ["root", "underlying", "contract", "supplier", "vendor", "purchase order", "compliance", "audit", "liability", "why did chatgpt fail"])
+        c1_pass = any(w in student_text for w in ["root", "underlying", "contract", "policy", "vendor", "purchase order", "compliance", "audit", "liability", "why did chatgpt fail"])
         c2_pass = any(w in student_text for w in ["volume", "how many", "4000", "4,000", "turnaround", "days", "hours", "metrics", "bottleneck"])
         first_student_turn = next((t.get("content", "").lower() for t in transcript if t.get("role") == "student"), "")
         pitched_first = any(w in first_student_turn for w in ["we build", "langchain", "rag pipeline", "solution for you", "deploy an agent"])
@@ -329,8 +329,8 @@ def _mock_judge_evaluation(persona_id: str, transcript: list[dict[str, Any]], cr
             "accurate-problem-summary": {
                 "passed": c4_pass,
                 "score": 100.0 if c4_pass else 35.0,
-                "feedback": "Synthesized an accurate summary of OmniSupply's triage and audit bottleneck." if c4_pass else "Did not synthesize a problem summary before concluding the call.",
-                "evidence": "Summarized the bottleneck as supplier contract grounding with audit trail" if c4_pass else "No synthesis provided",
+                "feedback": "Synthesized an accurate summary of OmniCart's triage and audit bottleneck." if c4_pass else "Did not synthesize a problem summary before concluding the call.",
+                "evidence": "Summarized the bottleneck as store policy grounding with audit trail" if c4_pass else "No synthesis provided",
             },
         }
 

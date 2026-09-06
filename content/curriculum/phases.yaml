@@ -7,14 +7,14 @@ phases:
   why: Setup is where self-taught learners stall, not for lack of talent,
     but because nobody tells them what "ready" looks like. You finish your
     first session with a working sandbox and your first graded drill.
-  outcome: 'Your Docker workspace runs, and you can describe what OmniSupply
+  outcome: 'Your Docker workspace runs, and you can describe what OmniCart
     needs in three sentences. That is the whole bar, and you will clear it
     tonight.'
-  pipeline_role: The Docker workspace and the first invoice fixtures.
+  pipeline_role: The Docker workspace and the first e-commerce order and return fixtures.
   modules:
   - id: '0.1'
-    title: 'Meet the client: OmniSupply Operations'
-    description: Read real dispute notes and name where intake breaks.
+    title: 'Meet the client: OmniCart Operations'
+    description: Read real customer return notes, delivery slips, and photo tickets to name where intake breaks.
   - id: '0.2'
     title: How the curriculum and grading loop work
     description: See how automated checks, rubric review, and defence questions
@@ -77,13 +77,12 @@ phases:
   id: phase-3
   title: Prompt Engineering as a Discipline
   est_hours: 80
-  badge: Unit 3.2.1 live
+  badge: 80h build
   why: Prompts you cannot diff, test, and version in git are incantations, not engineering.
     Here prompts live in git like code, reviewed, tested, and blamed.
   outcome: You write prompts that return valid JSON every time, and log failures
     instead of guessing. Downstream systems will thank you; they cannot read prose.
   pipeline_role: The extractor that turns messy notes into valid records.
-  note: Unit 3.2.1 is live and accepting submissions today with full automated grading.
   modules:
   - id: '3.1'
     title: System prompt design and role conditioning
@@ -91,9 +90,9 @@ phases:
   - id: '3.2'
     title: Structured outputs and schema-constrained generation
     description: Force valid JSON with Pydantic and handle rejects like a grown-up system.
-  - id: 3.2.1
+  - id: '3.2.1'
     title: Structured extraction with JSON mode and Pydantic
-    description: Parse messy invoice notes into a ClaimExtraction record, the unit that is open right now.
+    description: Parse messy invoice notes into a ClaimExtraction record.
   - id: '3.3'
     title: Few-shot exemplars and dynamic in-context retrieval
     description: Test 0, 2, and 5 examples and keep what helps, including the answer "fewer".
@@ -310,13 +309,13 @@ phases:
   why: One deep build proves you can ship. Three more prove you can repeat it in
     legal, clinical, and finance settings, because "one vertical" is a project,
     and "four" is a practice.
-  outcome: OmniSupply runs in production, plus three portfolio builds in other industries.
+  outcome: OmniCart runs in production, plus three portfolio builds in other industries.
     Depth and range, on one transcript, all verified.
-  pipeline_role: The live OmniSupply system plus three portfolio builds.
+  pipeline_role: The live OmniCart system plus three portfolio builds.
   note: Clear the capstone gate within 365 days and you earn the final 15% rebate.
   modules:
   - id: '12.1'
-    title: 'The Capstone: OmniSupply Operations end to end in production'
+    title: 'The Capstone: OmniCart Operations end to end in production'
     description: Connect extraction, retrieval, routing, and audit logs end to end; the whole animal, alive.
     is_gate: true
   - id: '12.2'

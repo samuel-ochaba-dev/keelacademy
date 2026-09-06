@@ -1,6 +1,6 @@
-id: omnisupply@v3
+id: omnicart@v3
 generator:
-  script: generators/omnisupply_v3.py
+  script: generators/omnicart_v3.py
 parameters:
   - name: dispute_count
     range: { min: 120, max: 400 }

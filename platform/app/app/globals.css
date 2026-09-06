@@ -873,7 +873,8 @@ code.code-inline {
   border: 1px solid var(--color-circuit-border);
   border-left: 2px solid var(--color-moss-70);
   border-radius: var(--radius-cards);
-  background: var(--color-ground-iron);
+  background: #0f1211 !important;
+  color: #d5dad2 !important;
   padding: 20px 24px;
   overflow-x: auto;
 }
@@ -894,11 +895,70 @@ code.code-inline {
   justify-content: center;
   align-items: center;
   width: 100%;
+  color: #d5dad2 !important;
 }
 
 .diagram-svg svg {
   max-width: 100%;
   height: auto;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.diagram-svg text,
+.diagram-svg tspan {
+  fill: #d5dad2 !important;
+  color: #d5dad2 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.diagram-svg foreignObject {
+  overflow: visible !important;
+}
+
+.diagram-svg foreignObject div,
+.diagram-svg foreignObject span,
+.diagram-svg foreignObject p,
+.diagram-svg .nodeLabel,
+.diagram-svg .label {
+  color: #d5dad2 !important;
+  fill: #d5dad2 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  opacity: 1 !important;
+  line-height: 1.45 !important;
+}
+
+.diagram-svg foreignObject b,
+.diagram-svg foreignObject strong,
+.diagram-svg .nodeLabel b,
+.diagram-svg .nodeLabel strong {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.diagram-svg .edgeLabel,
+.diagram-svg .edgeLabel span,
+.diagram-svg .edgeLabel p,
+.diagram-svg .edgeLabel text,
+.diagram-svg .edgeLabel div {
+  color: #cbd5e1 !important;
+  fill: #cbd5e1 !important;
+  background-color: #0f1211 !important;
+  font-size: 12px !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.diagram-svg .edgeLabel rect {
+  fill: #0f1211 !important;
+  opacity: 0.85 !important;
+}
+
+.diagram-svg .cluster-label text,
+.diagram-svg .cluster-label span {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
 /* The caption is directly under the figure, so the source disclosure below it

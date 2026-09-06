@@ -117,17 +117,12 @@ INSERT INTO budgets (student_id, tokens_cap, tokens_used) VALUES
     (5, 100000, 0)
 ON CONFLICT (student_id) DO UPDATE SET tokens_cap = EXCLUDED.tokens_cap;
 
--- Enrollments: Alice has full access to all live units (3.2.1, 0.1, 0.2, 0.3, 1.1)
+-- Enrollments: Alice and peers enrolled in planned milestone units
 INSERT INTO enrollments (student_id, unit_id, status, enrolled_at) VALUES
-    (1, '0.1', 'active', clock_timestamp() - interval '39 days'),
-    (1, '0.2', 'active', clock_timestamp() - interval '35 days'),
-    (1, '0.3', 'active', clock_timestamp() - interval '30 days'),
     (1, '1.1', 'active', clock_timestamp() - interval '28 days'),
-    (1, '3.2.1', 'active', clock_timestamp() - interval '25 days'),
     (2, '1.1', 'active', clock_timestamp() - interval '34 days'),
     (2, '5.1', 'active', clock_timestamp() - interval '20 days'),
-    (3, '12.1', 'active', clock_timestamp() - interval '29 days'),
-    (4, '3.2.1', 'active', clock_timestamp() - interval '14 days')
+    (3, '12.1', 'active', clock_timestamp() - interval '29 days')
 ON CONFLICT (student_id, unit_id) DO NOTHING;
 
 -- Diagnostics
@@ -173,7 +168,7 @@ ON CONFLICT DO NOTHING;
 
 -- Gallery Projects
 INSERT INTO gallery_projects (student_id, unit_id, submission_id, title, description, repo_url, demo_url, published) VALUES
-    (1, '3.2.1', 2, 'Few-Shot OmniSupply Extractor', 'Clean few-shot extractor with strict Pydantic parsing and robust XML delimiters.', 'https://github.com/alice/keel-3.2.1', 'https://demo.omnisupply.test/alice', true)
+    (1, '3.2.1', 2, 'Few-Shot OmniCart Extractor', 'Clean few-shot extractor with strict Pydantic parsing and robust XML delimiters.', 'https://github.com/alice/keel-3.2.1', 'https://demo.omnicart.test/alice', true)
 ON CONFLICT (student_id, unit_id) DO NOTHING;
 
 -- Simulations

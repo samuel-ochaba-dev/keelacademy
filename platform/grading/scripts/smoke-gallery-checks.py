@@ -284,7 +284,7 @@ def main() -> None:
             "submission_id": 4,
             "title": "Production Dispute Operations Capstone Platform",
             "description": "Full end-to-end autonomous dispute resolution pipeline with human-in-the-loop escalation.",
-            "repo_url": "https://github.com/carol/capstone-omnisupply",
+            "repo_url": "https://github.com/carol/capstone-omnicart",
             "walkthrough_video_url": "https://youtube.com/watch?v=carol-capstone-demo",
         },
     )

@@ -28,7 +28,7 @@ export default function FaqPage() {
   const FAQS = [
     {
       question: "What is Keel Academy?",
-      answer: `Keel Academy is where tutorials end and the real work starts. You learn applied AI engineering through projects: one production system built end to end, an invoice reconciliation and dispute triage pipeline for OmniSupply Operations, a simulated B2B distributor. The curriculum has ${phaseCount} phases and ${totalHours} hours of build work, and every hour of it is building.`,
+      answer: `Keel Academy is where tutorials end and the real work starts. You learn applied AI engineering through projects: one production system built end to end, a return reconciliation and dispute triage pipeline for OmniCart Operations, a simulated multi-brand e-commerce retailer. The curriculum has ${phaseCount} phases and ${totalHours} hours of build work, and every hour of it is building.`,
     },
     {
       question: "How does grading actually work?",

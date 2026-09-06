@@ -24,10 +24,14 @@ them before writing any stylesheet or any copy. In short:
   are the styling surface; pages compose them plus Tailwind utilities.
   `app/globals.css` is no longer empty and is not to be emptied.
 - **Copy.** Marketing and lesson prose follows
-  `.agents/skills/keel-copy` (Full Comeau voice: warm, funny,
-  first-person, pain-first; exclamation marks, em dashes, and the
-  occasional emoji allowed on marketing and lesson prose, never inside
-  verdict chips, data states, or numbers). Terse surfaces (dashboard,
+  `.agents/skills/shiffman-style-lessons` (live-build narration, visibly
+  working through bugs, ask before tell, alive examples, honest confusion,
+  warm curiosity, collaborator first-person "we"/"let's", ending with an
+  invitation to experiment; zero corporate buzzwords). **Readability target:
+  Flesch-Kincaid Grade 8 or below** for lesson prose; the audience includes
+  non-native English speakers; prefer short sentences (under 20 words), common
+  words, and explain-then-name for domain terms; see the plain-language rules
+  in `.agents/skills/shiffman-style-lessons/SKILL.md`. Terse surfaces (dashboard,
   grading states, error copy) stay short, declarative, active, concrete.
   Internal architecture never appears in student-facing copy: no service
   names, no "Layer 1/Layer 2", no model tiers, no cockpit or cryptography
@@ -39,9 +43,10 @@ them before writing any stylesheet or any copy. In short:
   phases.yaml) keep authored casing; lowercase technical values (exit codes,
   check types) render as code.
 
-**The anchor client is OmniSupply Operations**, a B2B wholesale and retail
-distributor; the domain is invoice reconciliation and merchant dispute
-triage. Meridian Mutual is retired and must not be reintroduced.
+**The anchor client is OmniCart Operations**, a multi-brand e-commerce retailer
+and marketplace fulfillment hub; the domain is customer return intake, courier
+delivery reconciliation, and merchant dispute triage. OmniCart and Meridian Mutual
+are retired and must not be reintroduced.
 
 Also binding:
 
@@ -52,8 +57,8 @@ Also binding:
    updates the demo greps to match the new copy (updating them is
    expected, not a violation) and re-runs demo-rebate, demo-gates,
    demo-map, and demo-practice before closing.
-4. Every new word of copy is written under the keel-copy skill (voice)
-   and, for lessons, the keel-unit skill.
+4. Every new word of lesson copy is written under the
+   shiffman-style-lessons skill (.agents/skills/shiffman-style-lessons).
 5. Accessibility is part of the direction: WCAG 2.2 AA contrast on every
    text token, a visible `:focus-visible` ring that no rule removes, and
    reflow at 320px without horizontal scroll.
@@ -103,10 +108,11 @@ the app owns structure, data and state.** Full rationale in the repo-root
 - **The migration finished: every authored unit is a script.**
   `parseUnitScript` in `lib/content.ts` returns `null` unless the file has a
   `::: phase` line, and the unit page throws when it gets `null` — so the
-  old fixed renderer path is unreachable. All four authored units (0.1, 0.2,
-  0.3, 3.2.1) carry six `::: phase` sections each. `learn-section.tsx`,
-  `SectionHeading`'s `stepNumber`, `section-nav.tsx`, and `SECTION_ANCHORS`
-  are deleted; do not reintroduce them. New units are scripts from birth.
+  old fixed renderer path is unreachable. Currently zero units are authored
+  on disk (authoring reset); all 56 curriculum modules are planned. When
+  authored, every unit is a script carrying six `::: phase` sections each.
+  `learn-section.tsx`, `SectionHeading`'s `stepNumber`, `section-nav.tsx`, and
+  `SECTION_ANCHORS` are deleted; do not reintroduce them. New units are scripts from birth.
 - **The marker vocabulary.** A line starting `::: ` is a marker; everything
   else is markdown and keeps every convention above.
   - `::: phase learn|practice|build|verify|unstuck|ask` opens a landmark

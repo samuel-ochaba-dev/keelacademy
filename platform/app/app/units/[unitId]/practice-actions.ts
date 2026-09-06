@@ -15,6 +15,7 @@ import {
 export async function runPracticeAttemptAction(
   unitId: string,
   files: Record<string, string>,
+  answer?: string,
 ): Promise<PracticeResult<PracticeAttemptResult>> {
   const user = await getSessionUser();
   if (!user) {
@@ -37,7 +38,7 @@ export async function runPracticeAttemptAction(
   }
 
   const studentId = studentRes.data;
-  return submitPracticeAttempt({ studentId, unitId, files });
+  return submitPracticeAttempt({ studentId, unitId, files, answer });
 }
 
 export async function runRetrievalAttemptAction(

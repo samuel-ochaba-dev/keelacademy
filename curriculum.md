@@ -6,15 +6,15 @@
 
 ## 0. The anchor problem — and why this one
 
-**Chosen problem:** building and selling a production-grade AI system that takes a mid-market B2B distributor's vendor invoice reconciliation and merchant dispute triage process — currently slow, manual, and inconsistent — and turns it into a fast, auditable, cost-controlled, human-supervised pipeline that an operations VP, a supply chain manager, and a CFO would all sign off on.
+**Chosen problem:** building and selling a production-grade AI system that takes a mid-market B2B retailer's merchant payout invoice reconciliation and merchant dispute triage process — currently slow, manual, and inconsistent — and turns it into a fast, auditable, cost-controlled, human-supervised pipeline that an operations VP, a supply chain manager, and a CFO would all sign off on.
 
-**Fictional anchor client, used throughout this curriculum:** _OmniSupply Operations_ — a 120-person regional B2B wholesale and retail distributor handling thousands of product SKUs across hundreds of suppliers. OmniSupply processes roughly 4,000 vendor invoices, shipment receipts, damaged goods claims, and return disputes a month. Today, intake comes in as a mix of scanned PDF invoices, freight packing slips, warehouse delivery photos, emailed supplier correspondence, and customer dispute tickets; a human operations specialist has to read all of it, verify items against purchase orders (POs), check discrepancies against supplier SLAs and warranty terms, flag potential overbilling or return abuse, and route approved adjustments for payment — a process that currently takes 2–3 days per dispute before resolution even begins.
+**Fictional anchor client, used throughout this curriculum:** _OmniCart Operations_ — a 120-person regional multi-brand e-commerce retailer and marketplace fulfillment hub handling thousands of customer orders across hundreds of consumer brands. OmniCart processes roughly 4,000 customer return requests, courier delivery slips, damaged parcel claims, and merchant payout disputes a month. Today, intake comes in as a mix of digital order receipts, courier delivery slips, customer unboxing photos, merchant payout invoices, and customer return tickets; a human operations specialist has to read all of it, verify items against customer orders, check discrepancies against store return policies and warranty terms, flag potential refund leakage or return fraud, and route approved refunds for payment — a process that currently takes 2–3 days per dispute before resolution even begins.
 
 **Why this problem and not something simpler:**
 
-- It cannot be solved with a good prompt. It requires grounding against real vendor contracts and supplier SLAs (RAG), multi-step reasoning across messy multi-format input like invoices and damage photos (agents), an audit trail that finance and compliance can inspect later (governance), and a cost profile that works at 4,000 transactions/month (cost engineering) — which is exactly the skill stack current AI engineering job postings and enterprise deployments demand.
-- It is a category businesses are already paying for. B2B commerce, supply chain, and retail operations lead enterprise adoption of AI agents, and invoice reconciliation/vendor dispute workflows are repeatedly named as high-ROI, fast-payback use cases in 2026 enterprise deployment data.
-- The hard part is in the right place. A demo that reads one invoice and guesses its total is a weekend project. A system an operations director will actually let run unattended on real financial data, that a vendor relations manager will trust, and that keeps working when invoice #5,000 has irregular line items or mismatched item codes — that is the real, sellable, defensible skill. Most agentic AI projects that get killed die here, not because the underlying model was too weak.
+- It cannot be solved with a good prompt. It requires grounding against real store policy documents and courier delivery terms (RAG), multi-step reasoning across messy multi-format input like invoices and damage photos (agents), an audit trail that finance and compliance can inspect later (governance), and a cost profile that works at 4,000 transactions/month (cost engineering) — which is exactly the skill stack current AI engineering job postings and enterprise deployments demand.
+- It is a category businesses are already paying for. E-commerce, marketplace, and retail operations lead enterprise adoption of AI agents, and returns reconciliation/refund dispute workflows are repeatedly named as high-ROI, fast-payback use cases in 2026 enterprise deployment data.
+- The hard part is in the right place. A demo that reads one return request and guesses its outcome is a weekend project. A system an operations director will actually let run unattended on real financial data, that a merchant relations manager will trust, and that keeps working when return request #5,000 has irregular line items or mismatched item codes — that is the real, sellable, defensible skill. Most agentic AI projects that get killed die here, not because the underlying model was too weak.
 - It is narrow enough to be one coherent thread through the whole curriculum, but rich enough to force you through every phase below — extraction, retrieval, agentic reasoning, evaluation, cost control, security, and deployment.
 
 **What "done" looks like commercially:** a fixed-fee or milestone-based engagement in the neighborhood of $20,000–$80,000 for a mid-market client (single well-defined workflow, real integrations, evaluation suite, monitoring — consistent with 2026 market pricing for production AI systems of this scope), or a productized retainer once you've built a few of these. You will price your own capstone engagement for real in Phase 12.
@@ -44,7 +44,7 @@ Understanding the concepts is not the finish line. Being able to do all five of 
 - **Sequence:** Phases 1–10 are technical and mostly build on each other in order — don't skip ahead to agents (Phase 5) before you can reliably call an LLM API and write a prompt you'd trust (Phases 2–3).
 - **Phase 11 (the business track) runs in parallel from week one, not after Phase 10.** Doing the business modules only at the end is the single most common reason self-taught engineers finish technically strong and still make no money. The pacing map at the start of Phase 11 tells you exactly which business module to pair with which technical phase.
 - **Every sub-module** has a learning objective, the current tools it uses, a time estimate, a hands-on deliverable, and a mastery check you can grade yourself against. Nothing is a title-only stub — if a sub-module is listed, it's fully specified below.
-- **Every module** ends in a mini-project. **Every phase** ends in an integration project that plugs into the running OmniSupply Operations system. Section 13 lists the three cross-industry portfolio projects and the capstone.
+- **Every module** ends in a mini-project. **Every phase** ends in an integration project that plugs into the running OmniCart Operations system. Section 13 lists the three cross-industry portfolio projects and the capstone.
 - **Total time:** roughly 700–950 hours across the technical phases plus ongoing parallel business work — about 9–15 months at 12–15 hrs/week, faster full-time. Tools named throughout (LangGraph, Langfuse, Qdrant, Unsloth, etc.) are the current default choices as of 2026; before you start each phase, spend 30 minutes confirming nothing material has shifted, since this stack moves fast.
 
 ---
@@ -63,7 +63,7 @@ Understanding the concepts is not the finish line. Being able to do all five of 
 - **Phase 9** — Security, Safety & Governance: 9.1 Prompt injection defense · 9.2 Standard LLM risk categories · 9.3 Human-in-the-loop design · 9.4 Audit trails, privacy & access control
 - **Phase 10** — Deployment & Production (LLMOps): 10.1 APIs · 10.2 Containerization & environments · 10.3 CI/CD for probabilistic systems · 10.4 Monitoring, alerting & on-call
 - **Phase 11** — The Business of AI Engineering (parallel track): 11.1 Positioning & niche · 11.2 Portfolio & case studies · 11.3 Pricing models · 11.4 Finding & qualifying leads · 11.5 Discovery calls & scoping · 11.6 Proposals & contracts · 11.7 Scope & client management · 11.8 Delivery, reporting & retainers · 11.9 Testimonials, referrals & staying current
-- **Phase 12** — Capstone & Portfolio: the OmniSupply Operations system, three cross-industry portfolio projects, and the full project ladder
+- **Phase 12** — Capstone & Portfolio: the OmniCart Operations system, three cross-industry portfolio projects, and the full project ladder
 - **Section 14** — Definition of done
 
 ---
@@ -72,10 +72,10 @@ Understanding the concepts is not the finish line. Being able to do all five of 
 
 ### 0.1 Meet the client you'll be serving for the whole program
 
-- **Learn:** Reread the anchor-problem brief in Section 0 until you could explain OmniSupply Operations' problem to a non-technical friend in three sentences. Write down, in your own words, what "success" looks like for their operations team, their compliance officer, and their CFO — three different definitions of done for the same system.
+- **Learn:** Reread the anchor-problem brief in Section 0 until you could explain OmniCart Operations' problem to a non-technical friend in three sentences. Write down, in your own words, what "success" looks like for their operations team, their compliance officer, and their CFO: three different definitions of done for the same system.
 - **Time:** 1 hr.
 - **Build:** A one-page "client brief" document (problem, stakeholders, current process, target process) that you will keep updating through Phase 12.
-- **Prove it:** You can state OmniSupply's problem without using the words "AI," "agent," or "LLM."
+- **Prove it:** You can state OmniCart's problem without using the words "AI," "agent," or "LLM."
 
 ### 0.2 How this curriculum works
 
@@ -182,7 +182,7 @@ _Why this phase exists:_ every AI system you build later is a normal piece of so
 
 - **Learn:** Why LLM calls are slow I/O-bound operations, the difference between concurrency and parallelism, and why a synchronous dispute pipeline won't survive 3,000 disputes/month.
 - **Time:** 2 hrs.
-- **Build:** A short written note (your own words) on what would break if OmniSupply's system processed disputes one at a time, synchronously.
+- **Build:** A short written note (your own words) on what would break if OmniCart's system processed disputes one at a time, synchronously.
 - **Prove it:** You can name the specific bottleneck (blocked-on-network-wait) in one sentence.
 
 #### 1.4.2 Async/await in Python
@@ -266,9 +266,9 @@ _Why this phase exists:_ you cannot make good architecture decisions (prompt vs.
 
 #### 2.3.2 Open-weight vs. hosted models — when self-hosting matters
 
-- **Learn:** Why a regulated client like a national distributor might require data to never leave their infrastructure, what that means for architecture (local/open-weight models vs. hosted APIs), and the real cost/ops trade-off of self-hosting.
+- **Learn:** Why a regulated client like a national retailer might require data to never leave their infrastructure, what that means for architecture (local/open-weight models vs. hosted APIs), and the real cost/ops trade-off of self-hosting.
 - **Time:** 3 hrs.
-- **Build:** A one-page decision memo: would you recommend a hosted API or a self-hosted open-weight model for OmniSupply Operations' dispute data, and why?
+- **Build:** A one-page decision memo: would you recommend a hosted API or a self-hosted open-weight model for OmniCart Operations' dispute data, and why?
 - **Prove it:** The memo names a specific real constraint (compliance, cost, latency, or control) that drove the recommendation — not "it depends."
 
 ### 2.4 Calling LLM APIs like an engineer
@@ -370,7 +370,7 @@ _Why this phase exists:_ prompts are the first layer of your system's actual beh
 
 ## Phase 4 — Retrieval-Augmented Generation & Knowledge Grounding
 
-_Why this phase exists:_ OmniSupply's system can't answer "is this credit owed?" from the model's general knowledge — it has to be grounded in that specific distributor's actual supplier agreements and entitlement rules, which change by region and product line.
+_Why this phase exists:_ OmniCart's system can't answer "is this refund owed?" from the model's general knowledge — it has to be grounded in that specific retailer's actual store policy documents and entitlement rules, which change by region and product line.
 
 ### 4.1 Chunking & document processing
 
@@ -379,14 +379,14 @@ _Why this phase exists:_ OmniSupply's system can't answer "is this credit owed?"
 - **Learn:** Extracting text from PDFs (including scanned/image PDFs via OCR), handling tables, headers, and multi-column layouts that break naive text extraction.
 - **Tools:** A PDF-parsing library, an OCR tool for scanned documents.
 - **Time:** 6 hrs.
-- **Build:** A parser that ingests 10 sample supplier agreements (mix of clean text PDFs and at least one scanned image PDF) and extracts usable text from all of them.
+- **Build:** A parser that ingests 10 sample store policy documents (mix of clean text PDFs and at least one scanned image PDF) and extracts usable text from all of them.
 - **Prove it:** The scanned PDF produces readable, mostly-correct text, not garbage.
 
 #### 4.1.2 Chunking strategies
 
 - **Learn:** Fixed-size vs. semantic vs. structure-aware (e.g., by contract section/clause) chunking, chunk overlap, why bad chunking silently produces bad retrieval no matter how good your embeddings are.
 - **Time:** 5 hrs.
-- **Build:** Chunk the same supplier agreement three different ways and manually inspect which strategy keeps entitlement clauses intact instead of splitting them mid-sentence.
+- **Build:** Chunk the same store policy document three different ways and manually inspect which strategy keeps entitlement clauses intact instead of splitting them mid-sentence.
 - **Prove it:** You can show one specific chunk boundary that broke a clause under naive fixed-size chunking, and how structure-aware chunking fixed it.
 
 ### 4.2 Embeddings & vector databases
@@ -404,7 +404,7 @@ _Why this phase exists:_ OmniSupply's system can't answer "is this credit owed?"
 - **Learn:** Setting up and querying a vector database, metadata filtering (e.g., filter by region or agreement type before semantic search), indexing basics.
 - **Tools:** A vector database such as Qdrant, Pinecone, or Weaviate.
 - **Time:** 6 hrs.
-- **Build:** Load OmniSupply's (synthetic) vendor agreement corpus into a vector database with metadata (state, product line, effective date) and query it with combined filter + semantic search.
+- **Build:** Load OmniCart's (synthetic) store policy corpus into a vector database with metadata (state, product line, effective date) and query it with combined filter + semantic search.
 - **Prove it:** A query for "beverage division, Midwest region, freight damage exclusion" returns only Midwest beverage-division clauses, not clauses from other regions.
 
 ### 4.3 Hybrid search & reranking
@@ -437,12 +437,12 @@ _Why this phase exists:_ OmniSupply's system can't answer "is this credit owed?"
 #### 4.4.2 Graph-based retrieval for relational knowledge
 
 - **Learn:** When flat vector search isn't enough — e.g., "which exclusions apply given both the agreement type AND a prior dispute on this account" requires relational/graph reasoning, not just similarity.
-- **Tools:** A graph database (e.g., Neo4j) for structured relationships between supplier agreements, clauses, and dispute history.
+- **Tools:** A graph database (e.g., Neo4j) for structured relationships between store policy documents, clauses, and dispute history.
 - **Time:** 6 hrs.
-- **Build:** Model a small graph of supplier agreements → entitlement clauses → exclusions → prior disputes, and answer one multi-hop question your vector-only pipeline couldn't.
+- **Build:** Model a small graph of store policy documents → entitlement clauses → exclusions → prior disputes, and answer one multi-hop question your vector-only pipeline couldn't.
 - **Prove it:** The graph-based query correctly answers a question that required combining two separate relationships, and you can show the vector-only version failing on the same question.
 
-**Phase 4 integration project — "Entitlement Grounding Engine":** A hybrid-search, reranked, agentic RAG pipeline over OmniSupply's (synthetic) vendor agreement corpus that answers "is this credit owed, and under which clause?" with a cited, verifiable source clause every time — or honestly says it can't determine entitlement and flags for human review.
+**Phase 4 integration project — "Entitlement Grounding Engine":** A hybrid-search, reranked, agentic RAG pipeline over OmniCart's (synthetic) store policy corpus that answers "is this refund owed, and under which clause?" with a cited, verifiable source clause every time — or honestly says it can't determine entitlement and flags for human review.
 
 ---
 
@@ -511,7 +511,7 @@ _Why this phase exists:_ this is where the system stops being a single call to a
 
 #### 5.4.2 Tool interoperability protocols
 
-- **Learn:** The Model Context Protocol (MCP) and why standardized tool/context interfaces matter once you're integrating with a client's real systems (their dispute management software, supplier contract system) instead of toy functions.
+- **Learn:** The Model Context Protocol (MCP) and why standardized tool/context interfaces matter once you're integrating with a client's real systems (their returns management software, store policy system) instead of toy functions.
 - **Tools:** An MCP server/client implementation.
 - **Time:** 6 hrs.
 - **Build:** Expose one of your tools (e.g., `lookup_agreement`) as an MCP server and connect your agent to it via the protocol instead of a direct function call.
@@ -533,13 +533,13 @@ _Why this phase exists:_ this is where the system stops being a single call to a
 - **Build:** Persist every step of the agent's reasoning and tool calls for a dispute to a database, retrievable later by dispute ID.
 - **Prove it:** You can pull up the full step-by-step history for any processed dispute after the fact, days later.
 
-**Phase 5 integration project — "OmniSupply Triage Agent v1":** A multi-agent, graph-orchestrated system that takes a raw dispute, extracts and grounds it against supplier entitlements (Phase 3–4 components), assesses fraud-risk signals, and routes it to the correct operations specialist queue with a full, persisted, human-readable reasoning trace — the core product OmniSupply is paying for.
+**Phase 5 integration project — "OmniCart Triage Agent v1":** A multi-agent, graph-orchestrated system that takes a raw dispute, extracts and grounds it against policy entitlements (Phase 3–4 components), assesses fraud-risk signals, and routes it to the correct operations specialist queue with a full, persisted, human-readable reasoning trace — the core product OmniCart is paying for.
 
 ---
 
 ## Phase 6 — Fine-Tuning & Model Adaptation
 
-_Why this phase exists:_ not because OmniSupply's system necessarily needs a fine-tuned model, but because you need to know, with real evidence rather than a guess, when it does — and be able to do it cheaply when it does.
+_Why this phase exists:_ not because OmniCart's system necessarily needs a fine-tuned model, but because you need to know, with real evidence rather than a guess, when it does — and be able to do it cheaply when it does.
 
 ### 6.1 When to fine-tune (vs. prompt vs. RAG)
 
@@ -547,7 +547,7 @@ _Why this phase exists:_ not because OmniSupply's system necessarily needs a fin
 
 - **Learn:** Fine-tuning fixes exact output format, narrow domain vocabulary/style, and consistent classification behavior; it does not reliably teach new facts (use RAG) or fix a task prompting hasn't seriously been tried on first. The standard failure mode is fine-tuning too early.
 - **Time:** 3 hrs.
-- **Build:** A one-page decision memo evaluating whether OmniSupply's fraud-risk classification task is better solved by better prompting, RAG, or fine-tuning — with evidence from your own Phase 3–5 test results, not a guess.
+- **Build:** A one-page decision memo evaluating whether OmniCart's fraud-risk classification task is better solved by better prompting, RAG, or fine-tuning — with evidence from your own Phase 3–5 test results, not a guess.
 - **Prove it:** The memo cites specific accuracy numbers from your own prior testing, not general disputes.
 
 #### 6.1.2 Data requirements and quality
@@ -597,10 +597,10 @@ _Why this phase exists:_ not because OmniSupply's system necessarily needs a fin
 
 - **Learn:** What DPO (Direct Preference Optimization) and similar preference-based methods do differently from supervised fine-tuning — training from pairs of "better vs. worse" responses rather than single correct answers — and when this matters (subtle behavior/tone shaping rather than hard classification).
 - **Time:** 4 hrs.
-- **Build:** A short written comparison: for OmniSupply's use case, would SFT or a preference-based method be the right tool, and why?
+- **Build:** A short written comparison: for OmniCart's use case, would SFT or a preference-based method be the right tool, and why?
 - **Prove it:** The answer correctly identifies that dispute classification (a hard-label task) fits SFT, not DPO, and can explain why.
 
-**Phase 6 integration project — "Severity Classifier, Justified":** A documented decision (with real evidence) on whether OmniSupply's fraud-risk/severity classification should use prompting, RAG-augmented prompting, or a fine-tuned open-weight model — plus, if fine-tuning won, a trained and evaluated LoRA adapter with a clear accuracy-over-baseline number you can defend to a client.
+**Phase 6 integration project — "Severity Classifier, Justified":** A documented decision (with real evidence) on whether OmniCart's fraud-risk/severity classification should use prompting, RAG-augmented prompting, or a fine-tuned open-weight model — plus, if fine-tuning won, a trained and evaluated LoRA adapter with a clear accuracy-over-baseline number you can defend to a client.
 
 ---
 
@@ -669,7 +669,7 @@ _Why this phase exists:_ this is the phase that separates people who can demo an
 - **Build:** A CI pipeline that runs your golden-set eval automatically on every pull request and fails the build if accuracy drops below your set threshold.
 - **Prove it:** Deliberately submit a regression-causing change as a PR and watch CI block it.
 
-**Phase 7 integration project — "The Trust Layer":** A complete evaluation and observability system wrapped around the OmniSupply triage agent — golden dataset, automated heuristic and LLM-as-judge scoring, full production tracing dashboard, and a CI gate that blocks any change that measurably degrades quality. This is what you'll show a client to answer "how do we know this actually works?"
+**Phase 7 integration project — "The Trust Layer":** A complete evaluation and observability system wrapped around the OmniCart triage agent — golden dataset, automated heuristic and LLM-as-judge scoring, full production tracing dashboard, and a CI gate that blocks any change that measurably degrades quality. This is what you'll show a client to answer "how do we know this actually works?"
 
 ---
 
@@ -683,7 +683,7 @@ _Why this phase exists:_ a system that's accurate but costs more per dispute tha
 
 - **Learn:** Modeling cost per transaction from token counts and provider pricing before writing code, so you catch an unviable architecture on paper instead of after building it.
 - **Time:** 4 hrs.
-- **Build:** A cost model spreadsheet estimating OmniSupply's monthly AI spend at 3,000 disputes/month, given your current pipeline's average token usage per dispute.
+- **Build:** A cost model spreadsheet estimating OmniCart's monthly AI spend at 3,000 disputes/month, given your current pipeline's average token usage per dispute.
 - **Prove it:** Your model's estimate is within 15% of what your actual logged costs (from Phase 2's logging) show for a sample batch.
 
 #### 8.1.2 Finding and fixing cost hotspots
@@ -713,11 +713,11 @@ _Why this phase exists:_ a system that's accurate but costs more per dispute tha
 
 #### 8.3.1 Prompt caching
 
-- **Learn:** How prompt caching reduces cost and latency for repeated context (e.g., the same supplier agreement referenced across many disputes), and how prompt structure affects cache hit rates.
+- **Learn:** How prompt caching reduces cost and latency for repeated context (e.g., the same store policy document referenced across many disputes), and how prompt structure affects cache hit rates.
 - **Tools:** Provider-native prompt caching.
 - **Time:** 4 hrs.
 - **Build:** Restructure your RAG prompts to put stable, reusable content (agreement excerpts) in the cacheable portion and dispute-specific content afterward; measure the cache hit rate and cost impact.
-- **Prove it:** You can show a measured latency and cost improvement on a batch of disputes referencing the same supplier agreement.
+- **Prove it:** You can show a measured latency and cost improvement on a batch of disputes referencing the same store policy document.
 
 #### 8.3.2 Latency optimization end-to-end
 
@@ -726,13 +726,13 @@ _Why this phase exists:_ a system that's accurate but costs more per dispute tha
 - **Build:** Identify and parallelize any independent steps in your Phase 5 pipeline that were unnecessarily sequential; measure the end-to-end latency improvement per dispute.
 - **Prove it:** A real before/after latency number, with an explanation of exactly which change produced the improvement.
 
-**Phase 8 integration project — "Cost & Speed Dashboard":** A cost/latency dashboard (extending Phase 7's observability layer) showing cost-per-dispute and end-to-end latency trends, plus a documented set of optimizations (routing, caching, parallelization) that took the OmniSupply pipeline from its Phase 5 baseline to a cost and speed profile you'd defend in a client proposal.
+**Phase 8 integration project — "Cost & Speed Dashboard":** A cost/latency dashboard (extending Phase 7's observability layer) showing cost-per-dispute and end-to-end latency trends, plus a documented set of optimizations (routing, caching, parallelization) that took the OmniCart pipeline from its Phase 5 baseline to a cost and speed profile you'd defend in a client proposal.
 
 ---
 
 ## Phase 9 — Security, Safety & Governance
 
-_Why this phase exists:_ this is the phase that determines whether a compliance officer at a distributor will actually let your system touch real customer data and real credit decisions. Skipping it is why most agentic pilots never reach production.
+_Why this phase exists:_ this is the phase that determines whether a compliance officer at a retailer will actually let your system touch real customer data and real credit decisions. Skipping it is why most agentic pilots never reach production.
 
 ### 9.1 Prompt injection & adversarial input defense
 
@@ -756,7 +756,7 @@ _Why this phase exists:_ this is the phase that determines whether a compliance 
 
 - **Learn:** The standard, widely-referenced risk categories for LLM applications (prompt injection, insecure output handling, excessive agency, sensitive information disclosure, and others), and specifically "excessive agency" — an agent taking irreversible action beyond its intended scope.
 - **Time:** 4 hrs.
-- **Build:** A written risk assessment of your OmniSupply pipeline against each standard risk category, with a mitigation (already built, or planned) for each one that applies.
+- **Build:** A written risk assessment of your OmniCart pipeline against each standard risk category, with a mitigation (already built, or planned) for each one that applies.
 - **Prove it:** You can name, unprompted, at least three of these categories and a concrete mitigation for each in your own system.
 
 #### 9.2.2 Excessive agency and action boundaries
@@ -803,10 +803,10 @@ _Why this phase exists:_ this is the phase that determines whether a compliance 
 
 - **Learn:** Systematically trying to break your own system before a client — or an attacker — does: injection attempts, edge cases designed to bypass approval gates, attempts to extract other disputes' data.
 - **Time:** 6 hrs.
-- **Build:** A written red-team report against your own OmniSupply pipeline: every attack you tried, what happened, and what you fixed as a result.
+- **Build:** A written red-team report against your own OmniCart pipeline: every attack you tried, what happened, and what you fixed as a result.
 - **Prove it:** The report documents at least one real vulnerability you found and closed — not a clean bill of health on the first try, which would mean you didn't try hard enough.
 
-**Phase 9 integration project — "The Governance Layer":** A hardened version of the OmniSupply pipeline with enforced action boundaries, human-in-the-loop approval gates on high-stakes decisions, a full auditable decision trail, PII redaction, and a documented red-team pass — the layer that turns "an agent that works" into "a system a compliance officer will sign off on."
+**Phase 9 integration project — "The Governance Layer":** A hardened version of the OmniCart pipeline with enforced action boundaries, human-in-the-loop approval gates on high-stakes decisions, a full auditable decision trail, PII redaction, and a documented red-team pass — the layer that turns "an agent that works" into "a system a compliance officer will sign off on."
 
 ---
 
@@ -839,7 +839,7 @@ _Why this phase exists:_ the gap between "works on my laptop" and "runs reliably
 - **Learn:** Writing a Dockerfile, managing environment variables and secrets in containers, multi-stage builds for smaller images.
 - **Tools:** Docker.
 - **Time:** 6 hrs.
-- **Build:** A Dockerfile that builds and runs your full OmniSupply pipeline API in a container, with secrets injected via environment variables, not baked into the image.
+- **Build:** A Dockerfile that builds and runs your full OmniCart pipeline API in a container, with secrets injected via environment variables, not baked into the image.
 - **Prove it:** The container runs correctly on a machine that has never had your Python environment set up manually.
 
 #### 10.2.2 Managing configuration across environments
@@ -880,10 +880,10 @@ _Why this phase exists:_ the gap between "works on my laptop" and "runs reliably
 
 - **Learn:** What a first responder actually needs (a runbook: common failure modes and their fixes), the discipline of writing a runbook before you need it, not after a 2am incident.
 - **Time:** 4 hrs.
-- **Build:** A runbook document covering the top 5 most likely failure modes of your OmniSupply pipeline and the exact steps to diagnose and fix each.
+- **Build:** A runbook document covering the top 5 most likely failure modes of your OmniCart pipeline and the exact steps to diagnose and fix each.
 - **Prove it:** Someone who has never seen your codebase could follow the runbook to resolve at least one simulated incident.
 
-**Phase 10 integration project — "OmniSupply Operations, Production-Ready":** The full pipeline — extraction, entitlement grounding, triage agents, evaluation gates, governance layer — containerized, deployed behind a versioned API with async job handling, CI/CD with a quality gate, monitoring, alerting, and a runbook. This is the version you would actually hand to a client's engineering team.
+**Phase 10 integration project — "OmniCart Operations, Production-Ready":** The full pipeline — extraction, entitlement grounding, triage agents, evaluation gates, governance layer — containerized, deployed behind a versioned API with async job handling, CI/CD with a quality gate, monitoring, alerting, and a runbook. This is the version you would actually hand to a client's engineering team.
 
 ---
 
@@ -907,9 +907,9 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 #### 11.1.1 Choosing a niche instead of being a generalist
 
-- **Learn:** Why "I do AI stuff" loses to "I automate dispute intake for regional wholesale distributors" every time, how to pick a niche based on a problem you understand deeply plus a market that visibly has budget (regulated, document-heavy back-office workflows are a strong starting niche, per current enterprise AI adoption patterns).
+- **Learn:** Why "I do AI stuff" loses to "I automate return dispute intake for regional e-commerce retailers" every time, how to pick a niche based on a problem you understand deeply plus a market that visibly has budget (regulated, document-heavy back-office workflows are a strong starting niche, per current enterprise AI adoption patterns).
 - **Time:** 4 hrs.
-- **Build:** A one-paragraph positioning statement: who you serve, what specific problem you solve, and why you're credible to solve it (your OmniSupply capstone is your credibility, even before a real client).
+- **Build:** A one-paragraph positioning statement: who you serve, what specific problem you solve, and why you're credible to solve it (your OmniCart capstone is your credibility, even before a real client).
 - **Prove it:** You can say your positioning statement out loud in under 15 seconds without sounding generic.
 
 #### 11.1.2 Researching your niche's actual willingness to pay
@@ -948,7 +948,7 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 - **Learn:** Pricing off the client's measurable value (e.g., operations specialist hours saved × loaded hourly cost) rather than only your time, and why this is how experienced consultants earn materially more for the same work.
 - **Time:** 4 hrs.
-- **Build:** A value calculation for OmniSupply's scenario: estimate operations specialist hours saved per month by your system and translate that into a defensible price range.
+- **Build:** A value calculation for OmniCart's scenario: estimate operations specialist hours saved per month by your system and translate that into a defensible price range.
 - **Prove it:** Your fixed-fee number from 11.3.1 is less than the value calculated here — if it isn't, redo the math or the pricing.
 
 ### 11.4 Finding & qualifying leads
@@ -980,7 +980,7 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 - **Learn:** Turning a discovery call into a concrete, boundaried scope — what's included, what's explicitly excluded, what "done" looks like, and what could cause the price to change.
 - **Time:** 5 hrs.
-- **Build:** A full statement of work (SOW) for a hypothetical "OmniSupply Operations" engagement, based on everything you now know about their problem from your capstone research.
+- **Build:** A full statement of work (SOW) for a hypothetical "OmniCart Operations" engagement, based on everything you now know about their problem from your capstone research.
 - **Prove it:** The SOW has a section explicitly listing what is _not_ included — the most commonly missing section in first-time SOWs.
 
 ### 11.6 Proposals & contracts
@@ -989,7 +989,7 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 - **Learn:** Proposal structure (problem restated in their words, your approach, timeline, price, and specifically social proof — even early on, your capstone case study counts), leading with their outcome, not your tech stack.
 - **Time:** 5 hrs.
-- **Build:** A full written proposal for the OmniSupply engagement, ready to send to a real prospect in your niche.
+- **Build:** A full written proposal for the OmniCart engagement, ready to send to a real prospect in your niche.
 - **Prove it:** The word "LangGraph" (or any specific tool name) does not appear anywhere in the client-facing proposal — the client cares about outcomes, not your stack.
 
 #### 11.6.2 Contract basics
@@ -1021,7 +1021,7 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 - **Learn:** A results report structure that proves value in the client's own metrics (hours saved, cost avoided, accuracy achieved against their own review), handoff documentation for their team.
 - **Time:** 5 hrs.
-- **Build:** A results report and handoff document for the completed OmniSupply capstone, as if delivering to a real client's team.
+- **Build:** A results report and handoff document for the completed OmniCart capstone, as if delivering to a real client's team.
 - **Prove it:** The report leads with a number the CFO persona from Section 0.1 would care about, not a technical summary.
 
 #### 11.8.2 Converting delivery into a retainer
@@ -1053,7 +1053,7 @@ _Why this phase exists, and why it's not at the end:_ technical skill alone does
 
 ## Phase 12 — Capstone & Portfolio
 
-### 12.1 The capstone: OmniSupply Operations, end to end
+### 12.1 The capstone: OmniCart Operations, end to end
 
 Bring every phase together into one coherent, demoable, sellable system and its accompanying business artifacts:
 
@@ -1075,7 +1075,7 @@ Build these after (or interleaved with, once you're comfortable) the capstone, t
 
 #### 12.2.2 AP/invoice processing automation (accounting/finance)
 
-- **Scope:** Multi-format invoice ingestion, structured extraction, matching against purchase orders, exception routing for mismatches — reusing Phases 1, 3, and 5, deliberately in a more deterministic, rules-heavy domain than dispute triage to show range.
+- **Scope:** Multi-format invoice ingestion, structured extraction, matching against customer orders, exception routing for mismatches — reusing Phases 1, 3, and 5, deliberately in a more deterministic, rules-heavy domain than dispute triage to show range.
 - **Time:** 20–30 hrs.
 - **Deliverable:** A working demo plus a case study written for a mid-market accounting firm or an SMB controller persona.
 
@@ -1091,9 +1091,9 @@ Build these after (or interleaved with, once you're comfortable) the capstone, t
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
 | Drill               | One per sub-module (104 total) — a small, hands-on exercise proving that specific skill                                            | Every sub-module |
 | Mini-project        | One per module — combines that module's sub-modules into a working unit                                                             | Every module     |
-| Integration project | One per phase — plugs into the running OmniSupply pipeline                                                                            | Phases 1–10      |
+| Integration project | One per phase — plugs into the running OmniCart pipeline                                                                            | Phases 1–10      |
 | Portfolio project   | Contract review assistant, AP automation, support-ticket triage                                                                     | Phase 12.2       |
-| Capstone            | OmniSupply Operations dispute triage system, fully integrated, governed, evaluated, deployed, and packaged with real business deliverables | Phase 12.1       |
+| Capstone            | OmniCart Operations dispute triage system, fully integrated, governed, evaluated, deployed, and packaged with real business deliverables | Phase 12.1       |
 
 ---
 
@@ -1101,7 +1101,7 @@ Build these after (or interleaved with, once you're comfortable) the capstone, t
 
 You are finished with this curriculum — not "have watched enough content," but actually finished — when all of the following are true at once:
 
-1. **The system works and you can prove it.** The OmniSupply capstone runs end to end, has a golden-set accuracy number you're not embarrassed by, a known cost-per-dispute, and a documented failure mode you've deliberately tested and handled (not just ones you got lucky on).
+1. **The system works and you can prove it.** The OmniCart capstone runs end to end, has a golden-set accuracy number you're not embarrassed by, a known cost-per-dispute, and a documented failure mode you've deliberately tested and handled (not just ones you got lucky on).
 2. **You can explain every "why," not just every "how."** For each major architecture choice (prompt vs. RAG vs. fine-tune, single- vs. multi-agent, which model tier), you can state the evidence that justified it — not just that it works.
 3. **It would survive a skeptical technical reviewer.** A hiring manager or a technical client stakeholder could ask "how do you know this is reliable, secure, and cost-effective?" and you'd answer with dashboards and numbers, not vibes.
 4. **It would survive a skeptical business reviewer.** A non-technical business owner could ask "what does this actually save me, and what happens when it's wrong?" and you'd answer in their language, not yours.

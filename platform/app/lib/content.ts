@@ -1130,9 +1130,12 @@ function parseCurriculumAnchor(repoRoot: string, unitId: string): CurriculumAnch
   const md = readIfExists(path.join(/* turbopackIgnore: true */ repoRoot, "curriculum.md"));
   if (!md) return null;
   const lines = md.split("\n");
-  const start = lines.findIndex((line) => line.startsWith(`#### ${unitId} `));
+  // Units appear at either heading depth in curriculum.md: x.y units under
+  // "### ", x.y.z sub-units under "#### ". Accept both.
+  const heading = new RegExp(`^#{3,4} ${unitId.replace(/\./g, "\\.")} `);
+  const start = lines.findIndex((line) => heading.test(line));
   if (start < 0) return null;
-  const title = lines[start].replace(`#### ${unitId} `, "").trim();
+  const title = lines[start].replace(/^#{3,4} [0-9.]+ /, "").trim();
   const field = (label: string): string | null => {
     for (let i = start + 1; i < lines.length; i += 1) {
       if (/^#{1,4}\s/.test(lines[i])) return null;
@@ -1161,14 +1164,28 @@ export function loadUnit(unitId: string): Unit | null {
   const yaml = parseYaml(yamlText) as UnitYaml;
 
   const resolve = (relative: string) => {
-    const inUnit = path.join(/* turbopackIgnore: true */ unitDir, relative);
-    if (existsSync(inUnit)) return inUnit;
+    // unit-local first, then content root. A leading "content/" is tolerated
+    // (some units were authored with the repo-root prefix).
+    const candidates = [relative, relative.replace(/^content\//, "")];
+    for (const candidate of candidates) {
+      const inUnit = path.join(/* turbopackIgnore: true */ unitDir, candidate);
+      if (existsSync(inUnit)) return inUnit;
+      const inRoot = path.join(/* turbopackIgnore: true */ contentRoot, candidate);
+      if (existsSync(inRoot)) return inRoot;
+    }
     return path.join(/* turbopackIgnore: true */ contentRoot, relative);
+  };
+  /** A worked-example ref may name the directory (README.md appended) or the file itself. */
+  const readMarkdownRef = (ref: string): string | null => {
+    const resolved = resolve(ref);
+    if (!existsSync(resolved)) return null;
+    const target = path.join(/* turbopackIgnore: true */ resolved, "README.md");
+    return readIfExists(existsSync(target) ? target : resolved);
   };
 
   const lessonMd = yaml.learn ? readIfExists(resolve(yaml.learn)) : null;
   const workedMd = yaml.practice.worked_example
-    ? readIfExists(path.join(/* turbopackIgnore: true */ resolve(yaml.practice.worked_example), "README.md"))
+    ? readMarkdownRef(yaml.practice.worked_example)
     : null;
   const completionBase = (yaml.practice.completion_problem as { base?: string })?.base;
   const completionPath = completionBase

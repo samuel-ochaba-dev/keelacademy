@@ -18,7 +18,7 @@ practice:
 build:
   deliverable: "Build a dispute-notes extractor that outputs schema-constrained JSON"
   submission: repo
-  data_variant: omnisupply@v3
+  data_variant: omnicart@v3
 verify:
   layers: [1, 2, 3]
   deterministic_checks: checks/3.2.1.build.yaml

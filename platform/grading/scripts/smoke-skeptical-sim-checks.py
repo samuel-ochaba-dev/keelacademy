@@ -118,7 +118,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_tech_101_id,
         "student_id": 101,
-        "message": "We evaluated our dispute triage system against a golden set of 500 labeled historical cases, achieving 94.2% precision and 92.8% recall on supplier contract clause verification.",
+        "message": "We evaluated our dispute triage system against a golden set of 500 labeled historical cases, achieving 94.2% precision and 92.8% recall on store policy clause verification.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "p99" in last_persona_msg or "latency" in last_persona_msg or "budget" in last_persona_msg:
@@ -215,7 +215,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_biz_101_id,
         "student_id": 101,
-        "message": "This deployment saves OmniSupply $420,000 net annually by eliminating 1.8 hours of manual document review per dispute across 4,000 monthly transactions.",
+        "message": "This deployment saves OmniCart $420,000 net annually by eliminating 1.8 hours of manual document review per dispute across 4,000 monthly transactions.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "$50,000" in last_persona_msg or "wrong" in last_persona_msg or "liability" in last_persona_msg or "error" in last_persona_msg or "specialist hours" in last_persona_msg or "concrete numbers" in last_persona_msg:
@@ -227,7 +227,7 @@ def main() -> int:
     st, data = http_request("POST", "/simulation/turn", {
         "simulation_id": sim_biz_101_id,
         "student_id": 101,
-        "message": "When an ambiguous $50,000 damage claim is encountered, the system never auto-denies or auto-approves credit; it routes the complete draft dossier with highlighted supplier contract clauses directly to a senior operations specialist for human signoff.",
+        "message": "When an ambiguous $50,000 damage claim is encountered, the system never auto-denies or auto-approves credit; it routes the complete draft dossier with highlighted store policy clauses directly to a senior operations specialist for human signoff.",
     })
     last_persona_msg = data["turns"][-1]["content"]
     if "feasibility" in last_persona_msg or "timeline" in last_persona_msg or "rollout" in last_persona_msg or "team" in last_persona_msg or "protocol" in last_persona_msg or "fallback" in last_persona_msg:

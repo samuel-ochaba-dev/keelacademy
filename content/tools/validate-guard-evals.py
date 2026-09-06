@@ -177,8 +177,9 @@ def main() -> int:
             print(f"PASS {rel}")
 
     if not eval_files and not failures:
-        print("error: no eval files found under content/evals/guard/", file=sys.stderr)
-        return 1
+        print(f"PASS (0 eval files found under {EVALS_DIR.relative_to(REPO)})")
+        print("\nAll 0 guard eval file(s) valid.")
+        return 0
     if failures:
         print(f"\n{failures} invalid guard eval file(s).")
         return 1

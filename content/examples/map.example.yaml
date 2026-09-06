@@ -7,12 +7,12 @@ phases:
   why: Environment setup is where self-taught learners quietly drop off. We treat
     sandboxing, tooling, and your first drill as the initial deliverable completed
     in your first session.
-  outcome: 'Your isolated Docker environment runs, and you meet OmniSupply: the
+  outcome: 'Your isolated Docker environment runs, and you meet OmniCart: the
     anchor client you serve across all thirteen phases.'
   pipeline_role: Docker runner and initial invoice and dispute fixtures.
   modules:
   - id: '0.1'
-    title: 'Meet the client: OmniSupply Operations'
+    title: 'Meet the client: OmniCart Operations'
     description: Domain overview of B2B invoice intake, supplier SLAs, return disputes,
       and triage failure modes.
   - id: '0.2'
@@ -113,7 +113,7 @@ phases:
   est_hours: 80
   why: 'Retrieval fails quietly: the model prioritizes fluent generation over accurate
     grounding unless explicitly anchored to verified documents.'
-  outcome: You ground answers in OmniSupply supplier agreements and warranty terms using hybrid search, chunking
+  outcome: You ground answers in OmniCart store policy documents and warranty terms using hybrid search, chunking
     strategies, dense embeddings, and cross-encoder rerankers.
   pipeline_role: Vendor agreement grounding and hybrid retrieval index (BM25 + vector).
   modules:
@@ -343,14 +343,14 @@ phases:
   rebate_pct: 15
   why: One vertical project proves depth; three additional projects prove you can
     architect AI systems across healthcare, finance, and legal domains.
-  outcome: The complete OmniSupply operations pipeline running in production, plus
+  outcome: The complete OmniCart operations pipeline running in production, plus
     three cross-domain portfolio deliverables.
   pipeline_role: End-to-end production operations dispute system and cross-industry portfolio.
   note: Clearing the capstone gate inside 365 days triggers your final 15% completion
     rebate.
   modules:
   - id: '12.1'
-    title: 'The Capstone: OmniSupply Operations end to end in production'
+    title: 'The Capstone: OmniCart Operations end to end in production'
     description: Complete operations dispute pipeline integrating extraction, retrieval,
       routing, and audit logs.
     is_gate: true

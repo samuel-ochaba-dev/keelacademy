@@ -28,7 +28,7 @@ practice:
 build:
   deliverable: "<verbatim from curriculum.md>"
   submission: repo                    # repo | file | recording
-  data_variant: omnisupply@v3
+  data_variant: omnicart@v3
 verify:
   layers: [1, 2, 3]                   # which verification layers apply
   deterministic_checks: checks/3.2.1.build.yaml
@@ -51,7 +51,7 @@ criteria:
     evidence: "quote the log line or code path"
 ```
 
-**Data variant** (`data_variant: omnisupply@v3`, a versioned string; schema at `content/schemas/variant.schema.json`): generator script + parameter ranges; per-student seed = `hash(student_id, unit_id)`, so every student's corpus differs but is reproducible.
+**Data variant** (`data_variant: omnicart@v3`, a versioned string; schema at `content/schemas/variant.schema.json`): generator script + parameter ranges; per-student seed = `hash(student_id, unit_id)`, so every student's corpus differs but is reproducible.
 
 **Persona** (`content/personas/*.yaml`): grounding refs, rubric ref, scoring config for the §6 simulation engine.
 
@@ -92,7 +92,7 @@ Postgres schema, GitHub OAuth + webhook intake, queue + idempotent workers, sand
 **Exit:** a git push produces a verdict with zero human involvement; a rubric change that degrades golden-set accuracy blocks its own merge.
 
 ### Stage 2 — Content pipeline + learner UI MVP
-Content repo + schema-validation CI + per-unit dry-run on content PRs; unit-page renderer (Learn/Practice/Build/Verify/Unstuck); submission flow and verdict display; auth; Stripe + rebate state machine; gate engine consuming verdict events; progress dashboard v1 (the growing OmniSupply map).
+Content repo + schema-validation CI + per-unit dry-run on content PRs; unit-page renderer (Learn/Practice/Build/Verify/Unstuck); submission flow and verdict display; auth; Stripe + rebate state machine; gate engine consuming verdict events; progress dashboard v1 (the growing OmniCart map).
 **Exit:** a test student can sign up, pay, and complete unit 3.2.1 end to end.
 
 ### Stage 3 — Practice engine + concierge

@@ -25,6 +25,77 @@ export function DeliverableCallout({ unit }: { unit: UnitYaml }) {
 }
 
 export function SubmissionContractCard({ unit, contract }: SubmissionCardProps) {
+  if (unit.build.submission === "file") {
+    return <FileSubmissionCard unit={unit} />;
+  }
+  if (unit.build.submission === "recording") {
+    return (
+      <div className="card-dark space-y-4">
+        <div className="border-b border-phosphor-blue-black pb-4">
+          <h3 className="eyebrow text-[12px]">How to submit it</h3>
+        </div>
+        <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          This unit asks for a recorded walkthrough. Submission opens with the
+          recording flow on this page; nothing to push and nothing to upload yet.
+        </p>
+      </div>
+    );
+  }
+  return <RepoSubmissionCard unit={unit} contract={contract} />;
+}
+
+function FileSubmissionCard({ unit }: { unit: UnitYaml }) {
+  return (
+    <div className="space-y-8">
+      <div className="card-dark space-y-6">
+        <div className="border-b border-phosphor-blue-black pb-4">
+          <h3 className="eyebrow text-[12px]">How to submit it</h3>
+        </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-carbon-veil border border-circuit-border">
+            <span className="eyebrow text-[11px]">The file you author</span>
+            <code className="font-code-mono text-[13px] text-lime-pulse">brief.md</code>
+          </div>
+          <p className="text-[14.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            Write your deliverable as a markdown file on your own machine, following the
+            template in the completion problem. When it is ready, paste the complete file
+            into the workbench on this page and submit it for grading. No repository, no
+            push, no upload form.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="card-dark space-y-3">
+          <span className="eyebrow text-[11px]">Who grades it</span>
+          <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            The evaluation judge reads your brief against unit {unit.id}&apos;s rubric and
+            quotes verbatim evidence for every criterion. The verdict comes back on this
+            page, criterion by criterion.
+          </p>
+        </div>
+        <div className="card-dark space-y-3">
+          <span className="eyebrow text-[11px]">What a pass does</span>
+          <p className="text-[14px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+            A passing verdict completes the unit and unlocks what follows it. A fail names
+            the criteria that missed, and you can revise and resubmit.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-lg bg-carbon-veil border border-circuit-border">
+        <span className="text-[15px] text-phosphor-white">
+          Your brief is graded in the completion workbench on this page.
+        </span>
+        <Link href="#completion-problem" className="btn btn-accent btn-sm">
+          Go to the workbench
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function RepoSubmissionCard({ unit, contract }: SubmissionCardProps) {
   return (
     <div className="space-y-8">
         {/* Submission contract */}

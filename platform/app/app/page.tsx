@@ -39,7 +39,7 @@ export default function HomePage() {
             inventing totals. I have watched brilliant engineers stall at
             exactly that wall. Keel starts there: across {phaseCount}{" "}
             phases you build an invoice reconciliation and dispute triage
-            pipeline for OmniSupply Operations, a simulated B2B
+            pipeline for OmniCart Operations, a simulated B2B
             distributor, from first commit to deployed system. Every
             submission runs against real tests and a published rubric. It
             passes only when the work holds up.

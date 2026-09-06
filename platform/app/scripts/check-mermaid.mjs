@@ -48,13 +48,54 @@ function* markdownFiles(dir) {
   }
 }
 
-const dompurify = (await import("dompurify")).default;
-for (const method of ["addHook", "removeHook", "removeAllHooks", "setConfig"]) {
-  dompurify[method] ??= () => {};
+function appRoot() {
+  let dir = process.cwd();
+  if (safeStat(path.join(dir, "node_modules", "mermaid"))) return dir;
+  if (safeStat(path.join(dir, "platform", "app", "node_modules", "mermaid"))) {
+    return path.join(dir, "platform", "app");
+  }
+  for (let i = 0; i < 8; i += 1) {
+    if (safeStat(path.join(dir, "platform", "app", "node_modules", "mermaid"))) {
+      return path.join(dir, "platform", "app");
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
 }
-dompurify.sanitize ??= (value) => String(value);
 
-const chunkDir = path.join(process.cwd(), "node_modules/mermaid/dist/chunks/mermaid.core");
+const appDir = appRoot();
+
+function stubDompurify(instance) {
+  if (!instance) return;
+  for (const method of ["addHook", "removeHook", "removeAllHooks", "setConfig"]) {
+    instance[method] ??= () => {};
+  }
+  instance.sanitize ??= (value) => String(value);
+}
+
+try {
+  const dompurify = (await import(path.join(appDir, "node_modules/dompurify/dist/purify.es.mjs"))).default;
+  stubDompurify(dompurify);
+} catch {}
+
+const pnpmDir = path.join(appDir, "node_modules/.pnpm");
+if (safeStat(pnpmDir)) {
+  for (const dir of readdirSync(pnpmDir)) {
+    if (dir.startsWith("dompurify@")) {
+      const p = path.join(pnpmDir, dir, "node_modules/dompurify/dist/purify.es.mjs");
+      if (safeStat(p)) {
+        try {
+          const dp = (await import(p)).default;
+          stubDompurify(dp);
+        } catch {}
+      }
+    }
+  }
+}
+
+const chunkDir = path.join(appDir, "node_modules/mermaid/dist/chunks/mermaid.core");
 const chunkName = readdirSync(chunkDir).find((f) => f.startsWith("flowDiagram-"));
 if (!chunkName) {
   console.error("mermaid's flowchart chunk is not where it was: " + chunkDir);

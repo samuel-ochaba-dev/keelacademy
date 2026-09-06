@@ -137,6 +137,23 @@ def content_root() -> Path:
     return layer1.content_root()
 
 
+def resolve_unit_ref(unit_yaml_path: Path, ref: str) -> Path | None:
+    """Resolve a unit.yaml path reference the same way the app does.
+
+    Unit-local first (the authoring convention), then content root; a leading
+    "content/" prefix is tolerated. Returns None when nothing exists.
+    """
+    if not ref:
+        return None
+    rel = ref.removeprefix("content/")
+    unit_dir = unit_yaml_path.parent
+    root = content_root()
+    for candidate in (unit_dir / rel, root / rel):
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
     """Read completion problem manifest from content repo for unit_id."""
     root = content_root()
@@ -159,7 +176,17 @@ def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
         prompt_text = completion.get("prompt", "")
         instructions = completion.get("instructions", "")
         we_rel = practice.get("worked_example", "")
-        we_readme_path = root / we_rel / "README.md" if we_rel else None
+        we_path = resolve_unit_ref(unit_yaml_path, we_rel) if we_rel else None
+        # The ref may name the README itself or its directory.
+        we_readme_path = None
+        we_base_dir = None
+        if we_path is not None:
+            if we_path.is_dir():
+                we_readme_path = we_path / "README.md"
+                we_base_dir = we_path
+            else:
+                we_readme_path = we_path
+                we_base_dir = we_path.parent
         model_answer_md = we_readme_path.read_text(encoding="utf-8") if we_readme_path and we_readme_path.is_file() else ""
         return {
             "unit_id": unit_id,
@@ -173,7 +200,7 @@ def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
             "editable_files": [],
             "checks": [{"id": "conceptual-rubric-judge", "type": "llm-judge"}],
             "checks_path": None,
-            "base_dir": root / we_rel if we_rel else None,
+            "base_dir": we_base_dir,
         }
 
     base_rel = completion.get("base")
@@ -181,9 +208,9 @@ def get_unit_practice_manifest(unit_id: str) -> dict[str, Any] | None:
     if not base_rel or not checks_rel:
         return None
 
-    base_dir = root / base_rel
-    checks_path = root / checks_rel
-    if not base_dir.is_dir() or not checks_path.is_file():
+    base_dir = resolve_unit_ref(unit_yaml_path, base_rel)
+    checks_path = resolve_unit_ref(unit_yaml_path, checks_rel)
+    if base_dir is None or not base_dir.is_dir() or checks_path is None or not checks_path.is_file():
         return None
 
     readme_path = base_dir / "README.md"
@@ -272,8 +299,15 @@ def get_unit_learn_text(unit_id: str) -> str:
     learn_rel = unit_data.get("learn")
     if not learn_rel:
         raise RuntimeError(f"learn path not declared for unit {unit_id}")
-    learn_path = root / learn_rel
-    if not learn_path.is_file():
+    # unit-local first (the unit.yaml convention), then content root; a leading
+    # "content/" prefix is tolerated either way.
+    unit_dir = matches[0].parent
+    rel = learn_rel.removeprefix("content/")
+    learn_path = next(
+        (c for c in (unit_dir / rel, root / rel) if c.is_file()),
+        None,
+    )
+    if learn_path is None:
         raise RuntimeError(f"learn file not found: {learn_rel}")
     return strip_script_markers(learn_path.read_text(encoding="utf-8"))
 
@@ -787,7 +821,11 @@ def get_unit_worked_example_scaffold_target(unit_id: str, query: str) -> dict[st
     we_rel = (unit_data.get("practice") or {}).get("worked_example")
     if not we_rel:
         return default_target
-    we_dir = root / we_rel
+    we_path = resolve_unit_ref(matches[0], we_rel)
+    if we_path is None:
+        return default_target
+    # The ref may name the README itself; the targets walk its directory.
+    we_dir = we_path if we_path.is_dir() else we_path.parent
     if not we_dir.is_dir():
         return default_target
 
@@ -1454,6 +1492,27 @@ def extract_conceptual_verdict_json(text: str, rubric: dict[str, Any]) -> dict[s
     }
 
 
+def conceptual_submission_facts(student_answer: str) -> str:
+    """Platform-computed facts about a conceptual submission.
+
+    Word counts and heading lists are exactly the things an LLM judge counts
+    badly, and exactly the things format criteria hinge on. The platform
+    computes them deterministically; the judge prompt tells the model to trust
+    these numbers over its own counting. Unit-agnostic: no content lives here.
+    """
+    word_count = len(student_answer.split())
+    headings = [line.rstrip() for line in student_answer.splitlines() if line.startswith("##")]
+    lines = [
+        "Deterministic Submission Facts (computed by the platform; authoritative,",
+        "use these instead of counting yourself):",
+        f"- word_count: {word_count}",
+        f"- markdown_headings_found (every line starting with ##): {len(headings)}",
+    ]
+    for h in headings:
+        lines.append(f"  - {h}")
+    return "\n".join(lines)
+
+
 def grade_conceptual_completion_answer(
     student_id: int,
     unit_id: str,
@@ -1492,7 +1551,8 @@ def grade_conceptual_completion_answer(
         f"{lesson_header}\n{lesson_body}\n\n"
         f"Conceptual Problem Prompt:\n{prompt}\n\n"
         f"Instructions:\n{instructions}\n\n"
-        f"Student Submission:\n<student_answer>\n{student_answer}\n</student_answer>"
+        f"Student Submission:\n<student_answer>\n{student_answer}\n</student_answer>\n\n"
+        f"{conceptual_submission_facts(student_answer)}"
     )
 
     base_messages = [
@@ -3629,12 +3689,12 @@ ROLLBACK;
                     "id": crit["id"],
                     "type": "llm-judge",
                     "status": "pass" if crit["verdict"] == "pass" else "fail",
-                    "note": rationale,
+                    "note": str(crit.get("evidence", "")) or rationale,
                     "evidence": crit["evidence"],
                     "wall_s": None,
                     "exit_code": 0 if crit["verdict"] == "pass" else 1,
                     "container_status": "judge_graded",
-                    "output_tail": f"Criterion {crit['id']}: {crit['verdict']}\nEvidence: {crit['evidence']}",
+                    "output_tail": f"Criterion {crit['id']}: {crit['verdict']}\nEvidence: {crit['evidence']}\nRationale: {rationale}",
                 }
                 for crit in verdict_res.get("criteria", [])
             ]
@@ -3679,7 +3739,34 @@ ROLLBACK;
         results_json_str = json.dumps(check_results)
         submitted_meta = json.dumps({f: len(c) for f, c in submitted_files_clean.items()})
 
-        persist_sql = """BEGIN;
+        # Conceptual passes carry the unit's grade: emit a verdict.issued event
+        # (the gate engine's only pass signal) alongside the attempt row, in the
+        # same transaction. Code units keep practice.attempt_graded only; their
+        # real verdict comes from the repo-push worker.
+        verdict_ev = ""
+        if is_conceptual and passed:
+            verdict_payload = json.dumps({
+                "student_id": student_id,
+                "unit_id": unit_id,
+                "overall": "pass",
+                "source": "practice_conceptual",
+            })
+            verdict_ev = f""",
+vev AS (
+    INSERT INTO events (type, payload)
+    SELECT 'verdict.issued',
+           {sql_str(verdict_payload)}::jsonb
+    WHERE NOT EXISTS (
+        SELECT 1 FROM events
+        WHERE type = 'verdict.issued'
+          AND payload->>'student_id' = {sql_str(str(student_id))}
+          AND payload->>'unit_id' = {sql_str(unit_id)}
+          AND payload->>'overall' = 'pass'
+    )
+    RETURNING id
+)"""
+
+        persist_sql = f"""BEGIN;
 WITH att AS (
     INSERT INTO practice_attempts (
         student_id, unit_id, passed, pass_count, total_checks, results_json, submitted_files
@@ -3700,7 +3787,7 @@ WITH att AS (
            )
     FROM att
     RETURNING id
-)
+){verdict_ev}
 SELECT id, created_at FROM att;
 COMMIT;
 """ % (

@@ -27,8 +27,8 @@ How any session — human or AI — picks this project up without losing context
 /build-state.md           live progress (where we are)
 /AGENTS.md                this file
 /docs                     specs: lesson-flow-spec
-/.agents/skills           repo skills: keel-copy (voice), keel-unit (lessons)
+/.agents/skills           repo skills: shiffman-style-lessons (voice & lesson authoring)
 /platform                 the code: platform/cli (grading CLI, created at S0.3), platform/grading (grading-core service + Postgres schema, created at S1.1), platform/app (learner app, created at S2.3)
-/content                  units, checks, rubrics, prompts, golden sets, faq, personas, curriculum map, gates (created at Stage 0)
+/content                  units, checks, rubrics, prompts, golden sets, faq, personas, curriculum map & ledger, gates (created at Stage 0)
 /scratch                  throwaway trial drafts; never ships, never validated
 ```

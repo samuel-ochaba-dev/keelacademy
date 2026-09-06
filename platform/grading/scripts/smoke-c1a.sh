@@ -116,10 +116,7 @@ INSERT INTO students (email, display_name) VALUES
     ('dave@keel.test', 'Dave');
 
 INSERT INTO enrollments (student_id, unit_id, status)
-SELECT id, '0.1', 'active' FROM students WHERE email IN ('alice@keel.test', 'bob@keel.test', 'dave@keel.test');
-
-INSERT INTO enrollments (student_id, unit_id, status)
-SELECT id, '0.2', 'active' FROM students WHERE email IN ('alice@keel.test');
+SELECT id, '0.2', 'active' FROM students WHERE email IN ('alice@keel.test', 'bob@keel.test', 'dave@keel.test');
 
 INSERT INTO enrollments (student_id, unit_id, status)
 SELECT id, '0.3', 'active' FROM students WHERE email IN ('alice@keel.test');

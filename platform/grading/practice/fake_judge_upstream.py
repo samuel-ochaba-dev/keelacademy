@@ -176,13 +176,13 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
                     last_user_msg = str(m.get("content", "")).lower()
                     break
             if any(w in last_user_msg for w in ["langchain", "llama", "chatgpt", "fine-tune", "finetune", "rag pipeline", "we build", "vector database"]):
-                reply_content = "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT and it hallucinated supplier discount rules. I'm not looking for another science experiment that makes my specialists double-check everything. How does that help us?"
+                reply_content = "Look, before we talk about tech stacks or specific tools, we already tried ChatGPT and it hallucinated store discount rules. I'm not looking for another science experiment that makes my specialists double-check everything. How does that help us?"
             elif any(w in last_user_msg for w in ["volume", "how many", "per month", "turnaround", "how long", "bottleneck"]):
-                reply_content = "Right now we're processing around 4,000 transactions a month across our commercial suppliers. Triage takes 2 to 3 business days per dispute. Our senior specialists are spending roughly 60% of their day just reading packing slips and damage reports and matching them against purchase orders and return terms."
+                reply_content = "Right now we're processing around 4,000 transactions a month across our consumer brands. Triage takes 2 to 3 business days per dispute. Our senior specialists are spending roughly 60% of their day just reading delivery slips and damage reports and matching them against customer orders and store return policies."
             elif any(w in last_user_msg for w in ["summary", "to summarize", "in summary", "it sounds like", "so the real bottleneck"]):
-                reply_content = "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured contract verification piece with a verifiable audit trail without my team having to redo the work, we have a real project."
+                reply_content = "Exactly. That is precisely what keeps me up at night. If you can solve the unstructured policy verification piece with a verifiable audit trail without my team having to redo the work, we have a real project."
             elif any(w in last_user_msg for w in ["contract", "entitlement", "exclusion", "audit", "compliance", "hallucinat", "root cause", "underlying"]):
-                reply_content = "The real nightmare isn't just extracting OCR fields — we can scan PDFs. The hard part is verifying line items and credits accurately against complex supplier master agreements with a verifiable audit trail compliance can trust."
+                reply_content = "The real nightmare isn't just extracting OCR fields — we can scan PDFs. The hard part is verifying line items and refunds accurately against complex store master policies with a verifiable audit trail compliance can trust."
             else:
                 reply_content = "That's a good question. What else would you like to explore about our workflow?"
         # Simulation Evaluation Judge
@@ -207,7 +207,7 @@ class FakeJudgeHandler(BaseHTTPRequestHandler):
                     "passing_threshold_pct": 70.0,
                     "summary": "Solid discovery call. Successfully surfaced root operational pain and workflow metrics without premature pitching.",
                     "criteria": [
-                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 100.0, "passed": True, "feedback": "Uncovered supplier contract verification and compliance audit pain.", "evidence": "Where is the real underlying bottleneck in supplier contract verification?"},
+                        {"id": "uncovered-underlying-problem", "weight": 0.35, "score_pct": 100.0, "passed": True, "feedback": "Uncovered store policy verification and compliance audit pain.", "evidence": "Where is the real underlying bottleneck in supplier contract verification?"},
                         {"id": "explored-process-metrics", "weight": 0.25, "score_pct": 100.0, "passed": True, "feedback": "Explored 4,000/mo volume and 2-3 day triage turnaround.", "evidence": "What is your current monthly transaction volume and how long does manual triage take?"},
                         {"id": "avoided-premature-pitching", "weight": 0.20, "score_pct": 80.0, "passed": True, "feedback": "Pivoted after initial objection into consultative discovery.", "evidence": "Before talking tools, what is your current monthly transaction volume"},
                         {"id": "accurate-problem-summary", "weight": 0.20, "score_pct": 100.0, "passed": True, "feedback": "Accurately summarized the bottleneck.", "evidence": "core bottleneck is not basic OCR extraction, but deterministic supplier contract verification"}

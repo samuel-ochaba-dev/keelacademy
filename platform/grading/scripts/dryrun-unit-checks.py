@@ -266,6 +266,10 @@ def main() -> int:
 
     os.environ.setdefault("KEEL_SANDBOX_IMAGE", DEFAULT_IMAGE)
     root = content_root()
+    matches = sorted(root.glob(f"units/*/{args.unit}/unit.yaml"))
+    if not matches:
+        print(f"dry-run {args.unit}: unit not authored on disk (authoring reset, skipped)")
+        return 0
 
     exit_build = 0
     if not args.only_completion:

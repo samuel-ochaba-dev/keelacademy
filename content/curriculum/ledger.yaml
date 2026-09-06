@@ -1,0 +1,41 @@
+version: 1
+project:
+  name: "OmniCart Operations Intake & Return Dispute Pipeline"
+  anchor_client:
+    name: "OmniCart Operations"
+    description: "120-person regional multi-brand e-commerce retailer and marketplace fulfillment hub processing thousands of customer orders across hundreds of consumer brands. Processes ~4,000 customer return requests, damaged parcel claims, courier delivery slips, and merchant payout disputes per month."
+    pain_point: "Customer support and warehouse clerks manually cross-reference order receipts, courier waybills, unboxing photos, and store return policies; disputes sit unreviewed for 2-3 days, resulting in frustrated shoppers, fraudulent refund payouts, and unrecovered courier damage claims."
+    stakeholders:
+      - "VP of Operations (Sarah Jenkins): wants return triage cycle time cut from 2-3 days to under 1 hour with zero lost customer tickets"
+      - "CFO: wants every refund, replacement, and merchant chargeback tracked down to exact integer cents with an immutable audit trail"
+      - "Trust & Safety / Policy Officer: enforces 14-day statutory return policies, warranty clauses, and photo evidence standards for damage claims"
+  parallel_entity:
+    name: "Apex Freight Logistics"
+    description: "Regional third-party logistics (3PL) freight broker and carrier audit clearinghouse headquartered in Indianapolis. Audits approximately 3,500 carrier document packages each month (rate confirmations, bills of lading, driver detention logs, damage claims, carrier invoices) across 300 active motor carriers."
+    role: "Used exclusively in worked examples and scaffolded demonstrations so students learn the exact structural pattern on a parallel domain without having the OmniCart solution spoon-fed."
+  canonical_conventions:
+    monetary_values: "Strictly integer cents (e.g., $45.20 is stored as 4520, never float 45.20)"
+    identifier_prefixes:
+      claims: "CLM-##### (e.g. CLM-20841)"
+      invoices: "INV-#####"
+      orders: "ORD-##### (e.g. ORD-8821)"
+      merchants: "MCH-#### or VND-####"
+      deliveries: "DEL-##### or TRK-#####"
+    stack_evolution:
+      phase_0: "Docker environment, plain text / markdown briefs, manual baseline triage"
+      phase_1: "Python 3.12, Pydantic v2, pytest, asyncio, FastAPI intake"
+      phase_2: "Direct LLM API calling, token math, latency/cost budgets"
+      phase_3: "Structured outputs (JSON Schema/Pydantic), retries, fallbacks, system prompts"
+      phase_4: "Chunking, embeddings, vector search (Qdrant), hybrid reranking, store policy RAG"
+      phase_5: "Tool schemas, single/multi-agent loops, state graphs (LangGraph), human-in-the-loop"
+      phase_6: "Fine-tuning, LoRA/QLoRA on customer return dispute records"
+      phase_7: "Golden datasets, LLM-as-judge evals, Langfuse observability"
+      phase_8: "Model routing, prompt caching, token cost optimization"
+      phase_9: "Prompt injection defense, return fraud guardrails, compliance audit logs"
+      phase_10: "Docker containerization, CI/CD, production deployment, telemetry"
+      phase_11: "Business scoping, proposals, pricing, discovery simulations"
+      phase_12: "Capstone end-to-end client deployment"
+
+# Chronological ledger of units.
+units: []
+

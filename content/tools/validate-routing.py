@@ -106,8 +106,9 @@ def main() -> int:
             print(f"PASS {rel}")
 
     if not rule_files and not failures:
-        print("error: no rule files found under content/routing/", file=sys.stderr)
-        return 1
+        print(f"PASS (0 rule files found under {ROUTING_DIR.relative_to(REPO)})")
+        print("\nAll 0 routing rule file(s) valid.")
+        return 0
     if failures:
         print(f"\n{failures} invalid routing rule file(s).")
         return 1

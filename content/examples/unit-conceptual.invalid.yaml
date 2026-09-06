@@ -17,7 +17,7 @@ practice:
 build:
   deliverable: "Submit a written analysis."
   submission: file
-  data_variant: omnisupply@v0
+  data_variant: omnicart@v0
 verify:
   layers: [2]
 gate:

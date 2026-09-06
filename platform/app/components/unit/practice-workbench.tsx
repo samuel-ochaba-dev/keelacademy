@@ -30,6 +30,7 @@ export function PracticeWorkbench({
 }: PracticeWorkbenchProps) {
   const editableFiles = manifest?.editable_files ?? [];
   const baseFiles = manifest?.base_files ?? {};
+  const isConceptual = manifest?.kind === "conceptual";
 
   // Form state for each editable file
   const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
@@ -40,9 +41,10 @@ export function PracticeWorkbench({
     return initial;
   });
 
-  const [activeFile, setActiveFile] = useState<string>(
-    editableFiles[0] ?? "schemas.py",
-  );
+  // Conceptual units submit one prose answer, not a file map.
+  const [answer, setAnswer] = useState("");
+
+  const [activeFile, setActiveFile] = useState<string>(editableFiles[0] ?? "");
   const [isPending, startTransition] = useTransition();
   const [latestResult, setLatestResult] = useState<PracticeAttemptResult | null>(
     null,
@@ -66,12 +68,15 @@ export function PracticeWorkbench({
       reset[fname] = baseFiles[fname] ?? "";
     }
     setFileContents(reset);
+    setAnswer("");
   }
 
   function handleSubmit() {
     setErrorBanner(null);
     startTransition(async () => {
-      const res = await runPracticeAttemptAction(unitId, fileContents);
+      const res = isConceptual
+        ? await runPracticeAttemptAction(unitId, {}, answer)
+        : await runPracticeAttemptAction(unitId, fileContents);
       if (res.state === "ok") {
         setLatestResult(res.data);
         const newSummary: PracticeAttemptSummary = {
@@ -135,49 +140,71 @@ export function PracticeWorkbench({
           </div>
         </div>
 
-        {/* File tabs */}
-        <div className="flex items-center gap-1 p-2 bg-ground-iron border-b border-phosphor-blue-black overflow-x-auto">
-          {editableFiles.map((fname) => (
-            <button
-              key={fname}
-              type="button"
-              onClick={() => setActiveFile(fname)}
-              className={`px-3.5 py-1.5 rounded text-[13px] font-code-mono transition-colors ${
-                activeFile === fname
-                  ? "bg-carbon-veil text-lime-pulse font-medium"
-                  : "text-moss-70 hover:text-phosphor-white"
-              }`}
-            >
-              {fname}
-            </button>
-          ))}
-        </div>
+        {/* File tabs (code units only) */}
+        {!isConceptual && (
+          <div className="flex items-center gap-1 p-2 bg-ground-iron border-b border-phosphor-blue-black overflow-x-auto">
+            {editableFiles.map((fname) => (
+              <button
+                key={fname}
+                type="button"
+                onClick={() => setActiveFile(fname)}
+                className={`px-3.5 py-1.5 rounded text-[13px] font-code-mono transition-colors ${
+                  activeFile === fname
+                    ? "bg-carbon-veil text-lime-pulse font-medium"
+                    : "text-moss-70 hover:text-phosphor-white"
+                }`}
+              >
+                {fname}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Code editor area */}
+        {/* Editor area */}
         <div className="p-4 bg-void-black/80 space-y-2">
           <div className="flex items-center justify-between text-[11px] font-code-mono text-moss-70">
             <span>
-              Editing: <span className="text-phosphor-white">{activeFile}</span>
+              {isConceptual ? (
+                <>Editing: <span className="text-phosphor-white">brief.md</span></>
+              ) : (
+                <>
+                  Editing: <span className="text-phosphor-white">{activeFile}</span>
+                </>
+              )}
             </span>
-            <button
-              type="button"
-              onClick={() => handleResetFile(activeFile)}
-              disabled={isPending}
-              className="hover:text-phosphor-white transition-colors"
-            >
-              Reset this file
-            </button>
+            {!isConceptual && (
+              <button
+                type="button"
+                onClick={() => handleResetFile(activeFile)}
+                disabled={isPending}
+                className="hover:text-phosphor-white transition-colors"
+              >
+                Reset this file
+              </button>
+            )}
           </div>
 
-          <textarea
-            aria-label={`Code editor for ${activeFile}`}
-            value={fileContents[activeFile] ?? ""}
-            onChange={(e) => handleFileChange(activeFile, e.target.value)}
-            disabled={isPending || !isEnrolled}
-            rows={16}
-            spellCheck={false}
-            className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
-          />
+          {isConceptual ? (
+            <textarea
+              aria-label="Answer editor for brief.md"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              disabled={isPending || !isEnrolled}
+              rows={18}
+              className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
+              placeholder={"Paste your complete brief.md here, including the four mandated section headings, before submitting it for grading."}
+            />
+          ) : (
+            <textarea
+              aria-label={`Code editor for ${activeFile}`}
+              value={fileContents[activeFile] ?? ""}
+              onChange={(e) => handleFileChange(activeFile, e.target.value)}
+              disabled={isPending || !isEnrolled}
+              rows={16}
+              spellCheck={false}
+              className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
+            />
+          )}
         </div>
 
         {/* Submit action strip */}
@@ -191,11 +218,11 @@ export function PracticeWorkbench({
                 >
                   Sign in
                 </Link>{" "}
-                and enroll to run the checks here.
+                and enroll to submit your work here.
               </p>
             ) : !isEnrolled ? (
               <p>
-                Running the checks needs an active enrollment in this unit.{" "}
+                Submitting for grading needs an active enrollment in this unit.{" "}
                 <Link
                   href={`/map`}
                   className="text-fern-link underline hover:text-phosphor-white"
@@ -203,6 +230,11 @@ export function PracticeWorkbench({
                   Enroll from your progress map
                 </Link>
                 .
+              </p>
+            ) : isConceptual ? (
+              <p>
+                The evaluation judge reads your brief against the unit rubric and
+                quotes verbatim evidence for every criterion.
               </p>
             ) : (
               <p>
@@ -222,8 +254,10 @@ export function PracticeWorkbench({
               {isPending ? (
                 <>
                   <span className="h-2 w-2 rounded-full bg-void-black animate-pulse" />
-                  Running the checks
+                  {isConceptual ? "Grading your brief" : "Running the checks"}
                 </>
+              ) : isConceptual ? (
+                "Submit the brief for grading"
               ) : (
                 "Run the checks"
               )}

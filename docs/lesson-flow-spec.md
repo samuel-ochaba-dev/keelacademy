@@ -23,8 +23,8 @@ effect (stopping mid-unit is a hook, not a failure).
   state. U1 and U2 copy is app-owned because it is structural (names, times,
   counts pulled from real data), not teaching. If a line needs teaching
   voice, it belongs in `learn.md`, not here.
-- Copy discipline (binding, from platform/app/AGENTS.md): Full Comeau voice per
-  `.agents/skills/keel-copy` on anything the student reads as prose; terse
+- Copy discipline (binding, from platform/app/AGENTS.md): Shiffman style per
+  `.agents/skills/shiffman-style-lessons` on anything the student reads as prose; terse
   surfaces (exit cards, boundary markers, error copy) stay short,
   declarative, active, concrete. No internal architecture names. "Not
   yet", never "fail". Uppercase only for short data-state chips.

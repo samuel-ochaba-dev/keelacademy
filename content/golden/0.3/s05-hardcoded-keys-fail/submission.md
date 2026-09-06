@@ -1,1 +1,0 @@
-Docker containers isolate test runs. You should set hard billing limits on OpenAI so you don't spend too much money. You can paste your API key directly into your test scripts like OPENAI_API_KEY = "sk-12345" so it is easy to run.

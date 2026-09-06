@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Progress map",
   description:
-    "Every phase and unit in the OmniSupply operations pipeline, with your enrollment, submission, and gate status.",
+    "Every phase and unit in the OmniCart operations pipeline, with your enrollment, submission, and gate status.",
   robots: { index: false },
 };
 
@@ -92,7 +92,7 @@ export default async function MapPage({ searchParams }: Props) {
       <header className="shell border-b border-[color:var(--line-on-dark)] pb-12 pt-14">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div className="max-w-[62ch]">
-            <p className="eyebrow">OmniSupply Operations · your build map</p>
+            <p className="eyebrow">OmniCart Operations · your build map</p>
             <h1 className="heading-xl mt-4">The whole system, phase by phase</h1>
             <p className="lead mt-5">
               Thirteen phases, one invoice reconciliation and dispute triage
@@ -191,7 +191,7 @@ export default async function MapPage({ searchParams }: Props) {
                 needs.
               </p>
             </div>
-            <span className="chip chip-outline">Anchor client: OmniSupply Operations</span>
+            <span className="chip chip-outline">Anchor client: OmniCart Operations</span>
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

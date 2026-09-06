@@ -20,7 +20,7 @@ practice:
 build:
   deliverable: "Submit a written analysis of prompt decomposition."
   submission: file
-  data_variant: omnisupply@v0
+  data_variant: omnicart@v0
 verify:
   layers: [2]
   rubric: rubrics/0.1.1/v1.yaml

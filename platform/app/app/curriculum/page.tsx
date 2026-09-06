@@ -29,7 +29,7 @@ export default function CurriculumPage() {
         </h1>
         <p className="lead mt-5">
           Here is the whole route before you pay for step one. You build an
-          invoice reconciliation and dispute triage pipeline for OmniSupply
+          return reconciliation and dispute triage pipeline for OmniCart
           Operations, a simulated B2B wholesale distributor with messy
           real-world data. Each phase adds a part the pipeline needs to run.
           Python and APIs first. Then models, prompts, retrieval, and agents.

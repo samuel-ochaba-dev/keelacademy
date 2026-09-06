@@ -35,7 +35,7 @@ const THEME_VARIABLES = {
   tertiaryTextColor: "#b0b8ac",
   tertiaryBorderColor: "#283327",
   lineColor: "#8a9585",
-  textColor: "#b0b8ac",
+  textColor: "#d5dad2",
   mainBkg: "#151918",
   nodeBorder: "#283327",
   nodeTextColor: "#d5dad2",
@@ -43,7 +43,7 @@ const THEME_VARIABLES = {
   clusterBorder: "#283327",
   edgeLabelBackground: "#0f1211",
   titleColor: "#f4f4f6",
-  fontFamily: "var(--font-inter-variable)",
+  fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   fontSize: "14px",
 };
 
@@ -65,7 +65,7 @@ export function MermaidRuntime() {
           securityLevel: "strict",
           theme: "base",
           themeVariables: THEME_VARIABLES,
-          flowchart: { curve: "basis", padding: 12, useMaxWidth: true },
+          flowchart: { curve: "basis", padding: 12, useMaxWidth: true, htmlLabels: true },
         });
         return mermaid;
       });

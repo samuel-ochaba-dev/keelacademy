@@ -19,7 +19,7 @@ practice:
 build:
   deliverable: "Build a dispute-notes extractor"
   submission: repo
-  data_variant: omnisupply@v3
+  data_variant: omnicart@v3
 gate:
   unlocks: ["3.2.2"]
 unstuck:

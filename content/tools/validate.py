@@ -62,11 +62,12 @@ FIXTURE_CASES = [
 
 # (schema, glob relative to content/, may_be_empty)
 DISCOVERED = [
-    ("unit.schema.json", "units/**/unit.yaml", False),
-    ("map.schema.json", "curriculum/*.yaml", True),
+    ("unit.schema.json", "units/**/unit.yaml", True),
+    ("map.schema.json", "curriculum/phases.yaml", False),
+    ("ledger.schema.json", "curriculum/ledger.yaml", True),
     ("variant.schema.json", "variants/*.yaml", True),
     ("persona.schema.json", "personas/*.yaml", True),
-    ("guard-eval.schema.json", "evals/guard/*.yaml", False),
+    ("guard-eval.schema.json", "evals/guard/*.yaml", True),
     ("commitment.schema.json", "commitment/*.yaml", False),
     ("diagnostic.schema.json", "diagnostic/*.yaml", False),
 ]

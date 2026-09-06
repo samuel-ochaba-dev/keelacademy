@@ -12,6 +12,7 @@
 
 export type PracticeManifest = {
   unit_id: string;
+  kind?: "code" | "conceptual";
   base_rel: string;
   readme_markdown: string;
   base_files: Record<string, string>;
@@ -207,6 +208,7 @@ export function submitPracticeAttempt(input: {
   studentId: number;
   unitId: string;
   files: Record<string, string>;
+  answer?: string;
 }): Promise<PracticeResult<PracticeAttemptResult>> {
   return practiceFetch<PracticeAttemptResult>("/practice/attempt", {
     method: "POST",
@@ -214,6 +216,7 @@ export function submitPracticeAttempt(input: {
       student_id: input.studentId,
       unit_id: input.unitId,
       files: input.files,
+      answer: input.answer,
     }),
   });
 }

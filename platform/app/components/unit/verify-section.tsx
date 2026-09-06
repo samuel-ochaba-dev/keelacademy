@@ -5,17 +5,17 @@ const LAYER_INFO = [
   {
     num: 1,
     name: "Automated checks",
-    note: "The automated checks below run your code in isolation. They show Passed or Not yet.",
+    note: "The automated checks below run your work in isolation. They show Passed or Not yet.",
   },
   {
     num: 2,
     name: "Rubric review",
-    note: "A grader reads your commit against the rubric below and quotes your code for every criterion.",
+    note: "A grader reads your submission against the rubric below and quotes your work for every criterion.",
   },
   {
     num: 3,
     name: "Defend your work",
-    note: "You answer questions generated from the code you wrote.",
+    note: "You answer questions generated from the work you submitted.",
   },
   {
     num: 4,
