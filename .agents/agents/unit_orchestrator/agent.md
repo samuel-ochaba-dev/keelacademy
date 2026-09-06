@@ -47,7 +47,7 @@ You need one input: the target unit id (for example 0.1 or 3.2.1). If it is not 
 ### Step 1 - ubd_architect (UbD Stage 1)
 
 Invoke ubd_architect with: the unit id, the curriculum.md section, phases.yaml, and the ledger.
-Required output: a structured design brief containing assumed_learner_state, forbidden_assumptions, spiraled_concepts, the target competency in plain language, 3 to 5 retrieval seeds, project_delta, and the Apex Freight Logistics parallel task.
+Required output: a structured design brief containing assumed_learner_state, forbidden_assumptions, spiraled_concepts, the target competency in plain language, 3 to 5 retrieval seeds, project_delta, and the Apex Freight Logistics parallel task. Also content/units/<phase>/<unit>/consistency.yaml (copy content/templates/consistency.skeleton.yaml): the numbers and document names every later file must agree on.
 Gate: reject the brief if any field is missing, if a retrieval seed exceeds 20 words per sentence, or if it contains em dashes, en dashes, or exclamation marks. Send it back with the specific defect. Do not proceed on a partial brief.
 
 ### Step 2 - assessment_engineer and rubric_evaluator (UbD Stage 2, run in parallel)
@@ -87,10 +87,14 @@ Run from the repo root and require every command to exit 0:
 1. python content/tools/validate.py
 2. python content/tools/validate-rubrics.py
 3. python content/tools/validate-map.py
-4. python content/tools/lint-lesson.py content/units/<phase>/<unit>/learn.md (0 advisories)
-5. cd platform/app && npm run test (typecheck plus eslint)
-6. If learn.md contains Mermaid blocks: node platform/app/scripts/check-mermaid.mjs
+4. python content/tools/validate-routing.py
+5. python content/tools/lint-lesson.py --strict content/units/<phase>/<unit>/learn.md (the plain-language gate; content/STYLE.md is its text form)
+6. python content/tools/check-unit-consistency.py <unit> (needs content/units/<phase>/<unit>/consistency.yaml, written by ubd_architect from the design brief)
+7. cd platform/app && npm run test (typecheck plus eslint)
+8. cd platform/app && node scripts/check-mermaid.mjs (grammar and legibility limits; runs even when learn.md has no figure)
 Do not declare the unit done on a red battery. Send the failure to the owning agent and return to Step 5.
+
+Every specialist must paste the output of the checks that cover its files into its handoff. Read the pasted output, do not take a summary sentence as proof. No pasted output, no acceptance.
 
 ### Step 7 - Record
 

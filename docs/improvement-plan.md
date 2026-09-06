@@ -27,7 +27,7 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 - [x] 2.3 Skeletons in `content/templates/`: `learn.skeleton.md`, `unit.skeleton.yaml`, `completion.skeleton.md`, `worked-example.skeleton.md`, `grade.skeleton.yaml`, `judge.skeleton.md`. Proof: files exist and the author contract points at them.
 - [x] 2.4 `content/STYLE.md`: the shared plain-language and copy rules in one place (under 60 lines). Agent contracts reference it instead of repeating it. Proof: each of the six contracts links to it.
 - [x] 2.5 Wire 2.1 and 2.2 into `.githooks/pre-push` and `.github/workflows/content-gate.yml`. Proof: files updated; hook runs locally.
-- [ ] 2.6 `unit_orchestrator` battery lists the new gates and requires pasted script output from every specialist. Proof: grep.
+- [x] 2.6 `unit_orchestrator` battery lists the new gates and requires pasted script output from every specialist. Proof: grep.
 
 ## M3. Repo memory and docs
 
@@ -81,3 +81,4 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 - 2026-09-07 00:52 M2.2 pushed: check-unit-consistency.py plus content/units/phase-0/0.1/consistency.yaml (canonical numbers and documents). Passes on 0.1; fails when the FAQ teaches an orphan amount or the lesson miscounts the checks.
 - 2026-09-07 00:58 M2.3, M2.4 pushed: content/STYLE.md (one page of shared rules, mirrors the linter word list) and nine skeletons in content/templates/; all six agent contracts now point at both.
 - 2026-09-07 01:05 M2.5 and M4.2 pushed: pre-push hook and content-gate.yml now run lint --strict, check-unit-consistency for every unit, and check-mermaid (CI installs node). validate-routing and validate-guard-evals pass with a note when their directory is absent (both were red on the canonical tree, guard-evals still is on main).
+- 2026-09-07 01:08 M2.6 pushed: orchestrator battery has 8 gates incl. strict lint, consistency and mermaid; pasted proof output is mandatory; ubd_architect now owns consistency.yaml. M2 complete.

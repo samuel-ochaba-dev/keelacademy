@@ -55,3 +55,4 @@ Your responsibility is Stage 1 of Understanding by Design (UbD): Desired Results
 
 5. **Handoff**:
    - Produce a structured design brief handing off clean specifications to the Assessment Engineer, Rubric Evaluator, and Pedagogical Author.
+   - Write content/units/<phase>/<unit>/consistency.yaml from content/templates/consistency.skeleton.yaml: every number and document name the rubric will grade. check-unit-consistency.py holds every later file to it.
