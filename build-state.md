@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-06
 **Stage:** Content Production Track
-**Status:** Unit 0.1 deleted per user request to enable re-authoring under the new plain-language standard (clean zero-authored-units state). All validation suites clean.
+**Status:** Unit 0.1 re-authored from scratch under the plain-language standard by the Backward Design subagent team (unit_orchestrator run, 2026-09-06). learn.md FK Grade 3.4, 0 sentences over 20 words, 0 lint advisories. Full battery green. Judge calibration against golden/0.1 not yet run live (needs OPENAI_API_KEY).
 
 > ## Resume protocol — read this first
 > 1. Read this file, then skim build-plan.md §4 for the current stage's exit criteria.
@@ -10,7 +10,7 @@
 > 3. At session end: check off finished milestones, update Status/Next action, append any decisions or blockers (dated). Milestones are tiny by design — if one can't finish in a sitting, split it and record the split here.
 
 ## Next action
-Re-author Unit 0.1 from scratch following the new plain-language standard (Flesch-Kincaid Grade Level <= 8, sentence ceiling <= 20 words, simple terms accessible to non-native English speakers).
+Verify Unit 0.1 live: run the judge calibration on `content/golden/0.1/` (7 submissions, needs OPENAI_API_KEY; expect 7/7 overall and 35/35 criteria) and open the rendered unit page; fix anything found. Then author Unit 0.2 via `unit_orchestrator`.
 
 ---
 
@@ -102,6 +102,17 @@ Re-author Unit 0.1 from scratch following the new plain-language standard (Flesc
 ---
 
 ## Decisions log
+
+- **2026-09-06 — Unit 0.1 re-authored & verified via Backward Design subagent team (first `unit_orchestrator` run):**
+  - **Orchestrator:** Step 0 resume protocol run (Next action confirmed, `content/units/` absent, ledger `units: []`, baseline battery green). Work staged on branch `author/unit-0.1` so each specialist could clone the accepted upstream outputs; design brief kept at `scratch/design-brief-0.1.md` (throwaway per AGENTS.md). Two orchestrator decisions recorded: (a) the completion problem asks for the full five-heading brief, not one section, because conceptual grading runs the unit rubric with `pass_rule: all`; (b) the banned-words gate is its own rubric criterion `no-technology-words` since conceptual units have no Layer 1; (c) after the playtest the word floor dropped from 300 to 250 because the floor forced padding.
+  - **UbD Architect:** Design brief with learner baseline (`forbidden_assumptions` lists every technology word and tool), zero-jargon target competency, essential question, five-heading deliverable spec, four proposed criteria, five retrieval seeds, `project_delta` = `omnicart-system/docs/client-brief.md`, and the Apex Freight parallel task with three named stakeholders (Marcus Bell, Priya Nair, Dana Okafor).
+  - **Assessment Engineer:** `worked-example/README.md` (Apex model brief, 336 words, 7+7 steps, four annotation blocks) and `completion/README.md` (fact sheet, 9 rules, `The five checks`, template, 14-question self-check, folder instructions). Proof: model brief passes every rule by script; empty template fails word count and step checks.
+  - **Rubric Evaluator:** `content/rubrics/0.1/v1.yaml` (5 criteria: `no-technology-words`, `problem-stated-plainly`, `three-stakeholders-differ`, `current-process-traceable`, `target-process-measurable`), `content/prompts/judge-0.1.md` (868 words, `RUBRIC_INSERT` marker, criteria-array JSON contract, quoted-evidence mandate, injection defense), `content/golden/0.1/` with README matrix and 7 pre-graded submissions (s01 textbook pass, s02-s06 each isolating exactly one failing criterion, s07 minimal pass; 309 to 453 words; banned words only in s02).
+  - **Pedagogical Author:** `learn.md` unit script (1,639 prose words, six `::: phase` blocks, 3/1/1/1/1/1 `##` headings, two Mermaid figures, no seed words in headings), `unit.yaml` (conceptual, 5 seeds, 4 unstuck refs), `content/faq/0.1.md` (4 before/after notes). Owner direction honoured: no `Predict, then check` or `Gotcha` blockquotes; pacing by asides, recaps and text blocks.
+  - **Blind Playtester:** Round 1 cold write finished in 58 minutes and surfaced 25 findings (lesson said five checks while the README listed nine rules; README rules omitted the two numbers, the four papers and the under 1 hour target that the rubric grades; FAQ leaked an untaught 50000 cents threshold; `#` marks, folder path, `ticket`, `delivery slip`, `unboxing photo`, `VP` never explained; idioms; an unsourced 400 cases figure; 300-word floor forced padding). All routed to owning agents and fixed. Round 2 confirmed 24/25 closed and found 7 wording alignments (old start point in four places, four parts vs five headings, wait stated for all cases, how to count words); applied verbatim. Second cold write: 313 body words with no padding, 14/14 self-checks yes.
+  - **Validation Battery:** `validate.py` PASS (incl. new ledger entry), `validate-rubrics.py` PASS, `validate-map.py` PASS, `validate-routing.py` PASS (`content/routing/0.1.yaml` re-added), `lint-lesson.py` 0 advisories (FK Grade 3.4, Flesch RE 87.0), `npm run test` (tsc + eslint) exit 0, `check-mermaid.mjs` 2/2. Repo-wide scan of all 23 unit files: 0 em dashes, 0 en dashes, 0 exclamation marks (excluding the mandatory `<!-- RUBRIC_INSERT -->` marker), 0 technology words in student-facing prose.
+  - **Not done:** live judge calibration (no API key in this session); full-stack rendered playthrough in the app.
+  - Ledger: Unit 0.1 appended to `content/curriculum/ledger.yaml` (concepts unlocked, anti-prerequisites, project working tree, seeds, narrative anchor).
 
 - **2026-09-06 — Unit 0.1 deleted for plain-language re-authoring:**
   - Removed all authored content, rubrics, golden calibration sets, prompts, routing rules, FAQ assets, and gate for Unit 0.1 (`content/units/phase-0/0.1/`, `content/rubrics/0.1/`, `content/golden/0.1/`, `content/prompts/judge-0.1.md`, `content/routing/0.1.yaml`, `content/faq/0.1.md`, and `content/gates/unit-0-1.yaml`).

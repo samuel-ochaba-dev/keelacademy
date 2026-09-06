@@ -105,7 +105,7 @@ Three lines, one each. Name the role, then say what done means to that person. T
 
 ### Part three: today, step by step
 
-Write 4 to 7 numbered steps. Start when the return request arrives. End when the refund is paid or denied. Name the four papers a clerk reads: the order receipt, the delivery slip, the unboxing photo, and the return policy. Do not write the clerk checks the files. Name each paper.
+Write 4 to 7 numbered steps. Start when the box with the shopper's note arrives at the dock. End when the refund is paid or denied. Name the four papers a clerk reads: the order receipt, the delivery slip, the unboxing photo, and the return policy. Do not write the clerk checks the files. Name each paper.
 
 Try this now. Picture CLM-20841 and write the steps as you saw them on the dock.
 
@@ -115,7 +115,7 @@ Same start, same end, 4 to 7 steps. Three things must show up. The target wait, 
 
 ```mermaid Figure 2: Clean cases move fast, hard cases go to a person
 flowchart LR
-    R["Return request arrives"] --> K["Four papers checked"]
+    R["Box arrives at the dock"] --> K["Four papers checked"]
     K --> C["Clean case: refund or deny within 1 hour"]
     K --> H["Hard case: missing photo, late return, or large amount"]
     H --> P["A person reviews and decides"]
@@ -145,7 +145,7 @@ Below, the app shows a finished brief for a different company, Apex Freight Logi
 
 ## Write the one page OmniCart will keep
 
-Write your OmniCart client brief with these five headings, in this order.
+Write your OmniCart client brief with these five headings, in this order. That is the title line plus the four parts.
 
 ```text
 # OmniCart Operations: Client Brief

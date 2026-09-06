@@ -1,12 +1,12 @@
 # Your turn: write the OmniCart client brief
 
-You just read a client brief for Apex Freight Logistics. Now you will write one for OmniCart. Use the facts below, follow the rules, and fill in the template. Plan for about 40 minutes of your hour. Do not use any tool but a plain text editor and your own head.
+You just read a client brief for Apex Freight Logistics. Now you will write one for OmniCart. Use the facts below, follow the rules, and fill in the template. Plan for about 40 minutes of your hour. Do not use any tool but a plain text editor and your own head. To count words, paste your text into any word counter, or count about ten words per line.
 
 ## What OmniCart told us
 
 - OmniCart Operations is a 120-person online store and shipping hub. It sells goods from hundreds of brands.
 - Each month, OmniCart gets about 4,000 return requests, damaged parcel claims, courier delivery slips, and payout disputes.
-- Today, a return request waits 2 to 3 days before a clerk looks at it.
+- Today, each case waits 2 to 3 days before a clerk looks at it.
 - The target is a decision in under 1 hour, with zero lost tickets.
 - Sarah Jenkins is the VP of Operations. She wants the wait cut from 2 to 3 days to under 1 hour, and no ticket lost.
 - A ticket is one case in the queue. A claim, a return request, and a dispute are all tickets.
@@ -63,7 +63,7 @@ Copy this block into a new file and replace each line in angle brackets.
 
 ## How it works today
 
-<4 to 7 numbered steps, from return request to refund paid or denied>
+<4 to 7 numbered steps, from the box arriving at the dock to refund paid or denied>
 
 ## How it should work
 
