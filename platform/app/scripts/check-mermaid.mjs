@@ -13,7 +13,7 @@
  * check), and runs the real jison parser over every fence. Verified to reject a
  * bad arrow, an unclosed bracket and a misspelled `flowchart` keyword.
  *
- * Run from platform/app: node scripts/check-mermaid.mjs
+ * Run from platform/app: node scripts/check-mermaid.mjs   (add --no-limits to skip authoring limits)
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -119,6 +119,71 @@ try {
   // Expected.
 }
 
+/**
+ * Authoring limits. A lesson figure sits in a 35em reading column, often on a
+ * phone. These limits are what keeps labels legible without shrinking:
+ *   - at most MAX_NODES nodes, no subgraphs
+ *   - every label line at most MAX_WORDS words and MAX_CHARS characters; longer
+ *     labels must break with <br/> or be a markdown string ["`...`"] which wraps
+ *   - flowchart LR only for MAX_LR_NODES nodes or fewer (LR grows sideways)
+ *   - no em dash, en dash or exclamation mark inside labels (Keel copy rules)
+ * Run with --no-limits to parse only.
+ */
+const MAX_NODES = 6;
+const MAX_WORDS = 5;
+const MAX_CHARS = 28;
+const MAX_LR_NODES = 3;
+const LIMITS = !process.argv.includes("--no-limits");
+
+const LABEL_RE = /\[\s*"([^"]*)"\s*\]|\(\s*"([^"]*)"\s*\)|\{\s*"([^"]*)"\s*\}|\[\s*([^\]"`]+?)\s*\]/g;
+const NODE_RE = /(^|[\s>|])([A-Za-z_][\w-]*)\s*(\[|\(|\{)/g;
+
+function limitProblems(definition) {
+  const problems = [];
+  const lines = definition.split("\n").map((l) => l.trim()).filter(Boolean);
+  const header = lines[0] ?? "";
+  const dir = (header.match(/^(?:flowchart|graph)\s+(\w+)/) ?? [])[1] ?? "TB";
+  const body = lines.slice(1).join("\n");
+
+  if (/^\s*subgraph\b/m.test(body)) problems.push("uses a subgraph; keep lesson figures flat");
+
+  const nodes = new Set();
+  for (const m of body.matchAll(NODE_RE)) nodes.add(m[2]);
+  if (nodes.size > MAX_NODES) problems.push(`${nodes.size} nodes, limit ${MAX_NODES}`);
+  if (/^(LR|RL)$/.test(dir) && nodes.size > MAX_LR_NODES) {
+    problems.push(`flowchart ${dir} with ${nodes.size} nodes; use TD above ${MAX_LR_NODES} nodes`);
+  }
+
+  for (const m of body.matchAll(LABEL_RE)) {
+    const raw = (m[1] ?? m[2] ?? m[3] ?? m[4] ?? "").trim();
+    if (!raw) continue;
+    const markdown = raw.startsWith("`") && raw.endsWith("`");
+    if (/[\u2013\u2014!]/.test(raw)) problems.push(`label "${raw}" has a dash or exclamation mark`);
+    if (markdown) continue; // wraps at flowchart.wrappingWidth
+    for (const piece of raw.split(/<br\s*\/?>/i)) {
+      const words = piece.trim().split(/\s+/).filter(Boolean);
+      if (words.length > MAX_WORDS || piece.trim().length > MAX_CHARS) {
+        problems.push(
+          `label line "${piece.trim()}" is ${words.length} words / ${piece.trim().length} chars ` +
+            `(limit ${MAX_WORDS} words, ${MAX_CHARS} chars); break it with <br/> or use a markdown string`,
+        );
+      }
+    }
+  }
+  return problems;
+}
+
+// Prove the limit checker can still fail too.
+{
+  const bad = limitProblems(
+    'flowchart LR\n  A["one two three four five six seven"] --> B["x"]\n  B --> C["y"]\n  C --> D["z"]',
+  );
+  if (bad.length < 2) {
+    console.error("self-check failed: the limit checker accepted an oversized figure");
+    process.exit(2);
+  }
+}
+
 let checked = 0;
 let failed = 0;
 const root = contentRoot();
@@ -136,10 +201,17 @@ for (const file of markdownFiles(path.join(root, "units"))) {
     }
     try {
       await parse(match[1]);
-      console.log(`OK    ${rel}:${line}`);
     } catch (error) {
       failed += 1;
       console.log(`FAIL  ${rel}:${line}\n      ${String(error.message).split("\n").join("\n      ")}`);
+      continue;
+    }
+    const problems = LIMITS ? limitProblems(match[1]) : [];
+    if (problems.length) {
+      failed += 1;
+      console.log(`FAIL  ${rel}:${line}  legibility limits\n      ${problems.join("\n      ")}`);
+    } else {
+      console.log(`OK    ${rel}:${line}`);
     }
   }
 }
