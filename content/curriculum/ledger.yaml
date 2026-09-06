@@ -37,5 +37,35 @@ project:
       phase_12: "Capstone end-to-end client deployment"
 
 # Chronological ledger of units.
-units: []
+units:
+  - unit: "0.1"
+    title: "Meet the client: OmniCart Operations"
+    concepts_unlocked:
+      - "State a business problem in plain words before naming any fix"
+      - "Stakeholder trilemma: three leaders with three different definitions of done (speed, every cent tracked, rules followed)"
+      - "Client brief structure: the problem, who cares and why, how it works today, how it should work"
+      - "Money is written as integer cents (4520, never 45.20)"
+      - "Claim and order identifiers: CLM-##### and ORD-#####"
+      - "The four papers a clerk reads: order receipt, delivery slip, unboxing photo, return policy"
+      - "A person still reviews hard cases in the target process"
+    anti_prerequisites:
+      - "No code, no Python, no Docker, no terminal, no editor beyond plain text"
+      - "No technology vocabulary: AI, agent, LLM, model, prompt, automation, API, schema, JSON"
+      - "No knowledge of the Keel grading loop (taught in 0.2)"
+      - "No idea of how a computer could solve the problem; the student describes only"
+    project_working_tree:
+      added_files:
+        - "omnicart-system/docs/client-brief.md"
+      contracts_established:
+        - "omnicart-system/ is the fixed project root for every later unit"
+        - "docs/client-brief.md is a living file; later units append below its five headings, never replace them"
+        - "Five stable headings: # OmniCart Operations: Client Brief, ## The problem, ## Who cares and why, ## How it works today, ## How it should work"
+        - "Targets later tests check: about 4,000 cases a month, under 1 hour, integer cents"
+    retrieval_seeds:
+      - "OmniCart handles about 4,000 returns, claims, slips, and disputes each month."
+      - "Today a dispute waits 2 to 3 days before anyone reviews it."
+      - "The VP wants speed, the CFO wants every cent tracked, the policy officer wants rules followed."
+      - "Money is always written as whole cents, so $45.20 becomes 4520."
+      - "State the problem in plain words before you name any fix."
+    narrative_anchor: "7:00 AM on the OmniCart receiving dock. ORD-8821, a blender with a cracked lid, becomes claim CLM-20841 and sits on a shelf for 2 to 3 days. Parallel entity Apex Freight Logistics (Marcus Bell, Priya Nair, Dana Okafor) carries the worked example."
 
