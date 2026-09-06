@@ -24,8 +24,8 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 
 - [x] 2.1 `lint-lesson.py --strict`: exit 1 on FK over 8, any sentence over 20 words, prose block over 250 words, missing coda, em or en dash, exclamation mark, technology word in student prose, heading that borrows a seed word. Proof: strict run on 0.1 exits 0; a fixture with each defect exits 1.
 - [x] 2.2 `content/tools/check-unit-consistency.py`: numbers, five headings, start and end points, document names and banned-word list must agree across learn.md, completion README, faq, rubric, judge prompt. Proof: exits 0 on 0.1; exits 1 when one file is mutated.
-- [ ] 2.3 Skeletons in `content/templates/`: `learn.skeleton.md`, `unit.skeleton.yaml`, `completion.skeleton.md`, `worked-example.skeleton.md`, `grade.skeleton.yaml`, `judge.skeleton.md`. Proof: files exist and the author contract points at them.
-- [ ] 2.4 `content/STYLE.md`: the shared plain-language and copy rules in one place (under 60 lines). Agent contracts reference it instead of repeating it. Proof: each of the six contracts links to it.
+- [x] 2.3 Skeletons in `content/templates/`: `learn.skeleton.md`, `unit.skeleton.yaml`, `completion.skeleton.md`, `worked-example.skeleton.md`, `grade.skeleton.yaml`, `judge.skeleton.md`. Proof: files exist and the author contract points at them.
+- [x] 2.4 `content/STYLE.md`: the shared plain-language and copy rules in one place (under 60 lines). Agent contracts reference it instead of repeating it. Proof: each of the six contracts links to it.
 - [ ] 2.5 Wire 2.1 and 2.2 into `.githooks/pre-push` and `.github/workflows/content-gate.yml`. Proof: files updated; hook runs locally.
 - [ ] 2.6 `unit_orchestrator` battery lists the new gates and requires pasted script output from every specialist. Proof: grep.
 
@@ -79,3 +79,4 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 - 2026-09-07 00:27 M1.3 to M1.5 pushed: check-mermaid enforces 6 nodes, 5 words / 28 chars per label line, TD above 3 nodes, no dashes; both 0.1 figures rewritten and pass; rule added to author contract and skill. M1 complete except O1.
 - 2026-09-07 00:30 M2.1 pushed: --strict gate (FK, 20-word sentences, dashes, exclamation marks, tech words, seed words in headings, coda, pacing). It found one real defect in 0.1 (a heading borrowing the seed word today), fixed. Fixture at content/tools/fixtures/lint.
 - 2026-09-07 00:52 M2.2 pushed: check-unit-consistency.py plus content/units/phase-0/0.1/consistency.yaml (canonical numbers and documents). Passes on 0.1; fails when the FAQ teaches an orphan amount or the lesson miscounts the checks.
+- 2026-09-07 00:58 M2.3, M2.4 pushed: content/STYLE.md (one page of shared rules, mirrors the linter word list) and nine skeletons in content/templates/; all six agent contracts now point at both.
