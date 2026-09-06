@@ -25,7 +25,7 @@ if [ -z "$PY" ]; then
 fi
 
 fail=0
-echo "[keel-content-gate] validating content (units, examples, variants, personas, rubrics, gates)..."
+echo "[keel-content-gate] validating content (schemas, rubrics, gates, map, routing, lint --strict, unit consistency, diagrams)..."
 if ! "$PY" content/tools/validate.py; then
     echo "[keel-content-gate] BLOCKED: content/tools/validate.py failed — offending file(s) named in the FAIL lines above" >&2
     fail=1
@@ -57,6 +57,26 @@ fi
 if ! "$PY" platform/grading/scripts/check-concierge-structural.py; then
     echo "[keel-content-gate] BLOCKED: platform/grading/scripts/check-concierge-structural.py failed — offending file(s) named in the FAIL lines above" >&2
     fail=1
+fi
+if ! "$PY" content/tools/lint-lesson.py --strict; then
+    echo "[keel-content-gate] BLOCKED: content/tools/lint-lesson.py --strict failed (plain-language standard, content/STYLE.md)" >&2
+    fail=1
+fi
+for unit_dir in content/units/phase-*/*/; do
+    [ -d "$unit_dir" ] || continue
+    unit_id="$(basename "$unit_dir")"
+    if ! "$PY" content/tools/check-unit-consistency.py "$unit_id"; then
+        echo "[keel-content-gate] BLOCKED: check-unit-consistency.py $unit_id failed (files of the unit disagree)" >&2
+        fail=1
+    fi
+done
+if command -v node >/dev/null 2>&1 && [ -d platform/app/node_modules/mermaid ]; then
+    if ! (cd platform/app && node scripts/check-mermaid.mjs); then
+        echo "[keel-content-gate] BLOCKED: platform/app/scripts/check-mermaid.mjs failed (diagram grammar or legibility limits)" >&2
+        fail=1
+    fi
+else
+    echo "[keel-content-gate] note: node or platform/app/node_modules missing, diagram check skipped here (CI runs it)"
 fi
 if [ $fail = 0 ]; then
     echo "[keel-content-gate] OK — content validates, push allowed."

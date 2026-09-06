@@ -97,8 +97,11 @@ def main() -> int:
     eval_files = []
 
     if not EVALS_DIR.is_dir():
-        print("error: content/evals/guard/ does not exist", file=sys.stderr)
-        return 1
+        # Zero authored files is the canonical state after an authoring reset.
+        # A validator that is red on the canonical tree teaches everyone to
+        # ignore red, so this is a pass with a note, not an error.
+        print("PASS (content/evals/guard/ does not exist yet: nothing to validate)")
+        return 0
 
     for path in sorted(EVALS_DIR.glob("*.yaml")):
         rel = path.relative_to(REPO)

@@ -26,7 +26,7 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 - [x] 2.2 `content/tools/check-unit-consistency.py`: numbers, five headings, start and end points, document names and banned-word list must agree across learn.md, completion README, faq, rubric, judge prompt. Proof: exits 0 on 0.1; exits 1 when one file is mutated.
 - [x] 2.3 Skeletons in `content/templates/`: `learn.skeleton.md`, `unit.skeleton.yaml`, `completion.skeleton.md`, `worked-example.skeleton.md`, `grade.skeleton.yaml`, `judge.skeleton.md`. Proof: files exist and the author contract points at them.
 - [x] 2.4 `content/STYLE.md`: the shared plain-language and copy rules in one place (under 60 lines). Agent contracts reference it instead of repeating it. Proof: each of the six contracts links to it.
-- [ ] 2.5 Wire 2.1 and 2.2 into `.githooks/pre-push` and `.github/workflows/content-gate.yml`. Proof: files updated; hook runs locally.
+- [x] 2.5 Wire 2.1 and 2.2 into `.githooks/pre-push` and `.github/workflows/content-gate.yml`. Proof: files updated; hook runs locally.
 - [ ] 2.6 `unit_orchestrator` battery lists the new gates and requires pasted script output from every specialist. Proof: grep.
 
 ## M3. Repo memory and docs
@@ -41,7 +41,7 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 ## M4. Platform engineering
 
 - [ ] 4.1 First unit tests: `platform/cli/tests/test_judge_parse.py`, `test_rubric_version.py`, `test_gate_thresholds.py`; `platform/app/lib/content.test.mjs` for `parseUnitScript` via a tiny harness. Proof: `pytest -q` green; `node --test` green.
-- [ ] 4.2 `validate-routing.py`: missing `content/routing/` is a pass with a note, not an error. Proof: run with the dir moved aside.
+- [x] 4.2 `validate-routing.py`: missing `content/routing/` is a pass with a note, not an error. Proof: run with the dir moved aside.
 - [ ] 4.3 `platform/models.yaml` (tier to model) with a loader; `llm.py` and `proxy/server.py` read it with the old defaults as fallback. Proof: tests pass, grep shows one source of truth.
 - [-] 4.4 Split `practice/server.py` (4,163 lines). Deferred: needs the Docker stack to re-prove the smoke battery; owner item O2.
 
@@ -80,3 +80,4 @@ diagrams scaled down to fit; plain labels never wrap in Mermaid 11.
 - 2026-09-07 00:30 M2.1 pushed: --strict gate (FK, 20-word sentences, dashes, exclamation marks, tech words, seed words in headings, coda, pacing). It found one real defect in 0.1 (a heading borrowing the seed word today), fixed. Fixture at content/tools/fixtures/lint.
 - 2026-09-07 00:52 M2.2 pushed: check-unit-consistency.py plus content/units/phase-0/0.1/consistency.yaml (canonical numbers and documents). Passes on 0.1; fails when the FAQ teaches an orphan amount or the lesson miscounts the checks.
 - 2026-09-07 00:58 M2.3, M2.4 pushed: content/STYLE.md (one page of shared rules, mirrors the linter word list) and nine skeletons in content/templates/; all six agent contracts now point at both.
+- 2026-09-07 01:05 M2.5 and M4.2 pushed: pre-push hook and content-gate.yml now run lint --strict, check-unit-consistency for every unit, and check-mermaid (CI installs node). validate-routing and validate-guard-evals pass with a note when their directory is absent (both were red on the canonical tree, guard-evals still is on main).

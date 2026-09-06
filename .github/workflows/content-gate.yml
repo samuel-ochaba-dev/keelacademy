@@ -16,6 +16,8 @@ on:
       # the gate keeps firing on the validators if the glob ever narrows.
       - "content/tools/validate.py"
       - "content/tools/validate-rubrics.py"
+      - "platform/app/scripts/check-mermaid.mjs"
+      - ".github/workflows/content-gate.yml"
 
 jobs:
   content-gate:
@@ -43,6 +45,26 @@ jobs:
         run: python content/tools/validate-diagnostics.py
       - name: Concierge structural contract and spoof-immunity checks (keyless)
         run: python platform/grading/scripts/check-concierge-structural.py
+      - name: Plain-language gate on every lesson (content/STYLE.md)
+        run: python content/tools/lint-lesson.py --strict
+      - name: Cross-file consistency of every authored unit
+        run: |
+          set -e
+          for d in content/units/phase-*/*/; do
+            [ -d "$d" ] || continue
+            python content/tools/check-unit-consistency.py "$(basename "$d")"
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: platform/app/package-lock.json
+      - name: Install app deps (for the mermaid grammar and legibility check)
+        run: npm ci --no-audit --no-fund
+        working-directory: platform/app
+      - name: Diagram grammar and legibility limits
+        run: node scripts/check-mermaid.mjs
+        working-directory: platform/app
       - name: Dry-run unit 3.2.1 checks against the reference solution
         # Needs docker (present on ubuntu-latest) + the keel-runner:0.1 image
         # (S0.3 definition: python:3.12-slim + pydantic 2.13.4 + pytest 9.1.1;
