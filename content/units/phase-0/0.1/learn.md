@@ -70,9 +70,9 @@ They do not, and that is the whole point. Speed pulls against checking every rul
 
 ```mermaid Figure 1: The three leaders pull in three directions
 flowchart TD
-    A["Sarah Jenkins, VP of Operations: under 1 hour, zero lost tickets"]
-    B["The CFO: every cent tracked in a record nobody can change"]
-    C["Trust and Safety Officer: 14 day window, warranty terms, photo proof"]
+    A["<b>Sarah Jenkins</b><br/>VP of Operations<br/>under 1 hour,<br/>zero lost tickets"]
+    B["<b>The CFO</b><br/>every cent tracked,<br/>a record nobody<br/>can change"]
+    C["<b>Trust and Safety</b><br/>14 day window,<br/>warranty terms,<br/>photo proof"]
     P["One returns process"]
     A --> P
     B --> P
@@ -103,7 +103,7 @@ Wait. That has no numbers. A lot and too long cannot be checked. Try again. Omni
 
 Three lines, one each. Name the role, then say what done means to that person. The three must differ. If your three lines all say faster, you have written one leader three times.
 
-### Part three: today, step by step
+### Part three: the steps a clerk takes now
 
 Write 4 to 7 numbered steps. Start when the box with the shopper's note arrives at the dock. End when the refund is paid or denied. Name the four papers a clerk reads: the order receipt, the delivery slip, the unboxing photo, and the return policy. Do not write the clerk checks the files. Name each paper.
 
@@ -114,11 +114,11 @@ Try this now. Picture CLM-20841 and write the steps as you saw them on the dock.
 Same start, same end, 4 to 7 steps. Three things must show up. The target wait, which is under 1 hour. A person who reviews the hard cases, because not every claim is clean. And at least one amount in whole cents, such as 4520 cents.
 
 ```mermaid Figure 2: Clean cases move fast, hard cases go to a person
-flowchart LR
-    R["Box arrives at the dock"] --> K["Four papers checked"]
-    K --> C["Clean case: refund or deny within 1 hour"]
-    K --> H["Hard case: missing photo, late return, or large amount"]
-    H --> P["A person reviews and decides"]
+flowchart TD
+    R["Box arrives<br/>at the dock"] --> K["Four papers<br/>checked"]
+    K --> C["<b>Clean case</b><br/>refund or deny<br/>within 1 hour"]
+    K --> H["<b>Hard case</b><br/>missing photo,<br/>late return,<br/>large amount"]
+    H --> P["A person reviews<br/>and decides"]
 ```
 
 Notice what the figure does not say. It never says how the papers get checked. That is on purpose. Say what should happen, not what tool does it.

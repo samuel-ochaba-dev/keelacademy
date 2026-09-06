@@ -118,3 +118,7 @@ This style leans hard on specific, lived detail — a particular bug encountered
 - Don't invent specific claims presented as fact (a particular version number, a particular studio or student anecdote) unless the user supplied it or you've verified it.
 - Voice consistency drifts over a long course the same way any AI writing does — a lesson-by-lesson pass, or at least periodic re-reading against `references/voice-guide.md`, will catch drift better than trusting one long generation.
 - The most human-reading result still comes from a hybrid workflow: draft in this style, then have someone who actually knows the material swap in one or two real specifics (an actual bug they hit, an actual thing a real student asked) in place of the invented ones. That single substitution usually does more for authenticity than any prompt tuning.
+
+## Diagrams in written lessons
+
+A figure earns its place only if a reader can take it in faster than the paragraph it replaces. Keep it small and readable on a phone: at most 6 boxes, `flowchart TD`, label lines of 5 words or fewer broken with `<br/>`, the box title in bold on its own line, no dashes or exclamation marks in labels, and a one line caption in the fence info string. Never draw a process the prose is about to walk through step by step; draw the shape of a tension (three people pulling one way each) or a fork (clean case vs hard case). `platform/app/scripts/check-mermaid.mjs` enforces the size rules.

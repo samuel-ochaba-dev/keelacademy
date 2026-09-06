@@ -44,8 +44,18 @@ const THEME_VARIABLES = {
   edgeLabelBackground: "#0f1211",
   titleColor: "#f4f4f6",
   fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  fontSize: "14px",
+  // Matches lesson prose closely enough to read at the same distance. Mermaid
+  // measures labels with these theme values, so any font rule that could change
+  // a label's size must live HERE and not in a stylesheet applied after layout.
+  fontSize: "16px",
 };
+
+/**
+ * A diagram is allowed to shrink to fit the column, but only this far. Below it
+ * the frame scrolls sideways instead, because 7px labels are worse than a
+ * scrollbar. Authors are told to keep diagrams narrow (see check-mermaid.mjs).
+ */
+const MIN_SCALE = 0.85;
 
 export function MermaidRuntime() {
   useEffect(() => {
@@ -65,7 +75,19 @@ export function MermaidRuntime() {
           securityLevel: "strict",
           theme: "base",
           themeVariables: THEME_VARIABLES,
-          flowchart: { curve: "basis", padding: 12, useMaxWidth: true, htmlLabels: true },
+          // Labels written as markdown strings (["`text`"]) wrap at wrappingWidth;
+          // plain labels never wrap in Mermaid 11, so authors use markdown strings
+          // or <br/> for anything longer than a few words.
+          markdownAutoWrap: true,
+          flowchart: {
+            curve: "basis",
+            padding: 12,
+            useMaxWidth: true,
+            htmlLabels: true,
+            wrappingWidth: 170,
+            nodeSpacing: 36,
+            rankSpacing: 44,
+          },
         });
         return mermaid;
       });
@@ -102,7 +124,15 @@ export function MermaidRuntime() {
         node.setAttribute("role", "img");
         node.removeAttribute("aria-roledescription");
         if (caption) node.setAttribute("aria-label", caption);
-        node.style.removeProperty("max-width");
+        // Mermaid sets `max-width: <natural px>` and `width: 100%`, so the SVG
+        // scales down to the column. Keep that, but stop the shrink at MIN_SCALE:
+        // past that point the frame scrolls (see .diagram-frame) and text stays
+        // readable. Never remove max-width: that stretches a narrow diagram to
+        // the full column and shrinks a wide one to nothing.
+        const natural = parseFloat(node.style.maxWidth || "");
+        if (Number.isFinite(natural) && natural > 0) {
+          node.style.minWidth = `${Math.round(natural * MIN_SCALE)}px`;
+        }
       }
 
       // The source moves rather than being thrown away: a reader who wants the

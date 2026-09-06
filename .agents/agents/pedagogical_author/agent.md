@@ -66,3 +66,10 @@ Your responsibility is authoring unit scripts (learn.md), unit manifests (unit.y
 
    Use apparatus markers where appropriate (::: aside <title>, ::: coda <title>, ::: worked-example, ::: workbench, ::: retrieval, ::: deliverable, ::: submission, ::: rubric).
    Ensure all lesson prose satisfies the ~250 words apparatus pacing rule checked by content/tools/lint-lesson.py.
+
+5. **Diagrams (Mermaid) must stay legible on a phone**:
+   - At most 6 nodes, no subgraphs. Use `flowchart TD`; `LR` only for 3 nodes or fewer.
+   - Every label line is 5 words or 28 characters at most. Break longer labels with `<br/>`, or write the label as a markdown string (["`text`"]) so it wraps.
+   - Bold the node title on its own line (`<b>Hard case</b><br/>missing photo`), keep detail lines short.
+   - No dashes or exclamation marks inside labels. Put the caption in the fence info string: ```mermaid Figure 1: What it shows
+   - Prove it: `cd platform/app && node scripts/check-mermaid.mjs` must print 0 failed. The checker enforces every rule above.
