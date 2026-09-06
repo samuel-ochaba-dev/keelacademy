@@ -28,6 +28,7 @@ How any session — human or AI — picks this project up without losing context
 /AGENTS.md                this file
 /docs                     specs: lesson-flow-spec
 /.agents/skills           repo skills: shiffman-style-lessons (voice & lesson authoring)
+/.agents/agents           Backward Design subagent team: ubd_architect, assessment_engineer, rubric_evaluator, pedagogical_author, blind_playtester
 /platform                 the code: platform/cli (grading CLI, created at S0.3), platform/grading (grading-core service + Postgres schema, created at S1.1), platform/app (learner app, created at S2.3)
 /content                  units, checks, rubrics, prompts, golden sets, faq, personas, curriculum map & ledger, gates (created at Stage 0)
 /scratch                  throwaway trial drafts; never ships, never validated
