@@ -103,7 +103,7 @@ Wait. That has no numbers. A lot and too long cannot be checked. Try again. Omni
 
 Three lines, one each. Name the role, then say what done means to that person. The three must differ. If your three lines all say faster, you have written one leader three times.
 
-### Part three: today, step by step
+### Part three: the steps a clerk takes now
 
 Write 4 to 7 numbered steps. Start when the box with the shopper's note arrives at the dock. End when the refund is paid or denied. Name the four papers a clerk reads: the order receipt, the delivery slip, the unboxing photo, and the return policy. Do not write the clerk checks the files. Name each paper.
 

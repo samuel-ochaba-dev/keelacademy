@@ -8,7 +8,15 @@ Checks:
 4. Readability (FK grade): advises when Flesch-Kincaid Grade Level exceeds 9.0 (target for global audience).
 5. Long sentences: advises on any sentence exceeding 25 words.
 
-This tool is ADVISORY ONLY (not a gate). Always exits 0.
+Default mode is ADVISORY (always exits 0).
+
+`--strict` turns the plain-language standard into a gate (exit 1 on any error):
+  FK grade over 8.0, any sentence over 20 words, a prose block over 250 words
+  without apparatus, no `::: coda`, any em or en dash, any exclamation mark,
+  a technology word in student prose, or a `##`/`###` heading that borrows a
+  retrieval-seed keyword (heading hits weigh 5x in the practice server's
+  excerpt selector, so such a heading steals the seed from the section that
+  teaches it). The word lists live in content/STYLE.md; keep them in sync.
 """
 
 from __future__ import annotations
@@ -156,22 +164,152 @@ def lint_readability(path: Path) -> list[str]:
         )
     else:
         rel = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
-        advisories.append(
-            f"{rel}: readability OK (FK Grade {fkgl:.1f}, Flesch RE {fre:.1f})"
-        )
+        print(f"  {rel}: readability OK (FK Grade {fkgl:.1f}, Flesch RE {fre:.1f})")
 
     return advisories
 
 
+# ---------------------------------------------------------------------------
+# Strict mode (gate)
+# ---------------------------------------------------------------------------
+
+STRICT_FK_MAX = 8.0
+STRICT_SENTENCE_MAX = 20
+
+# Words that name a technology or a build tool. Student-facing lesson prose says
+# what should happen, not which tool does it. Mirror of the list in content/STYLE.md.
+TECH_WORDS = {
+    "ai", "agent", "agents", "llm", "llms", "model", "models", "prompt", "prompts",
+    "automation", "automate", "automated", "software", "algorithm", "algorithms",
+    "python", "docker", "api", "apis", "database", "databases", "json", "schema",
+    "pipeline", "embedding", "embeddings", "token", "tokens", "chatbot", "machine learning",
+}
+
+# Same stoplist the practice server uses when it turns a seed into keywords.
+_SEED_STOPWORDS = frozenset({
+    "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with", "by",
+    "is", "are", "was", "were", "be", "been", "being", "it", "its", "this",
+    "that", "these", "those", "you", "your", "yours", "we", "our", "they",
+    "their", "how", "what", "why", "when", "where", "which", "who", "whom",
+    "can", "cannot", "could", "should", "would", "do", "does", "did", "not",
+    "no", "as", "at", "from", "into", "over", "under", "than", "then", "so",
+    "such", "if", "but", "about", "through", "during", "before", "after",
+    "above", "below", "up", "down", "out", "off", "again", "once", "here",
+    "there", "all", "any", "both", "each", "few", "more", "most", "other",
+    "some", "only", "own", "same", "too", "very", "just", "because", "until",
+    "while", "versus", "vs", "difference", "between",
+})
+
+
+def _seed_keywords(seed: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z0-9]+", seed.lower()) if len(w) >= 3 and w not in _SEED_STOPWORDS}
+
+
+def _unit_yaml_for(path: Path) -> dict | None:
+    try:
+        import yaml  # type: ignore
+    except Exception:
+        return None
+    candidate = path.parent / "unit.yaml"
+    if not candidate.is_file():
+        return None
+    try:
+        return yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return None
+
+
+def _sentences(prose: str) -> list[str]:
+    return [s.strip() for s in re.split(r"(?<=[.!?])\s+", prose) if s.strip()]
+
+
+def lint_strict(path: Path) -> list[str]:
+    """Return gate errors (empty list = pass)."""
+    errors: list[str] = []
+    text = path.read_text(encoding="utf-8")
+    rel = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
+
+    # Structural advisories become errors.
+    for adv in lint_lesson_file(path):
+        errors.append(adv.replace("advisory:", "error:"))
+
+    # Character bans apply to the whole file, code fences included: a dash in a
+    # code block still reaches the student.
+    for line_num, line in enumerate(text.splitlines(), start=1):
+        if "\u2014" in line:
+            errors.append(f"{rel}:{line_num}: error: em dash (U+2014); use a comma, colon or period.")
+        if "\u2013" in line:
+            errors.append(f"{rel}:{line_num}: error: en dash (U+2013); write 'to' or use a hyphen only inside ids.")
+        if "!" in line and "<!--" not in line and not line.lstrip().startswith("```"):
+            errors.append(f"{rel}:{line_num}: error: exclamation mark.")
+
+    prose = _extract_prose(text)
+    sentences = _sentences(prose)
+    for i, sent in enumerate(sentences, start=1):
+        wc = len(sent.split())
+        if wc > STRICT_SENTENCE_MAX:
+            preview = sent[:90] + ("..." if len(sent) > 90 else "")
+            errors.append(f'{rel}: error: sentence {i} has {wc} words (limit {STRICT_SENTENCE_MAX}): "{preview}"')
+
+    if sentences:
+        words = prose.split()
+        fkgl = 0.39 * (len(words) / len(sentences)) + 11.8 * (sum(_count_syllables(w) for w in words) / len(words)) - 15.59
+        if fkgl > STRICT_FK_MAX:
+            errors.append(f"{rel}: error: Flesch-Kincaid Grade Level {fkgl:.1f} exceeds {STRICT_FK_MAX}.")
+
+    # Technology words in prose (headings and asides included, code fences excluded).
+    lowered = re.sub(r"```[\s\S]*?```", "", text).lower()
+    for word in sorted(TECH_WORDS):
+        for m in re.finditer(r"(?<![a-z0-9])" + re.escape(word) + r"(?![a-z0-9])", lowered):
+            line_num = lowered.count("\n", 0, m.start()) + 1
+            errors.append(f"{rel}:{line_num}: error: technology word '{word}' in student prose.")
+
+    # Headings must not borrow retrieval-seed keywords.
+    unit = _unit_yaml_for(path)
+    seeds = ((unit or {}).get("practice") or {}).get("retrieval_seeds") or []
+    if seeds:
+        title_words = _seed_keywords(text.splitlines()[0] if text else "")
+        seed_words = set().union(*(_seed_keywords(s) for s in seeds)) - title_words
+        in_fence = False
+        for line_num, line in enumerate(text.splitlines(), start=1):
+            if line.lstrip().startswith("```") or line.lstrip().startswith("~~~"):
+                in_fence = not in_fence
+                continue
+            if not in_fence and re.match(r"^#{2,3}\s", line):
+                hits = sorted(_seed_keywords(line) & seed_words)
+                if hits:
+                    errors.append(
+                        f"{rel}:{line_num}: error: heading borrows seed keyword(s) {hits}; "
+                        f"rename so the teaching section, not the heading, wins the excerpt."
+                    )
+    return errors
+
+
 def main() -> int:
+    strict = "--strict" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--strict"]
     files_to_check: list[Path] = []
-    if len(sys.argv) > 1:
-        for arg in sys.argv[1:]:
+    if args:
+        for arg in args:
             p = Path(arg)
             if p.is_file():
                 files_to_check.append(p)
     else:
         files_to_check = sorted(REPO_ROOT.glob("content/units/**/learn.md"))
+
+    if strict:
+        total_errors = 0
+        print(f"== Strict lesson lint (gate) against {len(files_to_check)} lesson file(s) ==")
+        for f in files_to_check:
+            errs = lint_strict(f)
+            total_errors += len(errs)
+            for e in errs:
+                print(f"  {e}")
+            if not errs:
+                rel = f.relative_to(REPO_ROOT) if f.is_relative_to(REPO_ROOT) else f
+                print(f"  {rel}: PASS")
+        print(f"\nStrict lint finished: {total_errors} error(s). (Exit {1 if total_errors else 0})")
+        return 1 if total_errors else 0
 
     total_advisories = 0
     print(f"== Advisory lesson lint against {len(files_to_check)} lesson file(s) ==")
