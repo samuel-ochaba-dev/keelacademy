@@ -33,7 +33,7 @@ Apex checks about 3,500 carrier document packages each month from 300 trucking c
 3. Apex pulls every number from the papers and stores it in whole cents, so 125.00 dollars becomes 12500 cents.
 4. Apex matches the rate, the delivery dates on DEL-77120, and any claim like CLM-10422 against the contract.
 5. Clean packages are approved and paid within 1 hour of arrival.
-6. Packages with a mismatch, a missing photo, or a claim over 50000 cents go to a reviewer, who is a person.
+6. Packages with a mismatch, a missing photo, or a claim over 50000 cents go to a reviewer. The reviewer is a person.
 7. The reviewer decides to pay or to dispute. The decision goes into the permanent record with the reviewer's name.
 
 Every step above names who acts and what they hold. The whole brief stays under 500 words. It says what should happen, not what tool does it.
@@ -54,7 +54,7 @@ Every step above names who acts and what they hold. The whole brief stays under 
 
 - The steps start at "sends a package of papers". They end at "pays the trucking company or sends a dispute letter". This meets the rule that the story runs from first request to final payment or refusal.
 - There are seven numbered steps. This meets the rule of 4 to 7 steps.
-- Step 3 and step 4 name the papers the clerk reads: the rate sheet, the bill of lading, the wait log, and the delivery record. This meets the rule that the papers are named, not called "the files".
+- Step 3 and step 4 name the papers the clerk reads. They are the rate sheet, the bill of lading, the wait log, and the delivery record. This meets the rule that the papers are named, not called "the files".
 - Step 6 shows the exact weak spot, "often as dollars with rounding". This gives the next section something concrete to fix.
 
 ### Why this part passes: How it should work

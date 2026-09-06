@@ -51,7 +51,7 @@ A good system starts with a clear picture of the people, the paperwork, and the 
 
 The student writes one markdown file: `omnicart-system/docs/client-brief.md`.
 
-Word budget: 300 words minimum, 500 words maximum. One page.
+Word budget: 250 words minimum, 500 words maximum. One page. (Orchestrator change after playtest: 300 forced padding.)
 
 Required headings, verbatim, in this order:
 

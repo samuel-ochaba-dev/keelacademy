@@ -16,7 +16,7 @@ Here is the question. How long does CLM-20841 sit on that shelf before anyone re
 
 Take a guess before you read on.
 
-Two to three days. A clerk gets to it on Wednesday or Thursday. She pulls up the order, finds the delivery slip, and looks for the unboxing photo. Then she checks the return policy. Only then does she decide to refund or deny.
+Two to three days. A clerk gets to it on Wednesday or Thursday. She opens the order and finds the delivery slip. The delivery slip is the courier's note saying when the parcel arrived. Then she looks for the unboxing photo. The unboxing photo is the picture the shopper takes when she opens the box. Then she checks the return policy. Only then does she decide to refund or deny.
 
 Now, one box is not a crisis. But OmniCart does not get one box.
 
@@ -28,9 +28,11 @@ Each one waits 2 to 3 days before review begins
 That is more than 27 years of waiting, every single month
 ```
 
+The four kinds of case are return requests, damaged parcel claims, courier delivery slips, and payout disputes.
+
 That number is hard to look at. Let us look at who feels it.
 
-The shopper refreshes her email for three days. The clerk opens a queue of 400 cases every morning and never sees the bottom. Somebody in finance cannot close the books because refunds are still floating.
+The shopper refreshes her email for three days. The clerk opens a backlog of several hundred cases every morning and never sees the bottom. Somebody in finance cannot finish the month's totals because refunds are still open.
 
 ::: aside Why the money is written as whole cents
 Look at 4520 again. Two clerks once typed the same refund. One wrote 45.20 and the other wrote 45.2. A third rounded it to 45. Whole cents end that. There is only one way to write 4520. From here on, every amount at OmniCart is whole cents, and the word dollars stays out of the paperwork.
@@ -50,7 +52,7 @@ One claim, CLM-20841, waits 2 to 3 days on a shelf. Multiply by about 4,000 a mo
 
 Let us walk upstairs. Three leaders at OmniCart all say the same thing, that the returns process is broken. Watch what happens when we ask each one what fixed would look like.
 
-Sarah Jenkins is the VP of Operations. Ask her and she says speed. Under 1 hour from the box arriving to a decision. And zero lost tickets, so no claim ever falls off a shelf for good.
+Sarah Jenkins runs the day to day work. Her title is VP of Operations. Ask her and she says speed. Under 1 hour from the box arriving to a decision. And zero lost tickets. A ticket is one case in the queue. So no claim ever falls off a shelf for good.
 
 The CFO runs the money. Ask him and he does not say speed at all. He says every cent tracked. Every refund written in whole cents, in a record nobody can change after the fact. If a refund of 4520 cents goes out, he wants to see who approved it and when.
 
@@ -60,7 +62,7 @@ The Trust and Safety Officer keeps OmniCart honest. Ask her and she says rules f
 Some papers call this person the policy officer. Same job. She writes the return rules, and she answers when a fake claim gets paid. That is why photo proof matters to her. A photo of the cracked lid turns a story into a fact.
 :::
 
-Here is the part that trips people up. Do these three want the same thing?
+Here is the part that confuses people. Do these three want the same thing?
 
 Take a second.
 
@@ -143,7 +145,17 @@ Below, the app shows a finished brief for a different company, Apex Freight Logi
 
 ## Write the one page OmniCart will keep
 
-Write your OmniCart client brief with the five headings from the Apex example. Keep it between 300 and 500 words. Save it as omnicart-system/docs/client-brief.md. Give it about 40 minutes, and stop when the four parts are there.
+Write your OmniCart client brief with these five headings, in this order.
+
+```text
+# OmniCart Operations: Client Brief
+## The problem
+## Who cares and why
+## How it works today
+## How it should work
+```
+
+Keep it between 250 and 500 words. Save it as omnicart-system/docs/client-brief.md. Give it about 40 minutes, and stop when the four parts are there.
 
 ::: deliverable
 
@@ -153,7 +165,7 @@ Write your OmniCart client brief with the five headings from the Apex example. K
 
 ## How your page gets read
 
-Five checks, and all five must pass. The grader quotes your own words back to you, so you can see exactly which line passed or failed. One thing is a hard stop. Any banned word that names a technology fails the whole brief, no matter how good the rest is.
+Five checks, and all five must pass. The exercise page lists the five checks in plain words. The grader quotes your own words back to you, so you can see exactly which line passed or failed. One thing is a hard stop. Any banned word that names a technology fails the whole brief, no matter how good the rest is.
 
 ::: prove-it
 
@@ -178,5 +190,5 @@ Ask about anything in the OmniCart story that is still fuzzy, such as which pape
 ::: ask
 
 ::: coda One more paper
-We named four papers a clerk reads. There is at least one more on that dock that we skipped. Go find it, decide who reads it, and add it to your brief. Then ask which of the three leaders would care about it most.
+We named four papers a clerk reads. There is at least one more on that dock that we skipped. Go find it, decide who reads it, and add it to your brief. Then ask which of the three leaders would care about it most. This extra step is optional and does not change the checks.
 :::
