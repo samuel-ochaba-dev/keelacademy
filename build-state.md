@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-07
 **Stage:** Content Production Track
-**Status:** Improvement plan (docs/improvement-plan.md) fully worked: every session-own milestone M1 to M6 ticked and pushed to improve/review-2026-09; only owner items O1 to O10 remain. Unit 0.1 re-authored and green under the plain-language standard (FK 3.4, strict lint passes, consistency gate passes). Golden set now 8 submissions (s08-injection-attempt added). Judge calibration still not run live (needs OPENAI_API_KEY).
+**Status:** Unit 0.2 ('How the curriculum and grading loop work') authored and green under the plain-language standard (FK lint 0 advisories, strict lint PASS, consistency gate PASS, all 9 battery items green). Ledger now has units [0.1, 0.2]. Judge calibration for Unit 0.1 still not run live (needs OPENAI_API_KEY).
 
 > ## Resume protocol — read this first
 > 1. Read this file, then skim build-plan.md §4 for the current stage's exit criteria.
@@ -10,7 +10,7 @@
 > 3. At session end: check off finished milestones, update Status/Next action, append any decisions or blockers (dated). Milestones are tiny by design — if one can't finish in a sitting, split it and record the split here.
 
 ## Next action
-Verify Unit 0.1 live: run the judge calibration on `content/golden/0.1/` (8 submissions after M5.2, needs OPENAI_API_KEY; expect 8/8 overall and 40/40 criteria) and open the rendered unit page; fix anything found. Then author Unit 0.2 via `unit_orchestrator`.
+Verify Unit 0.1 live: run the judge calibration on `content/golden/0.1/` (8 submissions after M5.2, needs OPENAI_API_KEY; expect 8/8 overall and 40/40 criteria) and open the rendered unit page; fix anything found. Then author Unit 0.3 via `unit_orchestrator`.
 
 ---
 
@@ -104,16 +104,40 @@ Verify Unit 0.1 live: run the judge calibration on `content/golden/0.1/` (8 subm
 ## Decisions log
 
 Older decisions live in the archive, split by month, in original log order:
-`docs/decisions/2026-08.md` (110 entries) and `docs/decisions/2026-09.md` (20 entries).
+`docs/decisions/2026-08.md` (110 entries) and `docs/decisions/2026-09.md` (22 entries).
 This file keeps the most recent decisions (ten at the 2026-09-07 split). New entries
 are prepended here at the top; when this file grows past its compact budget, the
 oldest entries move to the archive verbatim.
+
+- **2026-09-07 — Grading host LIVE on AWS (new free-tier experience, account 571846855555):**
+  - Instance keel-grading (m7i-flex.large, 2 vCPU / 7.6 GB, Ubuntu 24.04, encrypted 30 GB gp3, IMDSv2 required) at 13.223.201.44 (Elastic IP), SSH locked to the operator IP, 80/443 open. The FREE plan blocks non-free-tier types (t4g.medium rejected); m7i-flex.large is free-tier eligible and has NOT drawn down the $100 credits.
+  - Full provisioning kit executed over SSH: Docker + keel-runner, keel-pg with all 23 tables, seven keel-* systemd units, Caddy TLS at https://grading.keelacademy.com (Let's Encrypt cert issued), nightly pg_dump cron. Two kit bugs found and fixed in-repo: unquoted KEEL_DB_CMD broke sourcing scripts; Caddyfile env placeholder expanded empty in the caddy unit (now substituted at deploy time).
+  - OPENAI_API_KEY installed (validated 200 via /v1/models) and judge calibration run live from the host: 8/8 overall across three runs, 0 errors. First run caught the judge citing s08's PRE-APPROVED tag as evidence; judge prompt hardened (approval claims are prose, never evidence) and re-proven. Criterion agreement stable 38/40 (s04/s06 problem-stated-plainly wobble; a live tightening attempt regressed to 6/8 and was reverted). Formal GATE FAIL is the small-set criterion margin; owner decision pending.
+  - Operator notes: operator egress IP is dynamic (SSH SG rule updated once already; consider SSM Session Manager). Payments and auth substitutions (Paddle, no Clerk) are the next build task; Stripe/Clerk values remain placeholders.
+
+- **2026-09-07 — Unit 0.2 ('How the curriculum and grading loop work') authored and verified via Backward Design process:**
+  - **UbD Architect:** Design brief with learner baseline (student has client-brief.md, understands OmniCart problem), `forbidden_assumptions` listing all technology words, two spiraled concepts (plain-words-first from 0.1; time-boxing as new concept), zero-jargon competency ("Read how this curriculum is organized; build a progress tracker covering every unit"), five retrieval seeds (13 phases/56 modules, tracker shape, Phase 0 no code, Phase 11 from day one, each module ends with a deliverable), `project_delta` = `omnicart-system/docs/progress-tracker.md`, and Apex Freight parallel task (Marcus Bell builds a 56-row tracker for carrier audit steps). `content/units/phase-0/0.2/consistency.yaml` written with numbers `["13 phases", "56 modules"]` and documents `["progress-tracker.md"]`.
+  - **Assessment Engineer:** `worked-example/README.md` (Apex Freight 56-row tracker, Marcus Bell, 6 annotation blocks explaining why the header, Phase 0 rows, and path pass) and `completion/README.md` (all 56 module IDs listed explicitly including 3.2.1, four-column template, 9-item self-check, folder instructions). Key decision: added the full 56-module ID list to completion/README so students need not guess IDs from phase counts alone.
+  - **Rubric Evaluator:** `content/rubrics/0.2/v1.yaml` (4 criteria: `all-modules-present`, `required-columns-present`, `phase-0-done`, `tracker-path-correct`), `content/prompts/judge-0.2.md` (criteria-ARRAY contract, quoted-evidence mandate, injection defense, column-name case-sensitive rule), `content/golden/0.2/` with README matrix and 5 pre-graded submissions (s01 textbook pass, s02-s05 each isolating exactly one failing criterion). `validate-rubrics.py` exits 0.
+  - **Pedagogical Author:** `learn.md` unit script (six `::: phase` blocks, three `##` headings in learn, one Mermaid figure, no seed words in headings after two rounds of renaming, FK lint 0 advisories in strict mode), `unit.yaml` (conceptual, 5 seeds, 3 unstuck refs, unlocks 0.3), `content/faq/0.2.md` (3 before/after notes). Heading fixes required: em dashes in fenced block replaced with colons, two long sentences split, two headings renamed to avoid seed keywords ('ends', 'tracker', 'turn'). Strict lint PASS after fixes.
+  - **Blind Playtester (cold review):** One continuity violation found: the lesson text block showed only phase counts (not individual module IDs), and the completion README said "See the module list in the lesson" — but the lesson had no per-module ID list. Students would not have known about 3.2.1. Fixed: added full 56-module ID list (including 3.2.1 noted explicitly) to completion/README, updated self-check Q8 to ask about 3.2.1, removed "See the module list in the lesson" pointer. Also fixed: "Plan for about 30 minutes of your half-hour" (awkward) reworded to "Plan for about 30 minutes". Round 2: zero Continuity Violations, zero Readability Issues.
+  - **Validation Battery:** `validate.py` PASS (unit.yaml schema, phases.yaml map, ledger.yaml all green), `validate-rubrics.py` PASS (both 0.1 and 0.2), `validate-gates.py` PASS (capstone, phase-5-integration, unit-0-2 all valid), `validate-map.py` PASS (13 phases, 56 modules), `validate-routing.py` PASS (0.1 and 0.2 routing valid), `lint-lesson.py --strict` PASS (0 advisories, FK grade below 8), `check-unit-consistency.py 0.2` PASS, `npm run test` (tsc + eslint) exit 0, `check-mermaid.mjs` 3/3 (2 from 0.1, 1 from 0.2).
+  - **Gate:** `content/gates/unit-0-2.yaml` written (unit_id 0.2, unlocks 0.3, rebate false).
+  - **Ledger:** Unit 0.2 appended to `content/curriculum/ledger.yaml` (7 concepts unlocked, 4 contracts established, project delta progress-tracker.md, 5 retrieval seeds, narrative anchor).
+  - **Not done:** live judge calibration (no API key in this session); full-stack rendered playthrough in the app.
 
 - **2026-09-07 — Grading-host provisioning kit added at scripts/provision/ (Oracle Always Free A1 target, any Ubuntu 24.04 host works):**
   - Ordered, idempotent scripts: 10-docker.sh (Docker for arm64, cgroup v2 check that hard-fails otherwise, keel-runner:0.1 build), 20-postgres.sh (keel-pg container on a volume + schema 0001..0014 with ON_ERROR_STOP), 30-services.sh (systemd units for the seven long-runners: intake, reader, enroll, practice, proxy, worker, rebate; env from /etc/keelacademy/env), 40-caddy.sh + Caddyfile (TLS, path routing to reader/enroll/practice plus the Stripe webhook; proxy and loops never exposed), 50-backup.sh (nightly pg_dump, 7-day retention), 60-smoke.sh (liveness: units active, ports open, DB answers, sandbox image present).
   - env.grading-host.example is the full host-env template (DB, ports, LLM proxy incl. the per-unit cap, worker routing through the local proxy, Stripe test-mode, intake secret, rebate knobs); real values from FOUNDER-WIRING.md; the filled file is chmod 600 and never committed. Vercel-side (Clerk, app URLs) stays on Vercel per that runbook.
   - Constraints encoded, not just documented: one keel-proxy process (in-process budget locks), services bind 127.0.0.1 only, worker gets SupplementaryGroups=docker, cgroup v2 is a hard prerequisite.
   - Ops doc: hosting decision recorded earlier stays (app on Vercel, grading on one VM); at ~100 paying students the guidance is 4 OCPU / 16 GB PAYG or Hetzner, multiple worker processes (SKIP LOCKED makes this safe), Vercel Pro for commercial ToS; LLM spend stays bounded by the per-student and per-unit caps.
+
+- **2026-09-07 — Unit 0.2 deleted at owner direction (authored then removed in the same session):**
+  - Removed all authored content, rubrics, golden calibration sets, prompts, routing rules, and FAQ assets for Unit 0.2 (`content/units/phase-0/0.2/`, `content/rubrics/0.2/`, `content/golden/0.2/`, `content/prompts/judge-0.2.md`, `content/routing/0.2.yaml`, `content/faq/0.2.md`).
+  - Reset `content/curriculum/ledger.yaml` units to `[0.1]` (the 0.2 ledger entry is removed).
+  - Retained Unit 0.2 in the curriculum map (`content/curriculum/phases.yaml`) and in 0.1's gate unlocks, where continuity requires it (renders honestly as planned/content-arriving in the dashboard).
+  - Stale historical references intentionally left as written: the `.doc-audit/` inventory (already stale for the 0.3 and 3.2.1 deletions) and the `docs/decisions/` archive.
+  - All content validators re-run green after removal (exit 0).
 
 - **2026-09-07 — Improvement plan M2.3 to M6.3 completed in one session (branch improve/review-2026-09; all proofs green; per-item detail in docs/improvement-plan.md log):**
   - **Pipeline gates:** strict lint + cross-file consistency wired into the pre-push hook and content-gate.yml; `content/STYLE.md` (44 lines) is the single plain-language standard, linked from all six agent contracts; unit_orchestrator battery runs the new gates and requires pasted script output from every specialist.
@@ -167,18 +191,4 @@ oldest entries move to the archive verbatim.
   - Assessment blockers: the exercise requires 600-1,200 words and exact headings, but the rubric does not grade either constraint and the golden set marks a 263-word differently headed submission as passing. Golden pass samples also omit required intake formats.
   - Continuity blockers: `curriculum.md` still defines OmniSupply Operations while Unit 0.1 and the curriculum map introduce OmniCart; the map returns to OmniSupply at the capstone; and the ledger names a different parallel entity than the worked example.
   - Verification performed: all eight content/concierge structural checks passed; lesson lint reported 0 advisories; Mermaid check passed 3/3; `npm run test` passed; rendered `/units/0.1` accessibility/copy checks passed 12/12. These checks do not cover the semantic and end-to-end failures above.
-
-- **2026-09-06 — Anchor client transitioned to OmniCart Operations (E-Commerce / Marketplace):**
-  - Retired archaic B2B freight/wholesale terminology (bills of lading, detention fees, short-shipments, dock inspection stamps) in favor of intuitive e-commerce merchant and marketplace operations (**OmniCart Operations**).
-  - Grounded domain in customer return requests, damaged parcel unboxing photos, courier delivery tracking slips, and store return policies (14-day statutory return window, integer-cent refund accounting).
-  - Preserved 100% of technical rigor (Pydantic models, RAG policy lookup, stateful agent routing, golden calibration, prompt injection defense) while eliminating student cognitive friction from obscure supply-chain jargon.
-  - Updated all Unit 0.1 artifacts (`unit.yaml`, `learn.md`, `worked-example/`, `completion/`, `rubrics/0.1/`, `prompts/judge-0.1.md`, `golden/0.1/`, `faq/0.1.md`, and `content/curriculum/ledger.yaml`).
-
-- **2026-09-06 — Unit 0.1 authored & verified via Backward Design subagent team:**
-  - **UbD Architect:** Scoped target competencies (3-sentence zero-jargon problem statement, stakeholder trilemma, HITL boundaries, 4 retrieval seeds, and parallel entity scoping for Apex Freight Logistics).
-  - **Assessment Engineer:** Built reference model brief for parallel entity Apex Freight Logistics (`worked-example/README.md`) and scaffolded student template (`completion/README.md`) for OmniSupply.
-  - **Rubric Evaluator:** Formulated `content/rubrics/0.1/v1.yaml` (4 criteria: `plain-language-problem`, `stakeholder-trilemma`, `hitl-governance-boundary`, `current-vs-target-intake-flow`), judge prompt `content/prompts/judge-0.1.md`, and 6 pre-graded golden calibration submissions (`content/golden/0.1/s01-s06`).
-  - **Pedagogical Author:** Authored `learn.md` in Daniel Shiffman style (warehouse receiving dock arrival, step-by-step breakdown arithmetic at 4,000/mo, staged junior engineer auto-refund bug, predict-then-reveal scratch beats, open challenge coda), `unit.yaml`, `faq/0.1.md`, and updated `content/curriculum/ledger.yaml`.
-  - **Blind Playtester:** Conducted isolated cold playthrough without solution access; caught 3 friction traps in `completion/README.md` (scaffold HITL triggers 3 vs 4, turnaround time SLA "under 2 hours" vs "under 1 hour", and macro cycle times guidance), which were immediately resolved.
-  - **Validation Battery:** `validate.py` (PASS), `validate-rubrics.py` (PASS), `validate-map.py` (PASS), `lint-lesson.py` (0 advisories), Next.js `typecheck` (0 errors), `lint` (0 errors).
 
