@@ -169,6 +169,21 @@ class Handler(BaseHTTPRequestHandler):
                     os.environ.get("KEEL_FAKE_PADDLE_PORT", "8798"), txn_id)},
             }})
             return
+        if self.path.startswith("/transactions/"):
+            txn_id = self.path[len("/transactions/"):]
+            if txn_id not in TXNS:
+                self._json(404, {"error": {"code": "not_found"}})
+                return
+            t = TXNS[txn_id]
+            self._json(200, {"data": {
+                "id": txn_id,
+                "status": t["status"],
+                "customer_id": t["customer_id"],
+                "custom_data": t["custom_data"],
+                "checkout": {"url": "http://127.0.0.1:%s/pay/%s" % (
+                    os.environ.get("KEEL_FAKE_PADDLE_PORT", "8798"), txn_id)},
+            }})
+            return
         if self.path.startswith("/pay/"):
             txn_id = self.path[len("/pay/"):]
             if txn_id not in TXNS:
@@ -200,6 +215,7 @@ class Handler(BaseHTTPRequestHandler):
             txn_id = "txn_fake_%06d" % n
             COUNTER[0] = n
             TXNS[txn_id] = {
+                "status": "ready",
                 "price_id": pid,
                 "customer_id": str(doc.get("customer_id") or ""),
                 "custom_data": doc.get("custom_data") or {},
@@ -227,6 +243,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "unknown transaction"})
             return
         t = TXNS[txn_id]
+        t["status"] = "completed"
         sub_id = "sub_fake_%s" % txn_id[len("txn_fake_"):]
         ends = time.strftime("%Y-%m-%dT%H:%M:%SZ",
                              time.gmtime(time.time() + 31 * 24 * 3600))
