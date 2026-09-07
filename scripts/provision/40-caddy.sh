@@ -28,7 +28,10 @@ apt-get update -qq
 apt-get -y -qq install caddy
 
 echo "== deploying Caddyfile for ${KEEL_HOSTNAME} =="
-install -m 0644 "$PROVISION_DIR/Caddyfile" /etc/caddy/Caddyfile
+# Substitute the hostname at deploy time: the caddy systemd unit does not read
+# our env file, so an env placeholder would expand empty and break the config.
+sed "s|{\$KEEL_HOSTNAME}|${KEEL_HOSTNAME}|g" "$PROVISION_DIR/Caddyfile" \
+    | install -m 0644 /dev/stdin /etc/caddy/Caddyfile
 systemctl reload caddy || systemctl restart caddy
 systemctl enable caddy >/dev/null
 
