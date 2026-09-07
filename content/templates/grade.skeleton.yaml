@@ -1,0 +1,14 @@
+# Copy into one golden submission directory as grade.yaml.
+# Use expected: borderline only for a real human judgment call.
+# Use graded_by: human only after a person has checked the submission.
+
+submission: "{{SUBMISSION_DIRECTORY_NAME}}"
+expected: pass # pass, fail, or borderline
+criteria:
+  "{{CRITERION_ID_1}}": pass
+  "{{CRITERION_ID_2}}": pass
+  "{{CRITERION_ID_3}}": pass
+overall: pass # Always resolve to pass or fail.
+grader_notes: "{{QUOTE_THE_DECISIVE_EVIDENCE_AND_EXPLAIN_THE_GRADE}}"
+graded_by: "{{GRADER_NAME_OR_ROLE}}"
+graded_on: "{{YYYY-MM-DD}}"
