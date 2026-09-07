@@ -41,6 +41,20 @@ jobs:
         run: python content/tools/validate-guard-evals.py
       - name: Validate diagnostic assessments and commitment declarations
         run: python content/tools/validate-diagnostics.py
+      - name: Strict lesson lint (M2.1 gate)
+        run: |
+          files=$(find content/units -type f -name learn.md)
+          if [ -n "$files" ]; then
+            python content/tools/lint-lesson.py --strict $files
+          else
+            echo "no authored learn.md files; strict lesson lint skipped"
+          fi
+      - name: Cross-file unit consistency (M2.2 gate)
+        run: |
+          for d in content/units/phase-*/*/; do
+            [ -d "$d" ] || continue
+            python content/tools/check-unit-consistency.py "$(basename "$d")"
+          done
       - name: Concierge structural contract and spoof-immunity checks (keyless)
         run: python platform/grading/scripts/check-concierge-structural.py
       - name: Dry-run unit 3.2.1 checks against the reference solution

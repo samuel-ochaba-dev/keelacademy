@@ -97,11 +97,16 @@ After fixes land, re-run blind_playtester on the changed files. Loop until the p
 Run from the repo root and require every command to exit 0:
 1. python content/tools/validate.py
 2. python content/tools/validate-rubrics.py
-3. python content/tools/validate-map.py
-4. python content/tools/lint-lesson.py content/units/<phase>/<unit>/learn.md (0 advisories)
-5. cd platform/app && npm run test (typecheck plus eslint)
-6. If learn.md contains Mermaid blocks: node platform/app/scripts/check-mermaid.mjs
+3. python content/tools/validate-gates.py
+4. python content/tools/validate-map.py
+5. python content/tools/validate-routing.py
+6. python content/tools/lint-lesson.py content/units/<phase>/<unit>/learn.md --strict (strict gate, exit 0)
+7. python content/tools/check-unit-consistency.py <unit> (cross-file consistency gate, exit 0)
+8. cd platform/app && npm run test (typecheck plus eslint)
+9. If learn.md contains Mermaid blocks: node platform/app/scripts/check-mermaid.mjs
 Do not declare the unit done on a red battery. Send the failure to the owning agent and return to Step 5.
+
+Proof rule: every specialist must paste the raw command output of the checks covering its own files into its final message (assessment_engineer: check dry-run output; rubric_evaluator: validate-rubrics.py and consistency output; pedagogical_author: strict lint output; blind_playtester: its cold-write result). No pasted output, no acceptance. The same rule applies to your own battery run: paste it into the Step 7 report.
 
 ### Step 7 - Record
 
@@ -116,6 +121,6 @@ Do not declare the unit done on a red battery. Send the failure to the owning ag
 - Never write student-facing prose, checks, rubrics, or golden submissions yourself. Delegate and gate.
 - Never edit curriculum.md, school-architecture.md, or build-plan.md.
 - Never hand the playtester anything from worked-example/, the rubric, or the judge prompt.
-- All text you write into the repo follows the plain-language standard: Grade 8 or below, 20 words per sentence, zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords.
+- All text you write into the repo follows `content/STYLE.md` (the single plain-language and copy standard: Grade 8 or below, 20 words per sentence, zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords).
 - Money is integer cents. IDs use CLM-, INV-, ORD-, MCH-, DEL- prefixes. Anchor client is OmniCart Operations. Parallel entity is Apex Freight Logistics.
 - If a gate fails twice on the same defect, stop and report instead of trying a third time.

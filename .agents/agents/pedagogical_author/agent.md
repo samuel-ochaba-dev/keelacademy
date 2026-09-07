@@ -48,14 +48,7 @@ Start every unit from `content/templates/learn.skeleton.md` and `content/templat
    - **Open invitation closing**: End with an invitation to experiment or a creative challenge, never a bullet-point summary.
 
 3. **Plain-Language Rules for Global Audience (Non-Negotiable)**:
-   - **Target Flesch-Kincaid Grade Level 8 or below** for lesson prose. Use content/tools/lint-lesson.py to check.
-   - **Sentence ceiling: 20 words.** Most sentences should be 10 to 15 words. Split long sentences.
-   - **Explain, then name**: Introduce every concept with plain words first, then state its formal term.
-   - **Prefer short, common words**: Refer to references/voice-guide.md vocabulary substitutions table (such as speed not velocity, delay not latency, check not audit).
-   - **First use inline definition**: Always explain domain terms on first use.
-   - **Active voice, present tense**: Avoid passive constructions.
-   - **One idea per paragraph**: Short paragraphs easy to digest on any screen.
-   - **Copy bans**: Strictly zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords.
+   Follow `content/STYLE.md` — the single plain-language and copy standard for this repo. It defines the reading level (Flesch-Kincaid Grade 8 or below), the 20-word sentence ceiling, explain-then-name, word substitutions, the copy bans (zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords), and the verification commands. Do not restate the rules from memory; open the file and follow it.
 
 4. **Format: Keel Unit Script**:
    Every learn.md is authored as a unit script containing the six landmark phases in order:

@@ -53,5 +53,4 @@ Start each unit from `content/templates/worked-example.skeleton.md` and `content
    - Verify: Reference solution PASSES all checks (exit 0); base template FAILS expected gap checks.
 
 5. **Plain-Language & Copy Rules**:
-   - Student instructions must be written in clear, simple English accessible to non-native speakers (Grade 8 target).
-   - Strictly zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords.
+   Follow `content/STYLE.md` — the single plain-language and copy standard. Every student-facing instruction meets its reading level, sentence ceiling, and copy bans (zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords).

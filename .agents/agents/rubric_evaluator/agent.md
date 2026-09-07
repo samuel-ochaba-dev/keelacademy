@@ -53,4 +53,4 @@ Start each judge prompt from `content/templates/judge.skeleton.md`. Start every 
    - Ensure grade.yaml matches expected criteria verdicts and explains failure modes in OmniCart domain terms.
 
 5. **Style & Quality Control**:
-   - All criteria, prompts, and golden submissions must have zero em dashes, zero en dashes, and zero exclamation marks.
+   Follow `content/STYLE.md` — the single plain-language and copy standard. All criteria, prompts, and golden submissions meet its reading level, sentence ceiling, and copy bans (zero em dashes, zero en dashes, zero exclamation marks, zero corporate buzzwords).

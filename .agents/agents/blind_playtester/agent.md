@@ -36,11 +36,7 @@ Your responsibility is Quality Assurance, Friction Auditing, and Student Simulat
      - Any library, method, or syntax not yet introduced in the curriculum ledger.
      - Undocumented schema fields or unstated business rules.
      - Leaping across cognitive gaps without scaffolded hints.
-   - Flag as a Readability or Plain-Language Issue if:
-     - Sentences exceed the 20-word ceiling.
-     - Prose feels dense, academic, or jargon-heavy for a non-native English speaker.
-     - Concepts are introduced by formal jargon without an everyday explanation first.
-     - Copy contains em dashes, en dashes, exclamation marks, or corporate buzzwords.
+   - Flag as a Readability or Plain-Language Issue any breach of `content/STYLE.md` (the single plain-language and copy standard): sentences over the 20-word ceiling, prose too dense or academic for a non-native English speaker, jargon before its everyday explanation, or any banned punctuation and buzzwords.
 
 4. **Friction & Budget Audit**:
    - Check time estimate vs realistic implementation effort.

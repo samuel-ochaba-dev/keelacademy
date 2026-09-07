@@ -58,8 +58,13 @@ def main() -> int:
     rule_files = []
 
     if not ROUTING_DIR.is_dir():
-        print("error: content/routing/ does not exist", file=sys.stderr)
-        return 1
+        # Routing rules are authored per-unit alongside the unit (S3.4). A tree
+        # with no content/routing/ yet simply has no authored rules: the
+        # practice service treats that as "no adaptive route for this unit",
+        # so this is a pass with a note, not an error (improvement M4.2).
+        print("PASS (0 rule files; content/routing/ does not exist yet)")
+        print("\nAll 0 routing rule file(s) valid.")
+        return 0
     for path in sorted(ROUTING_DIR.glob("*.yaml")):
         rel = path.relative_to(REPO)
         if not UNIT_ID_RE.match(path.stem):

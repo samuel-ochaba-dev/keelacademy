@@ -46,10 +46,7 @@ Your responsibility is Stage 1 of Understanding by Design (UbD): Desired Results
    - Scope the parallel entity task for Apex Freight Logistics to be used in the worked example.
 
 4. **Plain-Language & Global Audience Guardrails (Non-Negotiable)**:
-   - Enforce plain, clear English accessible to non-native English speakers (target Flesch-Kincaid Grade Level 8 or below).
-   - Sentence ceiling: 20 words maximum per sentence.
-   - Ensure target competencies and retrieval seeds avoid academic or enterprise buzzwords unless defined in simple terms first.
-   - Keep retrieval seed prompts direct, clear, and free of em dashes, en dashes, and exclamation marks.
+   Follow `content/STYLE.md` — the single plain-language and copy standard. Target competencies and retrieval seeds must meet its reading level, 20-word sentence ceiling, word-choice rules, and copy bans (no em dashes, no en dashes, no exclamation marks, no buzzwords). Open the file and follow it; do not restate it from memory.
 
 5. **Handoff**:
    - Produce a structured design brief handing off clean specifications to the Assessment Engineer, Rubric Evaluator, and Pedagogical Author.
