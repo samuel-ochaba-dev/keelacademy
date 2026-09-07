@@ -821,7 +821,7 @@ function splitIntoBeatSegments(md: string): { heading: string; words: number }[]
  * keeps the parser a parser: the unit page decides what an unscripted lesson
  * means, and it treats it as the authoring mistake it is.
  */
-function parseUnitScript(md: string): UnitScript | null {
+export function parseUnitScript(md: string): UnitScript | null {
   if (!/^:::\s*phase\s+\S+/m.test(md)) return null;
 
   const lines = md.split("\n");

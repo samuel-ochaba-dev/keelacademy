@@ -43,7 +43,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from db import db_sql, sql_str
 
-ALLOWED_MODELS = ("gpt-4o-mini", "gpt-4.1", "o3")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # platform/
+from models_loader import allowed_models  # noqa: E402
+
+# The allowlist is the set of concrete models named by platform/models.yaml
+# (M4.3) — the same tier mapping the grading CLI's llm.py reads.
+ALLOWED_MODELS = allowed_models()
 
 # Per-student locks: serialize pre-check -> forward -> charge so the
 # documented overshoot bound (at most one call's usage past the cap) holds
@@ -69,6 +74,59 @@ def append_budget_exceeded(student_id, model, used, cap):
         "jsonb_build_object('student_id', %s, 'model', %s::text,"
         " 'tokens_used', %s, 'tokens_cap', %s));\n"
         "COMMIT;\n" % (student_id, sql_str(model), used, cap),
+        want_rows=False,
+    )
+
+
+# --- M5.4: per-unit budget cap, alongside the per-student DB budget ---
+#
+# Caps the tokens one UNIT may burn across all students (a runaway judge loop
+# on one unit must not drain the platform budget). The unit is named by the
+# X-Keel-Unit-Id header; when it is absent there is no per-unit enforcement.
+# KEEL_UNIT_TOKENS_CAP sets the cap; unset or non-positive disables it.
+#
+# Enforcement is in-process (same single-process deployment caveat as the
+# per-student locks): a multi-process deployment must move this into SQL like
+# the per-student budget table. Overshoot bound mirrors the per-student rule:
+# at most one forwarded call's usage past the cap.
+_unit_lock = threading.Lock()
+_unit_used: dict[str, int] = {}
+
+
+def unit_tokens_cap() -> int | None:
+    raw = os.environ.get("KEEL_UNIT_TOKENS_CAP")
+    if raw is None or not raw.strip():
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
+def unit_budget_allows(unit_id: str) -> bool:
+    cap = unit_tokens_cap()
+    if cap is None:
+        return True
+    with _unit_lock:
+        return _unit_used.get(unit_id, 0) < cap
+
+
+def unit_charge(unit_id: str, tokens: int) -> None:
+    if tokens <= 0:
+        return
+    with _unit_lock:
+        _unit_used[unit_id] = _unit_used.get(unit_id, 0) + tokens
+
+
+def append_unit_budget_exceeded(unit_id, used, cap):
+    db_sql(
+        "BEGIN;\n"
+        "INSERT INTO events (type, payload) VALUES ("
+        "'proxy.unit_budget_exceeded',"
+        "jsonb_build_object('unit_id', %s, 'tokens_used', %s,"
+        " 'tokens_cap', %s));\n"
+        "COMMIT;\n" % (sql_str(unit_id), used, cap),
         want_rows=False,
     )
 
@@ -160,6 +218,8 @@ class Handler(BaseHTTPRequestHandler):
                           "code": "no_budget_row"}})
             return
 
+        unit_id = (self.headers.get("X-Keel-Unit-Id") or "").strip() or None
+
         with student_lock(student_id):
             rows = db_sql(
                 "BEGIN;\n"
@@ -174,6 +234,18 @@ class Handler(BaseHTTPRequestHandler):
                     "error": {"message": "token budget exceeded",
                               "type": "budget_exceeded",
                               "code": "budget_exceeded"}})
+                return
+
+            # --- per-unit pre-check (M5.4): also BEFORE any upstream call ---
+            ucap = unit_tokens_cap()
+            if unit_id and ucap is not None and not unit_budget_allows(unit_id):
+                with _unit_lock:
+                    uused = _unit_used.get(unit_id, 0)
+                append_unit_budget_exceeded(unit_id, uused, ucap)
+                self._respond_json(429, {
+                    "error": {"message": "unit token budget exceeded",
+                              "type": "unit_budget_exceeded",
+                              "code": "unit_budget_exceeded"}})
                 return
 
             # --- forward upstream (key never logged, never echoed) ---
@@ -219,6 +291,8 @@ class Handler(BaseHTTPRequestHandler):
                         "error": {"message": "charge failed",
                                   "code": "charge_failed"}})
                     return
+                if unit_id:
+                    unit_charge(unit_id, tokens)
 
             # Upstream body returned unchanged.
             self._respond_raw(200, resp_raw)

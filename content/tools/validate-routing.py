@@ -58,8 +58,13 @@ def main() -> int:
     rule_files = []
 
     if not ROUTING_DIR.is_dir():
-        print("error: content/routing/ does not exist", file=sys.stderr)
-        return 1
+        # Zero authored files is the canonical state after an authoring reset
+        # (M4.2): the practice service treats that as "no adaptive route for
+        # this unit". A validator that is red on the canonical tree teaches
+        # everyone to ignore red, so this is a pass with a note, not an error.
+        print("PASS (content/routing/ does not exist yet: nothing to validate)")
+        print("\nAll 0 routing rule file(s) valid.")
+        return 0
     for path in sorted(ROUTING_DIR.glob("*.yaml")):
         rel = path.relative_to(REPO)
         if not UNIT_ID_RE.match(path.stem):

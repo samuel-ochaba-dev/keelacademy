@@ -10,6 +10,7 @@ import type {
   PracticeManifest,
 } from "@/lib/practice";
 import { formatUtc } from "@/lib/grading";
+import { countWords, findBannedWords } from "@/lib/text";
 
 type PracticeWorkbenchProps = {
   unitId: string;
@@ -51,6 +52,11 @@ export function PracticeWorkbench({
   );
   const [attempts, setAttempts] = useState<PracticeAttemptSummary[]>(initialAttempts);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+  // Live feedback for the conceptual brief editor (M6.1): word count plus the
+  // standing banned-word warning, so problems surface before submission.
+  const answerWords = isConceptual ? countWords(answer) : 0;
+  const bannedHits = isConceptual ? findBannedWords(answer) : [];
 
   function handleFileChange(filename: string, content: string) {
     setFileContents((prev) => ({ ...prev, [filename]: content }));
@@ -185,15 +191,27 @@ export function PracticeWorkbench({
           </div>
 
           {isConceptual ? (
-            <textarea
-              aria-label="Answer editor for brief.md"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              disabled={isPending || !isEnrolled}
-              rows={18}
-              className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
-              placeholder={"Paste your complete brief.md here, including the four mandated section headings, before submitting it for grading."}
-            />
+            <>
+              <textarea
+                aria-label="Answer editor for brief.md"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                disabled={isPending || !isEnrolled}
+                rows={18}
+                className="w-full font-code-mono text-[13.5px] leading-relaxed p-4 bg-void-black text-moss-80 border border-circuit-border rounded-lg focus:border-lime-pulse focus:outline-none resize-y"
+                placeholder={"Paste your complete brief.md here, including the four mandated section headings, before submitting it for grading."}
+              />
+              <div className="flex flex-wrap items-baseline justify-between gap-3 font-code-mono text-[11.5px]">
+                <span className="text-moss-70" aria-live="polite">
+                  {answerWords === 1 ? "1 word" : `${answerWords} words`}
+                </span>
+                {bannedHits.length > 0 ? (
+                  <span role="alert" className="text-amber-300">
+                    {`Banned words in your brief: ${bannedHits.join(", ")}. Say what should happen, not what tool does it.`}
+                  </span>
+                ) : null}
+              </div>
+            </>
           ) : (
             <textarea
               aria-label={`Code editor for ${activeFile}`}

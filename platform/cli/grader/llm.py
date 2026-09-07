@@ -67,14 +67,13 @@ def set_trace_caller(name: str, force: bool = False) -> None:
 def set_trace_tier(tier: str | None) -> None:
     _tier_var.set(tier)
 
-# model_tier -> concrete OpenAI model + USD per 1M tokens (prompt / completion).
-# Prices are approximate list prices at time of writing; used only for the
-# stderr cost trace (seed of S1.7), not for billing.
-MODEL_TIERS = {
-    "low": {"model": "gpt-4o-mini", "price_in": 0.15, "price_out": 0.60},
-    "mid": {"model": "gpt-4.1", "price_in": 2.00, "price_out": 8.00},
-    "high": {"model": "o3", "price_in": 2.00, "price_out": 8.00},
-}
+# model_tier -> concrete model + prices now live in ONE place: platform/models.yaml
+# (M4.3). The loader keeps these pre-M4.3 values as the fallback; llm.py and
+# the grading proxy both read the file through it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # platform/
+from models_loader import load_model_tiers  # noqa: E402
+
+MODEL_TIERS = load_model_tiers()
 
 NUDGE = (
     "Your previous reply was not valid JSON. Return ONLY a single JSON object "
@@ -167,6 +166,11 @@ def call_model(model: str, messages: list[dict], api_key: str) -> tuple[str, dic
     student_id = os.environ.get("KEEL_LLM_STUDENT_ID")
     if student_id:
         headers["X-Keel-Student-Id"] = student_id
+    # The unit whose per-unit budget (M5.4) is charged; set per grading call
+    # by the orchestrating worker. Absent on direct calls and when unset.
+    unit_id = os.environ.get("KEEL_LLM_UNIT_ID")
+    if unit_id:
+        headers["X-Keel-Unit-Id"] = unit_id
     req = urllib.request.Request(
         _base_url().rstrip("/") + "/chat/completions", data=payload,
         method="POST", headers=headers,

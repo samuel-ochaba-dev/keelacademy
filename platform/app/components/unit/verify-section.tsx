@@ -191,6 +191,61 @@ export function RubricCard({ rubric }: { rubric: Rubric | null }) {
           </div>
         ))}
       </div>
+
+      <SampleVerdictCard />
     </div>
+  );
+}
+
+/**
+ * A static, app-owned example of one Layer-2 verdict (M6.3), shown under the
+ * rubric so the student knows the shape of what comes back: one verdict per
+ * criterion, each with a verbatim quote from their own work, and an overall
+ * line that fails if any criterion fails. The text below is invented; a real
+ * verdict quotes the student's own submission.
+ */
+function SampleVerdictCard() {
+  const sampleCriteria: { id: string; verdict: "pass" | "fail"; evidence: string }[] = [
+    {
+      id: "problem-stated-plainly",
+      verdict: "pass",
+      evidence: "\"OmniCart receives about 4,000 return requests a month.\"",
+    },
+    {
+      id: "target-process-measurable",
+      verdict: "fail",
+      evidence: "\"## How it should work\" names no target time.",
+    },
+  ];
+  return (
+    <details className="reveal reveal-flush pt-2">
+      <summary>See a sample verdict</summary>
+      <div className="reveal-body space-y-3 rounded-lg border border-circuit-border bg-carbon-veil p-5">
+        <p className="text-[13px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
+          A made-up example of what the grader returns. Every criterion carries
+          a verdict and a quote from your own words. One failed criterion fails
+          the whole brief, and you can resubmit.
+        </p>
+        <div className="space-y-2">
+          {sampleCriteria.map((c) => (
+            <div
+              key={c.id}
+              className="flex flex-col gap-1 rounded border border-circuit-border p-3 font-code-mono text-[12px]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <code className="text-phosphor-white">{c.id}</code>
+                <span className={`chip ${c.verdict === "pass" ? "chip-live" : "chip-alert"} text-[10px]`}>
+                  {c.verdict.toUpperCase()}
+                </span>
+              </div>
+              <p className="text-moss-70">Evidence: {c.evidence}</p>
+            </div>
+          ))}
+        </div>
+        <p className="font-code-mono text-[12px] text-phosphor-white">
+          OVERALL: FAIL
+        </p>
+      </div>
+    </details>
   );
 }

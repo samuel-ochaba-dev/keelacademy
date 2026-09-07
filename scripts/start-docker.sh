@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# scripts/start-docker.sh — start Docker Desktop (WSL host) and wait until the
+# daemon answers; reports whether the keel-runner:0.1 sandbox image is present.
 DKR="/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe"
 echo "== starting Docker Desktop =="
 "/mnt/c/Program Files/Docker/Docker/Docker Desktop.exe" >/dev/null 2>&1 &
