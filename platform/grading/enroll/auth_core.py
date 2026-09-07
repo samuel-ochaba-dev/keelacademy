@@ -212,7 +212,7 @@ def signup(email: str, password: str, name) -> dict:
         "BEGIN;\n"
         "INSERT INTO auth_users (email, password_hash, display_name)\n"
         "VALUES (%s, %s, %s) RETURNING id;\n"
-        "ROLLBACK;\n" % (sql_str(email), sql_str(hash_password(password)), sql_str(name)),
+        "COMMIT;\n" % (sql_str(email), sql_str(hash_password(password)), sql_str(name)),
     )
     uid = int(rows[0][0])
     payload = _bridge_and_payload(uid, email, name)
