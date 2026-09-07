@@ -20,7 +20,7 @@ Search the whole brief for these words: AI, agent, LLM, model, prompt, automatio
 
 ### problem-stated-plainly
 
-Read only the text under `## The problem`. Count sentences by terminal punctuation. Pass when there are 1 to 3 sentences, one gives the monthly volume as a number near 4,000, and one gives the wait as 2 to 3 days or a similar figure in days. A fourth sentence fails. Phrases like many cases, a lot of returns, or too long fail because they carry no number. Numbers stated under other headings do not rescue this section.
+Read only the text between the `## The problem` heading and the next `##` heading; sentences from any other section never count here. Count sentences by terminal punctuation. This criterion checks exactly three things: 1 to 3 sentences, a monthly volume near 4,000, and a wait of 2 to 3 days or a similar figure in days. When all three hold, the verdict is pass; do not look for anything else in this section. A fourth sentence fails. Phrases like many cases, a lot of returns, or too long fail because they carry no number. Numbers stated under other headings do not rescue this section.
 
 ### three-stakeholders-differ
 
