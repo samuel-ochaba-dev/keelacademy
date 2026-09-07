@@ -66,7 +66,8 @@ from db import db_sql, sql_str
 import auth_core as auth  # sibling module; the script dir is sys.path[0]
 
 MAX_BODY_BYTES = 5 * 1024 * 1024  # reject anything bigger before parsing
-UNIT_RE = re.compile(r"^\d+\.\d+\.\d+$")
+UNIT_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")  # unit "0.1" (curriculum) or a
+# three-part section id; two-part is the real unit id shape (proof 2026-09-07)
 STRIPE_CALL_TIMEOUT_S = 15
 
 
@@ -394,6 +395,33 @@ class Handler(BaseHTTPRequestHandler):
             # GET: the app fetches the all-access price for the checkout
             # page before offering the subscribe button.
             self._handle_subscription_price()
+            return
+
+        if parsed.path == "/subscription/status":
+            # GET: the app's checkout-success page polls this with the
+            # transaction id Paddle appended to the success url, and shows
+            # the subscription state without guessing.
+            tid = (query.get("transaction_id") or [""])[0]
+            if not re.match(r"^[A-Za-z0-9_\-]{1,128}$", tid):
+                self._respond(400, {"error": "bad transaction id"})
+                return
+            rows = db_sql(
+                "BEGIN;\n"
+                "SELECT ss.transaction_id, COALESCE(\n"
+                "  (SELECT status FROM subscriptions sub\n"
+                "   WHERE sub.customer_id = ss.customer_id\n"
+                "   ORDER BY sub.id DESC LIMIT 1), 'pending')\n"
+                "FROM subscription_signups ss\n"
+                "WHERE ss.transaction_id = %s;\n"
+                "ROLLBACK;\n" % sql_str(tid)
+            )
+            if not rows:
+                self._respond(404, {"error": "not_found"})
+                return
+            self._respond(200, {
+                "transaction_id": rows[0][0],
+                "status": rows[0][1],
+            })
             return
 
         if parsed.path == "/checkout/status":
