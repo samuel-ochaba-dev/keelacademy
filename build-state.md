@@ -104,10 +104,16 @@ Verify Unit 0.1 live: run the judge calibration on `content/golden/0.1/` (8 subm
 ## Decisions log
 
 Older decisions live in the archive, split by month, in original log order:
-`docs/decisions/2026-08.md` (110 entries) and `docs/decisions/2026-09.md` (18 entries).
+`docs/decisions/2026-08.md` (110 entries) and `docs/decisions/2026-09.md` (20 entries).
 This file keeps the most recent decisions (ten at the 2026-09-07 split). New entries
 are prepended here at the top; when this file grows past its compact budget, the
 oldest entries move to the archive verbatim.
+
+- **2026-09-07 — Grading-host provisioning kit added at scripts/provision/ (Oracle Always Free A1 target, any Ubuntu 24.04 host works):**
+  - Ordered, idempotent scripts: 10-docker.sh (Docker for arm64, cgroup v2 check that hard-fails otherwise, keel-runner:0.1 build), 20-postgres.sh (keel-pg container on a volume + schema 0001..0014 with ON_ERROR_STOP), 30-services.sh (systemd units for the seven long-runners: intake, reader, enroll, practice, proxy, worker, rebate; env from /etc/keelacademy/env), 40-caddy.sh + Caddyfile (TLS, path routing to reader/enroll/practice plus the Stripe webhook; proxy and loops never exposed), 50-backup.sh (nightly pg_dump, 7-day retention), 60-smoke.sh (liveness: units active, ports open, DB answers, sandbox image present).
+  - env.grading-host.example is the full host-env template (DB, ports, LLM proxy incl. the per-unit cap, worker routing through the local proxy, Stripe test-mode, intake secret, rebate knobs); real values from FOUNDER-WIRING.md; the filled file is chmod 600 and never committed. Vercel-side (Clerk, app URLs) stays on Vercel per that runbook.
+  - Constraints encoded, not just documented: one keel-proxy process (in-process budget locks), services bind 127.0.0.1 only, worker gets SupplementaryGroups=docker, cgroup v2 is a hard prerequisite.
+  - Ops doc: hosting decision recorded earlier stays (app on Vercel, grading on one VM); at ~100 paying students the guidance is 4 OCPU / 16 GB PAYG or Hetzner, multiple worker processes (SKIP LOCKED makes this safe), Vercel Pro for commercial ToS; LLM spend stays bounded by the per-student and per-unit caps.
 
 - **2026-09-07 — Improvement plan M2.3 to M6.3 completed in one session (branch improve/review-2026-09; all proofs green; per-item detail in docs/improvement-plan.md log):**
   - **Pipeline gates:** strict lint + cross-file consistency wired into the pre-push hook and content-gate.yml; `content/STYLE.md` (44 lines) is the single plain-language standard, linked from all six agent contracts; unit_orchestrator battery runs the new gates and requires pasted script output from every specialist.
@@ -176,12 +182,3 @@ oldest entries move to the archive verbatim.
   - **Blind Playtester:** Conducted isolated cold playthrough without solution access; caught 3 friction traps in `completion/README.md` (scaffold HITL triggers 3 vs 4, turnaround time SLA "under 2 hours" vs "under 1 hour", and macro cycle times guidance), which were immediately resolved.
   - **Validation Battery:** `validate.py` (PASS), `validate-rubrics.py` (PASS), `validate-map.py` (PASS), `lint-lesson.py` (0 advisories), Next.js `typecheck` (0 errors), `lint` (0 errors).
 
-- **2026-09-06 — Cumulative Curriculum Continuity Architecture instituted:**
-  - Established `content/curriculum/ledger.yaml` (Cumulative Curriculum Ledger) to solve the "amnesiac tutorial problem" without context bloat: tracks the learner's progressive project working tree (`omnisupply-system/`), unlocked concepts, forbidden assumptions (anti-prerequisites), active retrieval seeds, and parallel entity specifications (`Apex Freight Logistics` for worked examples).
-  - Configured 3-tier memory model: (1) compact ledger (~100 tokens/unit), (2) full immediate predecessor Unit N-1 (~3,000 tokens) for narrative/voice continuity, (3) on-demand tool lookups (`view_file`/`grep_search`) for specific past snippets.
-  - Reconfigured all 5 Backward Design subagents (`ubd_architect`, `assessment_engineer`, `rubric_evaluator`, `pedagogical_author`, `blind_playtester`) to enforce Step 0 prior-art audits, incremental codebase accumulation, canonical conventions (integer cents, standard prefixes), and strict "continuity violation" gating during cold playthroughs.
-
-- **2026-09-06 — Lesson authoring subagent voice updated: Josh Comeau replaced with Shiffman style:**
-  - Replaced pedagogical authoring voice across repository contracts (`AGENTS.md`, `platform/app/AGENTS.md`, `docs/lesson-flow-spec.md`) and subagents with Daniel Shiffman's teaching style, sourced from `.agents/skills/shiffman-style-lessons`.
-  - Installed `.agents/skills/shiffman-style-lessons/` into repo workspace with core skills, voice guide, and worked examples.
-  - Reconfigured the lesson authoring subagents (specifically `pedagogical_author` on the Backward Design team) to strictly follow Shiffman mechanics: live-build narration, visibly working through unexpected bugs, ask before tell (predict-then-reveal), alive/concrete domain entities, honest confusion, collaborative "we"/"let's" tone, and ending on an open challenge/invitation, while keeping Keel copy bans (no em/en dashes, no corporate buzzwords, no exclamation mark spam).

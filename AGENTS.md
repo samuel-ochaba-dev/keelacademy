@@ -28,7 +28,7 @@ How any session — human or AI — picks this project up without losing context
 /build-state.md           live progress (where we are; compact, archive in docs/decisions)
 /AGENTS.md                this file
 /docs                     specs: lesson-flow-spec, voice; decisions archive (2026-08, 2026-09)
-/scripts                  helper scripts (start-docker.sh)
+/scripts                  helper scripts (start-docker.sh; provision/ = grading-host provisioning kit)
 /.agents/skills           repo skills: shiffman-style-lessons (voice & lesson authoring)
 /.agents/agents           Backward Design subagent team: unit_orchestrator (entry point; sequences the five below), ubd_architect, assessment_engineer, rubric_evaluator, pedagogical_author, blind_playtester
 /platform                 the code: platform/cli (grading CLI, created at S0.3), platform/grading (grading-core service + Postgres schema, created at S1.1), platform/app (learner app, created at S2.3)

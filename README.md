@@ -72,6 +72,14 @@ Grading CLI unit tests:
 cd platform/cli && python3 -m pytest tests -q
 ```
 
+Production hosting (the grading host: Docker, Postgres, the seven services as
+systemd units, Caddy TLS, backups):
+
+```bash
+# on a fresh Ubuntu 24.04 VM — see scripts/provision/README.md
+cd scripts/provision && sudo bash 10-docker.sh   # then 20..60 in order
+```
+
 ## Where the docs are
 
 Start with `AGENTS.md` (how to pick the project up), then `build-state.md`
