@@ -11,9 +11,18 @@ import { redirect } from "next/navigation";
 import {
   authMode,
   clearOfflineSessionCookie,
+  clearSessionCookie,
   getSessionUser,
+  keelLogout,
+  keelResetConfirm,
+  keelResetRequest,
+  keelSessionCookieFromResult,
+  keelSignIn,
+  keelSignUp,
   offlineSignIn,
   offlineSignUp,
+  readKeelSessionCookie,
+  setKeelSessionCookie,
   setOfflineSessionCookie,
 } from "@/lib/auth";
 import { createCheckoutSession, ensureStudent } from "@/lib/enroll";
@@ -79,10 +88,86 @@ export async function offlineSignUpAction(formData: FormData): Promise<void> {
 }
 
 export async function signOutAction(): Promise<void> {
-  if (authMode() === "offline") {
+  if (authMode() === "keel") {
+    const token = await readKeelSessionCookie();
+    if (token) {
+      await keelLogout(token);
+    }
+    await clearSessionCookie();
+  } else if (authMode() === "offline") {
     await clearOfflineSessionCookie();
   }
   redirect("/");
+}
+
+// ---------------------------------------------------------------------------
+// "keel" mode actions (self-owned auth, schema 0015)
+// ---------------------------------------------------------------------------
+
+export async function keelSignInAction(formData: FormData): Promise<void> {
+  if (authMode() !== "keel") {
+    redirect("/sign-in?error=mode");
+  }
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const next = safeNext(formData.get("next"));
+  if (!EMAIL_RE.test(email)) {
+    loginError("/sign-in", "invalid-email", email);
+  }
+  const res = await keelSignIn(email, password);
+  const cookie = keelSessionCookieFromResult(res);
+  if (!cookie) {
+    loginError("/sign-in", res.state === "rejected" ? res.code : "unreachable", email);
+  }
+  await setKeelSessionCookie(cookie);
+  redirect(next);
+}
+
+export async function keelSignUpAction(formData: FormData): Promise<void> {
+  if (authMode() !== "keel") {
+    redirect("/sign-up?error=mode");
+  }
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const next = safeNext(formData.get("next"));
+  if (!EMAIL_RE.test(email)) {
+    loginError("/sign-up", "invalid-email", email);
+  }
+  if (password.length < 10) {
+    loginError("/sign-up", "weak-password", email);
+  }
+  const res = await keelSignUp(email, password, name || null);
+  const cookie = keelSessionCookieFromResult(res);
+  if (!cookie) {
+    loginError("/sign-up", res.state === "rejected" ? res.code : "unreachable", email);
+  }
+  await setKeelSessionCookie(cookie);
+  redirect(next);
+}
+
+export async function resetRequestAction(formData: FormData): Promise<void> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) {
+    loginError("/reset-password/request", "invalid-email", email);
+  }
+  await keelResetRequest(email);
+  // Always the same outcome: the page says what to check for, without
+  // revealing whether the address has an account.
+  redirect("/reset-password/request?sent=1");
+}
+
+export async function resetConfirmAction(formData: FormData): Promise<void> {
+  const token = String(formData.get("token") ?? "");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 10) {
+    loginError(`/reset-password/confirm?token=${encodeURIComponent(token)}`, "weak-password");
+  }
+  const res = await keelResetConfirm(token, password);
+  if (res.state !== "ok") {
+    loginError("/reset-password/confirm", res.state === "rejected" ? res.code : "unreachable");
+  }
+  redirect("/sign-in?reset=done");
 }
 
 /**

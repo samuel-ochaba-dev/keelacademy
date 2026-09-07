@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { authMode } from "@/lib/auth";
-import { offlineSignUpAction } from "@/app/auth/actions";
+import { authMode, oauthProviders } from "@/lib/auth";
+import { keelSignUpAction, offlineSignUpAction } from "@/app/auth/actions";
 import { OfflineAuthNote } from "@/components/auth/offline-note";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,9 @@ const ERRORS: Record<string, string> = {
   "invalid-email": "That does not look like an email address.",
   invalid: "That name or email is longer than we can store.",
   mode: "This form only works in offline development mode.",
+  "weak-password": "Use at least 10 characters for your password.",
+  "email_linked_to_other_account": "That email belongs to a different sign-in method.",
+  unreachable: "The sign-in service did not answer. Try again.",
 };
 
 type Props = {
@@ -55,7 +58,20 @@ export default async function SignUpPage({ searchParams }: Props) {
           </p>
         ) : null}
 
-        <form action={offlineSignUpAction} className="mt-8 space-y-5">
+        {mode === "keel" && oauthProviders().length > 0 ? (
+          <div className="mt-8 space-y-2.5">
+            {oauthProviders().map((p) => (
+              <a key={p.id} href={`/api/auth/${p.id}/start`} className="btn w-full">
+                Continue with {p.label}
+              </a>
+            ))}
+            <p className="pt-2 text-center text-[13px] text-[color:var(--text-muted-on-dark)]">
+              or use your email
+            </p>
+          </div>
+        ) : null}
+
+        <form action={mode === "keel" ? keelSignUpAction : offlineSignUpAction} className="mt-6 space-y-5">
           <input type="hidden" name="next" value={next ?? "/me"} />
           <div>
             <label htmlFor="name" className="field-label">
@@ -86,6 +102,25 @@ export default async function SignUpPage({ searchParams }: Props) {
               className="field-input"
             />
           </div>
+          {mode === "keel" ? (
+            <div>
+              <label htmlFor="password" className="field-label">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minLength={10}
+                autoComplete="new-password"
+                className="field-input"
+              />
+              <p className="mt-2 text-[13px] text-[color:var(--text-muted-on-dark)]">
+                At least 10 characters.
+              </p>
+            </div>
+          ) : null}
           <button type="submit" className="btn btn-accent w-full">
             Create account
           </button>

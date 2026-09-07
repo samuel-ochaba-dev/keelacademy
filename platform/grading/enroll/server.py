@@ -62,6 +62,7 @@ from pathlib import Path
 # Add grading dir to sys.path to import shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from db import db_sql, sql_str
+import auth_core as auth  # sibling module; the script dir is sys.path[0]
 
 MAX_BODY_BYTES = 5 * 1024 * 1024  # reject anything bigger before parsing
 UNIT_RE = re.compile(r"^\d+\.\d+\.\d+$")
@@ -363,10 +364,67 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/auth/bridge":
             self._handle_bridge()
             return
+        if self.path in ("/auth/signup", "/auth/login", "/auth/session",
+                         "/auth/logout", "/auth/oauth",
+                         "/auth/reset/request", "/auth/reset/confirm"):
+            self._handle_auth(self.path)
+            return
         if self.path == "/checkout/session":
             self._handle_checkout_session()
             return
         self._respond(404, {"error": "not found"})
+
+    def _handle_auth(self, route: str):
+        """Self-owned auth endpoints (0015): all POST JSON behind the app
+        token, implemented in auth_core. Errors map to (status, code)."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw) if raw else {}
+        except ValueError:
+            self._respond(400, {"error": "invalid JSON"})
+            return
+        try:
+            if route == "/auth/signup":
+                result = auth.signup(str(payload.get("email") or ""),
+                                     str(payload.get("password") or ""),
+                                     payload.get("name"))
+            elif route == "/auth/login":
+                result = auth.login(str(payload.get("email") or ""),
+                                    str(payload.get("password") or ""))
+            elif route == "/auth/session":
+                user = auth.session_user(str(payload.get("session_token") or ""))
+                if not user:
+                    self._respond(404, {"error": "no_session"})
+                    return
+                self._respond(200, {"user": user})
+                return
+            elif route == "/auth/logout":
+                auth.revoke_session(str(payload.get("session_token") or ""))
+                self._respond(200, {"ok": True})
+                return
+            elif route == "/auth/oauth":
+                result = auth.oauth_login(
+                    str(payload.get("provider") or ""),
+                    str(payload.get("subject") or ""),
+                    str(payload.get("email") or ""),
+                    payload.get("name"))
+            elif route == "/auth/reset/request":
+                auth.request_reset(str(payload.get("email") or ""))
+                self._respond(200, {"ok": True})
+                return
+            else:  # /auth/reset/confirm
+                auth.confirm_reset(str(payload.get("token") or ""),
+                                   str(payload.get("password") or ""))
+                self._respond(200, {"ok": True})
+                return
+            self._respond(200, result)
+        except auth.AuthError as exc:
+            self._respond(exc.status, {"error": exc.code})
+        except RuntimeError:
+            self._respond(500, {"error": "database error"})
 
     def _handle_bridge(self):
         """Link a managed-auth identity to a students row.
