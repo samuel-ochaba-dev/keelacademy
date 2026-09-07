@@ -1,66 +1,59 @@
-<!--
-Copy this file to content/units/phase-N/UNIT_ID/learn.md.
-Replace every {{TOKEN}} and remove every author note before review.
-Keep the six phases in this order. Keep each prose run under 250 words.
-Do not reuse retrieval seed wording in headings.
--->
+# Unit <id>: <title from phases.yaml>
 
-# Unit {{UNIT_ID}}: {{UNIT_TITLE}}
-
-{{Open with one concrete question, problem, or small promise.}}
+<One or two sentence standfirst. No heading.>
 
 ::: phase learn
 
-## {{CONCRETE_OPENING_HEADING}}
+## <Beat 1 heading: the concrete scene. No seed words.>
 
-{{Put the reader inside one real OmniCart moment. Use names, IDs, and numbers.}}
+<Open on a place, a time, one named object with an id. Ask a question, leave a line break, answer it. Arithmetic in a ```text block. Why naming the fix now is the trap.>
 
-{{Ask the reader what they expect before showing the result.}}
+::: aside <One job, said in the title>
+<40 to 90 words.>
+:::
 
-{{Build the first reasonable attempt in small steps.}}
+::: recap <Title>
+<One or two sentences.>
+:::
 
-```{{LANGUAGE_OR_TEXT}}
-{{FIRST_ATTEMPT}}
+## <Beat 2 heading: the people or the tension. No seed words.>
+
+<Prose. Optional figure, at most 6 nodes:>
+
+```mermaid Figure 1: <What it shows>
+flowchart TD
+    A["<b>Title</b><br/>short line,<br/>short line"]
+    B["<b>Title</b><br/>short line"]
+    A --> B
 ```
 
-{{Show the surprising result or failure. React, then inspect it.}}
-
-::: aside {{OPTIONAL_ASIDE_TITLE}}
-{{Answer one likely side question without breaking the main thread.}}
+::: aside <Title>
+<40 to 90 words.>
 :::
 
-## {{PLAIN_LANGUAGE_IDEA_HEADING}}
-
-{{Explain what failed in plain words. Name the formal idea only after the explanation.}}
-
-> **Predict, then check.**
-> {{Ask one question that tests the idea.}}
-> Hint 1: {{Point toward the shape of the answer.}}
-> Hint 2: {{Name one useful clue without giving the answer.}}
-
-{{Reveal the answer and explain why it works.}}
-
-::: recap {{RECAP_TITLE}}
-{{State the one idea the reader must carry into the build.}}
+::: recap <Title>
+<One or two sentences.>
 :::
 
-## {{OMNICART_APPLICATION_HEADING}}
+## <Beat 3 heading: how to do the thing. No seed words.>
 
-{{Apply the idea to the learner's current OmniCart project.}}
+### <Part one>
 
-{{Connect this unit to one earlier file, choice, or retrieval seed.}}
+<Teach against the first rubric criterion. First try, snag, fix, what passes.>
 
-## {{CURRENT_TOOL_OR_METHOD_HEADING}}
+### <Part two>
 
-{{Show only the current syntax or method the learner needs now.}}
+<Teach against the second criterion.>
 
-{{Zoom out in one short paragraph. Say where this idea will matter later.}}
+::: recap <Title>
+<One or two sentences.>
+:::
 
 ::: phase practice
 
-## {{PRACTICE_BRIDGE_HEADING}}
+## <One heading>
 
-{{Invite the reader to study the Apex Freight example, then try the scaffold.}}
+<Two or three sentences: read the worked example first, then the drills.>
 
 ::: route
 
@@ -72,9 +65,15 @@ Do not reuse retrieval seed wording in headings.
 
 ::: phase build
 
-## {{BUILD_BRIDGE_HEADING}}
+## <One heading>
 
-{{State what the learner will add to the existing project and why it belongs there.}}
+<What to write, where to save it, the word budget, the time.>
+
+```text
+# <Deliverable title heading>
+## <Part heading>
+## <Part heading>
+```
 
 ::: deliverable
 
@@ -82,35 +81,32 @@ Do not reuse retrieval seed wording in headings.
 
 ::: phase verify
 
-## {{VERIFY_BRIDGE_HEADING}}
+## <One heading>
 
-{{Explain what the checks and rubric will look for in plain words.}}
+<N checks, all must pass. The exercise page lists them. The grader quotes your words.>
 
 ::: prove-it
 
 ::: grading-modes
 
-<!-- Keep ::: checks for code units. Remove it for conceptual units. -->
-::: checks
-
 ::: rubric
 
 ::: phase unstuck
 
-## {{UNSTUCK_BRIDGE_HEADING}}
+## <One heading>
 
-{{Name the likely failure pattern and point the reader to the notes below.}}
+<One or two sentences.>
 
 ::: unstuck
 
 ::: phase ask
 
-## {{ASK_BRIDGE_HEADING}}
+## <One heading>
 
-{{Suggest one useful question the learner can bring to the concierge.}}
+<One or two sentences.>
 
 ::: ask
 
-::: coda {{CODA_TITLE}}
-{{Close with an optional experiment or extension. Do not end with a summary list.}}
+::: coda <Title>
+<An open invitation to try one more thing. Never a summary. Say it is optional and does not change the checks.>
 :::

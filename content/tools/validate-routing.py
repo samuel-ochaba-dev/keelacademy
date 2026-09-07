@@ -58,11 +58,11 @@ def main() -> int:
     rule_files = []
 
     if not ROUTING_DIR.is_dir():
-        # Routing rules are authored per-unit alongside the unit (S3.4). A tree
-        # with no content/routing/ yet simply has no authored rules: the
-        # practice service treats that as "no adaptive route for this unit",
-        # so this is a pass with a note, not an error (improvement M4.2).
-        print("PASS (0 rule files; content/routing/ does not exist yet)")
+        # Zero authored files is the canonical state after an authoring reset
+        # (M4.2): the practice service treats that as "no adaptive route for
+        # this unit". A validator that is red on the canonical tree teaches
+        # everyone to ignore red, so this is a pass with a note, not an error.
+        print("PASS (content/routing/ does not exist yet: nothing to validate)")
         print("\nAll 0 routing rule file(s) valid.")
         return 0
     for path in sorted(ROUTING_DIR.glob("*.yaml")):

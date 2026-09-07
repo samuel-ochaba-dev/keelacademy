@@ -1,74 +1,45 @@
-<!--
-Copy this file to the target unit's completion/README.md.
-Use the conceptual or code branch below. Delete the unused branch and all author notes.
-Every number, heading, file name, and rule must match the rubric and judge prompt.
--->
+# Your turn: <what the student writes or builds>
 
-# Your turn: {{STUDENT_TASK_TITLE}}
+<Three to five plain sentences: what to do, how long, what tools (none beyond what the ledger unlocks). How to count words if a word budget applies.>
 
-You just studied the same method on Apex Freight Logistics. Now apply it to OmniCart Operations.
+## What OmniCart told us
 
-Plan for about {{TIME_BUDGET}}. Stop when every required part exists and the checks are green.
-
-## What you already have
-
-{{Name the exact files, facts, and ideas carried forward from earlier units.}}
-
-## What OmniCart needs
-
-{{Give the source facts, sample records, or business rules needed for this task.}}
+- <One fact per line. Every number the rubric grades. Every document name. Ids with examples. Definitions of any term (ticket, delivery slip).>
 
 ## The rules
 
-1. {{State one checkable requirement.}}
-2. {{State one checkable requirement.}}
-3. {{State one checkable requirement.}}
-4. {{State one checkable requirement.}}
+1. <Word budget as "N to M words".>
+2. <The exact headings, then: The # marks are part of the heading.>
+3. <One rule per graded criterion, with the numbers and names the judge looks for.>
+N. <Banned words: ... One hit and it fails.>
 
-<!-- Conceptual unit branch. Remove this branch for a code unit. -->
-## Start from this document
+A step may be one or two sentences, so you do not need to pad.
 
-Copy this block into `{{OUTPUT_FILE}}`. Replace every line in angle brackets.
+## The <N> checks
 
-```text
-# {{REQUIRED_TITLE}}
+Your work is graded on <N> checks, and all <N> must pass.
 
-## {{REQUIRED_HEADING_1}}
+1. <Criterion 1 in plain words.>
+2. <...>
 
-<what belongs here>
+The other rules help you pass these <N>.
 
-## {{REQUIRED_HEADING_2}}
+## The template
 
-<what belongs here>
+Copy this block and replace each line in angle brackets.
+
+```
+# <Deliverable title>
+
+## <Part>
+
+<placeholder>
 ```
 
-<!-- Code unit branch. Remove this branch for a conceptual unit. -->
-## Files you will change
+## Check your work before you submit
 
-| File | Your job |
-|---|---|
-| `{{EDITABLE_FILE_1}}` | {{SMALL_INCREMENTAL_CHANGE}} |
-| `{{EDITABLE_FILE_2}}` | {{SMALL_INCREMENTAL_CHANGE}} |
-
-Do not change `{{FIXED_HARNESS_FILE}}`. It is part of the test harness.
-
-## Run the checks
-
-```bash
-{{COMMAND_THAT_STARTS_RED}}
-```
-
-The starting version should fail {{EXPECTED_FAILURE_COUNT}} checks. Your finished version should pass them all.
-
-## Check your work
-
-Read your work and answer yes to every question.
-
-1. {{SELF_CHECK_1}}
-2. {{SELF_CHECK_2}}
-3. {{SELF_CHECK_3}}
-4. {{SELF_CHECK_4}}
+1. <Yes or no question, 15 words or fewer, one per rule.>
 
 ## Save it here
 
-Save or submit your work at `{{EXACT_OUTPUT_PATH}}`.
+Save your file as `omnicart-system/<path>`. <Three sentences on making the folders with a file manager and a plain text editor.>

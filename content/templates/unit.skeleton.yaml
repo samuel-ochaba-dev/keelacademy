@@ -1,40 +1,33 @@
-# Copy to content/units/phase-N/UNIT_ID/unit.yaml.
-# Replace every {{TOKEN}}. Keep one completion_problem shape only.
-
-kind: conceptual # Use code for a sandbox graded unit.
-id: "{{UNIT_ID}}"
-phase: 0 # Replace with the phase number.
-est_hours: 1
-prereq_units: []
+kind: <code | conceptual>
+id: "<id>"
+phase: <N>
+est_hours: <number>
+prereq_units: [<"id", ...>]
 last_verified:
-  concept_core: "{{YYYY-MM-DD}}"
-  applied_context: "{{YYYY-MM-DD}}"
-  tool_specifics: "{{YYYY-MM-DD}}"
+  concept_core: <YYYY-MM-DD>
+  applied_context: <YYYY-MM-DD>
+  tool_specifics: <YYYY-MM-DD>
 learn: learn.md
 practice:
   worked_example: worked-example/
   completion_problem:
-    prompt: "{{ONE_SENTENCE_CONCEPTUAL_TASK}}"
-    instructions: "{{EXACT_FORMAT_AND_CONTENT_RULES}}"
-    rubric: rubrics/{{UNIT_ID}}/v1.yaml
-  # For a code unit, replace the completion_problem block above with:
-  # completion_problem:
-  #   base: completion/
-  #   checks: checks/{{UNIT_ID}}.completion.yaml
+    # conceptual units: prompt + instructions + rubric. code units: base: completion/
+    prompt: "<one or two plain sentences>"
+    instructions: "<one or two plain sentences>"
+    rubric: rubrics/<id>/v1.yaml
   retrieval_seeds:
-    - "{{RETRIEVAL_SEED_1}}"
-    - "{{RETRIEVAL_SEED_2}}"
-    - "{{RETRIEVAL_SEED_3}}"
+    - "<one plain sentence, 20 words or fewer>"
+    - "<...>"
+    - "<...>"
 build:
-  deliverable: "{{DELIVERABLE_FROM_CURRICULUM}}"
-  submission: file # Use repo, file, or recording.
-  data_variant: "omnicart@v{{VARIANT_NUMBER}}"
+  deliverable: "<one sentence: what to submit and where>"
+  submission: <file | repo | recording>
+  data_variant: omnicart@v0
 verify:
-  layers: [2] # Code units often use [1, 2, 3].
-  # Code units also need: deterministic_checks: checks/{{UNIT_ID}}.build.yaml
-  rubric: rubrics/{{UNIT_ID}}/v1.yaml
+  layers: [<1, 2>]
+  rubric: rubrics/<id>/v1.yaml
 gate:
-  unlocks: ["{{NEXT_UNIT_ID}}"]
+  unlocks: ["<next id>"]
 unstuck:
-  - symptom: "{{COMMON_STUDENT_SYMPTOM}}"
-    fix_ref: faq/{{UNIT_ID}}.md#{{FAQ_ANCHOR}}
+  - symptom: "<plain phrase a student would say>"
+    fix_ref: faq/<id>.md#<anchor>
