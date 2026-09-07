@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""enroll/server.py — identity bridge + Stripe Checkout enrollment (S2.5).
+"""enroll/server.py — identity bridge + enrollment (S2.5 Stripe per-unit
+legacy; S2.6 Paddle all-access subscription).
 
 The learner app authenticates students with managed auth (Clerk in real
 wiring, an offline fake in credential-free environments) but holds no
@@ -172,6 +173,156 @@ def verify_stripe_signature(raw, header, secret, tolerance_s):
         secret.encode(), ("%s." % ts).encode() + raw, hashlib.sha256
     ).hexdigest()
     return hmac.compare_digest(v1, expected)
+
+
+# ----------------------------------------------------------------------
+# S2.6 all-access subscription (Paddle Billing). KEEL_BILLING_PROVIDER
+# selects the surface: paddle (real API), stripe (S2.5 per-unit legacy),
+# fake (offline deterministic proof, enroll/fake_paddle.py — same wire
+# shapes as the real API, including the {"data": ...} envelope).
+# ----------------------------------------------------------------------
+
+PADDLE_CALL_TIMEOUT_S = 15
+
+
+def billing_provider():
+    return os.environ.get("KEEL_BILLING_PROVIDER", "fake")
+
+
+def paddle_api():
+    """(base_url, bearer_key) for the Paddle Billing API (real or fake —
+    same wire shapes). The key is env-only, never logged. With provider
+    paddle a missing key is a hard error; with fake the key is a
+    placeholder (the fake accepts but never validates it)."""
+    key = os.environ.get("PADDLE_API_KEY", "")
+    if billing_provider() == "paddle" and not key:
+        raise RuntimeError("paddle_not_wired")
+    if billing_provider() == "fake":
+        base = os.environ.get("KEEL_FAKE_PADDLE_URL", "http://127.0.0.1:8798")
+    else:
+        base = os.environ.get("KEEL_PADDLE_API_URL", "https://api.paddle.com")
+    return base.rstrip("/"), key
+
+
+def paddle_call(method, path, doc=None):
+    """One Paddle API call. Real Paddle wraps every response in
+    {"data": ...} and answers 201 on create; the fake mirrors both.
+    Returns the inner data. Errors raise RuntimeError with a short code —
+    never the response body, which can echo the bearer key."""
+    base, key = paddle_api()
+    body = json.dumps(doc).encode() if doc is not None else None
+    req = urllib.request.Request(
+        base + path,
+        data=body,
+        headers={
+            "Authorization": "Bearer " + key,
+            "Content-Type": "application/json",
+        },
+        method=method,
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=PADDLE_CALL_TIMEOUT_S) as resp:
+            envelope = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        sys.stderr.write("enroll: paddle answered HTTP %d\n" % exc.code)
+        raise RuntimeError("paddle_error")
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        sys.stderr.write("enroll: paddle call failed: %s\n"
+                         % type(exc).__name__)
+        raise RuntimeError("paddle_unreachable")
+    data = envelope.get("data") if isinstance(envelope, dict) else None
+    if data is None:
+        raise RuntimeError("paddle_bad_response")
+    return data
+
+
+def paddle_price_info(price_id):
+    """(amount_cents, currency) for the all-access price. On the real API
+    unit_price.amount is a STRING in lowest currency units."""
+    data = paddle_call("GET", "/prices/" + price_id)
+    up = data.get("unit_price") or {}
+    amount = str(up.get("amount") or "")
+    if not amount.isdigit():
+        raise RuntimeError("paddle_bad_response")
+    return int(amount), str(up.get("currency_code") or "USD").lower()
+
+
+def paddle_subscription_checkout(student_id, student_email, display_name,
+                                 success_url):
+    """Create (or reuse) a Paddle subscription checkout. Real Paddle: POST
+    /customers (once per student), then POST /transactions with
+    items/price_id + customer_id + checkout:{url} + custom_data. The
+    webhook resolves the student from custom_data.student_id; the
+    subscription_signups row (written by the caller) is the fallback.
+    Returns (transaction_id, checkout_url, customer_id, price_id)."""
+    price_id = os.environ.get("PADDLE_PRICE_ID", "")
+    if not price_id:
+        raise RuntimeError("paddle_not_wired")
+    rows = db_sql(
+        "BEGIN;\n"
+        "SELECT customer_id, transaction_id FROM subscription_signups\n"
+        "WHERE student_id = %d ORDER BY id DESC LIMIT 1;\n"
+        "ROLLBACK;\n" % student_id
+    )
+    customer_id, txn_id = ("", "")
+    if rows:
+        customer_id, txn_id = str(rows[0][0]), str(rows[0][1])
+    if customer_id and txn_id:
+        # Reuse the previous signup while its transaction is still payable
+        # (a refresh of the checkout page must not stack up transactions).
+        txn = paddle_call("GET", "/transactions/" + txn_id)
+        if str(txn.get("status") or "") in ("ready", "draft"):
+            url = (txn.get("checkout") or {}).get("url")
+            if url:
+                return txn_id, str(url), customer_id, price_id
+    if not customer_id:
+        customer = paddle_call("POST", "/customers", {
+            "email": student_email,
+            "name": display_name,
+        })
+        customer_id = str(customer.get("id") or "")
+        if not customer_id:
+            raise RuntimeError("paddle_bad_response")
+    txn = paddle_call("POST", "/transactions", {
+        "items": [{"price_id": price_id, "quantity": 1}],
+        "customer_id": customer_id,
+        "custom_data": {"student_id": student_id},
+        "checkout": {"url": success_url},
+    })
+    txn_id = str(txn.get("id") or "")
+    url = (txn.get("checkout") or {}).get("url")
+    if not txn_id or not url:
+        raise RuntimeError("paddle_bad_response")
+    return txn_id, str(url), customer_id, price_id
+
+
+def verify_paddle_signature(raw, header, secret, tolerance_s):
+    """Paddle's scheme: header Paddle-Signature: ts=<unix-ts>;h1=<hex>; the
+    expected h1 is hex(HMAC-SHA256(secret, "<ts>:" + raw_body)). Verified
+    over the RAW body before any JSON parsing. Constant-time compare; the
+    timestamp age check is skipped when tolerance_s is 0."""
+    if not secret:
+        return False
+    parts = {}
+    for item in header.split(";"):
+        if "=" in item:
+            k, v = item.split("=", 1)
+            parts.setdefault(k.strip(), v.strip())
+    ts = parts.get("ts", "")
+    h1 = parts.get("h1", "")
+    if not ts or not h1:
+        return False
+    if tolerance_s > 0:
+        try:
+            age = abs(int(time.time()) - int(ts))
+        except ValueError:
+            return False
+        if age > tolerance_s:
+            return False
+    expected = hmac.new(
+        secret.encode(), ("%s:" % ts).encode() + raw, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(h1, expected)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -350,6 +501,9 @@ class Handler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------------
 
     def do_POST(self):
+        if self.path == "/webhook/paddle":
+            self._handle_paddle_webhook()
+            return
         if self.path == "/webhook/stripe":
             self._handle_webhook()
             return
@@ -371,6 +525,15 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/checkout/session":
             self._handle_checkout_session()
+            return
+        if self.path == "/subscription/price":
+            self._handle_subscription_price()
+            return
+        if self.path == "/checkout/subscription":
+            self._handle_subscription_checkout()
+            return
+        if self.path == "/enroll":
+            self._handle_enroll()
             return
         self._respond(404, {"error": "not found"})
 
@@ -567,6 +730,325 @@ COMMIT;
             "currency": "usd",
         })
 
+    def _handle_subscription_price(self):
+        """All-access price for the checkout page. Sourced from the billing
+        provider (fake or real Paddle API) so the number on the page is
+        always the price Paddle will actually charge."""
+        price_id = os.environ.get("PADDLE_PRICE_ID", "")
+        if not price_id:
+            self._respond(503, {"error": "paddle_not_wired"})
+            return
+        try:
+            amount, currency = paddle_price_info(price_id)
+        except RuntimeError as exc:
+            code = str(exc)
+            self._respond({"paddle_not_wired": 503}.get(code, 502),
+                          {"error": code})
+            return
+        self._respond(200, {
+            "price_id": price_id,
+            "amount_cents": amount,
+            "currency": currency,
+            "interval": "month",
+        })
+
+    def _handle_subscription_checkout(self):
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw)
+        except ValueError:
+            self._respond(400, {"error": "invalid JSON"})
+            return
+        student_id = payload.get("student_id")
+        success_url = str(payload.get("success_url") or "")
+        if not isinstance(student_id, int) \
+                or not success_url.startswith(("http://", "https://")):
+            self._respond(422, {"error": "student_id and success_url required"})
+            return
+        rows = db_sql(
+            "BEGIN;\n"
+            "SELECT email, replace(display_name, chr(9), ' ') FROM students\n"
+            "WHERE id = %d;\n"
+            "ROLLBACK;\n" % student_id
+        )
+        if not rows:
+            self._respond(404, {"error": "unknown student"})
+            return
+        email, display_name = str(rows[0][0]), (rows[0][1] or None)
+        try:
+            txn_id, url, customer_id, price_id = paddle_subscription_checkout(
+                student_id, email, display_name, success_url)
+        except RuntimeError as exc:
+            code = str(exc)
+            status = {"paddle_not_wired": 503}.get(code, 502)
+            self._respond(status, {"error": code})
+            return
+        try:
+            db_sql(
+                "BEGIN;\n"
+                "INSERT INTO subscription_signups\n"
+                "  (transaction_id, customer_id, student_id)\n"
+                "VALUES (%s, %s, %d)\n"
+                "ON CONFLICT (transaction_id) DO UPDATE\n"
+                "  SET customer_id = EXCLUDED.customer_id,\n"
+                "      student_id = EXCLUDED.student_id;\n"
+                "COMMIT;\n" % (sql_str(txn_id), sql_str(customer_id),
+                              student_id),
+                want_rows=False,
+            )
+        except RuntimeError:
+            self._respond(500, {"error": "database error"})
+            return
+        self._respond(200, {
+            "ok": True,
+            "transaction_id": txn_id,
+            "url": url,
+            "amount_cents": None,
+            "currency": None,
+            "price_id": price_id,
+        })
+
+    def _handle_enroll(self):
+        """Grant unit access because the student holds an ACTIVE
+        subscription (owner decision 2026-09-07: enrollment follows the
+        subscription, not a per-unit payment). Idempotent: the enrollments
+        UNIQUE (student_id, unit_id) arbiter + ON CONFLICT DO NOTHING make
+        replays no-ops; the enrollment.activated event is appended only
+        when the insert returned a row. The budget row the grading proxy
+        requires is provisioned on first enrollment, exactly like the
+        webhook path."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        try:
+            payload = json.loads(raw)
+        except ValueError:
+            self._respond(400, {"error": "invalid JSON"})
+            return
+        student_id = payload.get("student_id")
+        unit_id = str(payload.get("unit_id") or "")
+        if not isinstance(student_id, int) or not UNIT_RE.match(unit_id):
+            self._respond(422, {"error": "student_id and unit_id required"})
+            return
+        rows = db_sql(
+            "BEGIN;\n"
+            "SELECT 1 FROM subscriptions\n"
+            "WHERE student_id = %d AND status IN ('active','trialing');\n"
+            "ROLLBACK;\n" % student_id
+        )
+        if not rows:
+            # No active subscription. Distinguish an unknown student (404)
+            # from a known one without access (402) so the app can show the
+            # checkout page instead of an error.
+            exists = db_sql(
+                "BEGIN;\nSELECT id FROM students WHERE id = %d;\nROLLBACK;\n"
+                % student_id
+            )
+            self._respond(404 if not exists else 402,
+                          {"error": "unknown_student" if not exists
+                                    else "no_active_subscription"})
+            return
+        sql = """BEGIN;
+WITH ins AS (
+    INSERT INTO enrollments (student_id, unit_id)
+    VALUES (%d, %s)
+    ON CONFLICT (student_id, unit_id) DO NOTHING
+    RETURNING id, student_id, unit_id
+), ev AS (
+    INSERT INTO events (type, payload)
+    SELECT 'enrollment.activated',
+           jsonb_build_object('student_id', student_id,
+                              'unit_id', unit_id::text,
+                              'subscription', true)
+    FROM ins RETURNING id
+), bud AS (
+    INSERT INTO budgets (student_id, tokens_cap, tokens_used)
+    SELECT student_id, %d, 0 FROM ins
+    ON CONFLICT (student_id) DO NOTHING
+    RETURNING student_id
+)
+SELECT EXISTS (SELECT 1 FROM ins);
+COMMIT;
+""" % (student_id, sql_str(unit_id), default_budget_tokens())
+        try:
+            ins_rows = db_sql(sql)
+        except RuntimeError:
+            self._respond(500, {"error": "database error"})
+            return
+        self._respond(200, {
+            "ok": True,
+            "enrolled": True,
+            "newly_enrolled": ins_rows[0][0] == "t",
+        })
+
+    def _handle_paddle_webhook(self):
+        """Paddle Billing webhook. Paddle retries any non-2xx (sandbox:
+        3 tries over ~15 minutes) and re-sends the identical payload with
+        the same event_id, so handlers are convergent: UPSERT to the
+        latest state keyed by the Paddle entity id. Events are NOT
+        ordered — subscription.updated can arrive before
+        subscription.created."""
+        ok, raw = self._read_body()
+        if not ok:
+            self._respond(413, {"error": "body too large"})
+            return
+        secret = os.environ.get("KEEL_PADDLE_WEBHOOK_SECRET", "")
+        if not secret:
+            sys.stderr.write("enroll: paddle webhook refused: "
+                             "KEEL_PADDLE_WEBHOOK_SECRET not set\n")
+            self._respond(503, {"error": "server misconfigured"})
+            return
+        try:
+            tolerance = int(os.environ.get("KEEL_PADDLE_TOLERANCE_S", "300"))
+        except ValueError:
+            tolerance = 300
+        header = self.headers.get("Paddle-Signature", "")
+        if not verify_paddle_signature(raw, header, secret, tolerance):
+            self._respond(400, {"error": "invalid signature"})
+            return
+        try:
+            event = json.loads(raw)
+        except ValueError:
+            self._respond(400, {"error": "invalid JSON"})
+            return
+        etype = str(event.get("event_type") or "")
+        d = event.get("data") or {}
+
+        if etype == "transaction.completed":
+            txn_id = str(d.get("id") or "")
+            if not txn_id:
+                self._respond(400, {"error": "event carries no transaction id"})
+                return
+            custom = d.get("custom_data") or {}
+            sid = custom.get("student_id")
+            if sid is None or str(sid).strip() == "" \
+                    or not str(sid).strip().lstrip("-").isdigit():
+                sid = None
+            else:
+                sid = int(str(sid).strip())
+            sub_id = str(d.get("subscription_id") or "") or None
+            totals = (d.get("details") or {}).get("totals") or {}
+            amount = str(totals.get("total") or "")
+            amount = int(amount) if amount.isdigit() else 0
+            currency = str(d.get("currency_code") or "USD").lower()
+            if sid is None:
+                sid_rows = db_sql(
+                    "BEGIN;\n"
+                    "SELECT student_id FROM subscription_signups\n"
+                    "WHERE transaction_id = %s;\n"
+                    "ROLLBACK;\n" % sql_str(txn_id)
+                )
+                sid = int(sid_rows[0][0]) if sid_rows else None
+            db_sql(
+                "BEGIN;\n"
+                "INSERT INTO payments (paddle_transaction_id, student_id,\n"
+                "                      paddle_subscription_id, amount_cents,\n"
+                "                      currency)\n"
+                "VALUES (%s, %s, %s, %d, %s)\n"
+                "ON CONFLICT (paddle_transaction_id) DO UPDATE\n"
+                "  SET student_id = COALESCE(EXCLUDED.student_id,\n"
+                "                            payments.student_id),\n"
+                "      paddle_subscription_id =\n"
+                "        COALESCE(EXCLUDED.paddle_subscription_id,\n"
+                "                 payments.paddle_subscription_id),\n"
+                "      amount_cents = EXCLUDED.amount_cents,\n"
+                "      currency = EXCLUDED.currency;\n"
+                "COMMIT;\n" % (sql_str(txn_id),
+                              str(sid) if sid is not None else "NULL",
+                              sql_str(sub_id) if sub_id else "NULL",
+                              amount, sql_str(currency)),
+                want_rows=False,
+            )
+            self._respond(200, {"ok": True, "handled": True})
+            return
+
+        if etype in ("subscription.created", "subscription.updated",
+                     "subscription.canceled"):
+            sub = d
+            sub_id = str(sub.get("id") or "")
+            if not sub_id:
+                self._respond(400, {"error": "event carries no subscription id"})
+                return
+            status = str(sub.get("status") or "")
+            if status not in ("active", "trialing", "past_due",
+                              "paused", "canceled"):
+                status = "canceled"
+            items = sub.get("items") or []
+            price_id = ""
+            if items and isinstance(items[0], dict):
+                price_id = str((items[0].get("price") or {}).get("id") or "")
+            custom = sub.get("custom_data") or {}
+            sid = custom.get("student_id")
+            if sid is None or str(sid).strip() == "" \
+                    or not str(sid).strip().lstrip("-").isdigit():
+                sid = None
+            else:
+                sid = int(str(sid).strip())
+            customer_id = str(sub.get("customer_id") or "")
+            scheduled = sub.get("scheduled_change") or None
+            ends = ((sub.get("current_billing_period") or {}).get("ends_at")
+                    or sub.get("next_billed_at") or "")
+            if sid is None:
+                # Fallback chain: the customer -> signup link (written at
+                # checkout creation), else an existing subscription row.
+                sid_rows = db_sql(
+                    "BEGIN;\n"
+                    "SELECT s.student_id FROM subscription_signups s\n"
+                    "WHERE s.customer_id = %s\n"
+                    "UNION ALL\n"
+                    "SELECT b.student_id FROM subscriptions b\n"
+                    "WHERE b.paddle_subscription_id = %s;\n"
+                    "ROLLBACK;\n" % (sql_str(customer_id), sql_str(sub_id))
+                )
+                if not sid_rows:
+                    db_sql(
+                        "BEGIN;\n"
+                        "INSERT INTO events (type, payload) VALUES (\n"
+                        "'enroll.unknown_paddle_subscription',\n"
+                        "jsonb_build_object('paddle_subscription_id', %s::text,\n"
+                        "                   'customer_id', %s::text));\n"
+                        "COMMIT;\n" % (sql_str(sub_id), sql_str(customer_id)),
+                        want_rows=False,
+                    )
+                    self._respond(200, {"ok": True, "handled": False})
+                    return
+                sid = int(sid_rows[0][0])
+            ends_sql = ("'%s'::timestamptz" % str(ends).replace("'", "''")) \
+                if ends else "NULL"
+            db_sql(
+                "BEGIN;\n"
+                "INSERT INTO subscriptions (paddle_subscription_id, student_id,\n"
+                "                           customer_id, price_id, status,\n"
+                "                           scheduled_change,\n"
+                "                           current_period_ends_at, canceled_at)\n"
+                "VALUES (%s, %d, %s, %s, %s, %s, %s,\n"
+                "        CASE WHEN %s = 'canceled' THEN now() ELSE NULL END)\n"
+                "ON CONFLICT (paddle_subscription_id) DO UPDATE\n"
+                "  SET student_id = EXCLUDED.student_id,\n"
+                "      customer_id = EXCLUDED.customer_id,\n"
+                "      price_id = EXCLUDED.price_id,\n"
+                "      status = EXCLUDED.status,\n"
+                "      scheduled_change = EXCLUDED.scheduled_change,\n"
+                "      current_period_ends_at = EXCLUDED.current_period_ends_at,\n"
+                "      canceled_at = EXCLUDED.canceled_at,\n"
+                "      updated_at = now();\n"
+                "COMMIT;\n" % (sql_str(sub_id), sid, sql_str(customer_id),
+                              sql_str(price_id), sql_str(status),
+                              sql_str(scheduled) if scheduled else "NULL",
+                              ends_sql, sql_str(status)),
+                want_rows=False,
+            )
+            self._respond(200, {"ok": True, "handled": True})
+            return
+
+        # Paddle sends many event types to the same destination; ack the
+        # ones we do not act on so they are not redelivered.
+        self._respond(200, {"ok": True, "handled": False})
+
     def _handle_webhook(self):
         ok, raw = self._read_body()
         if not ok:
@@ -681,6 +1163,11 @@ def main():
         sys.stderr.write(
             "enroll: warning: KEEL_STRIPE_WEBHOOK_SECRET not set; "
             "webhook requests will be refused until it is\n"
+        )
+    if not os.environ.get("KEEL_PADDLE_WEBHOOK_SECRET"):
+        sys.stderr.write(
+            "enroll: warning: KEEL_PADDLE_WEBHOOK_SECRET not set; "
+            "paddle webhook requests will be refused until it is\n"
         )
     # Fail fast on a bad KEEL_DB_CMD.
     db_sql("BEGIN;\nSELECT 1;\nROLLBACK;\n", want_rows=False)
