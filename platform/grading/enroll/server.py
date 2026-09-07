@@ -390,6 +390,12 @@ class Handler(BaseHTTPRequestHandler):
             })
             return
 
+        if parsed.path == "/subscription/price":
+            # GET: the app fetches the all-access price for the checkout
+            # page before offering the subscribe button.
+            self._handle_subscription_price()
+            return
+
         if parsed.path == "/checkout/status":
             sid = (query.get("stripe_session_id") or [""])[0]
             if not re.match(r"^[A-Za-z0-9_\-]{1,128}$", sid):

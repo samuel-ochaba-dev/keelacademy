@@ -152,6 +152,23 @@ class Handler(BaseHTTPRequestHandler):
                 "tax_category": "saas",
             }})
             return
+        if self.path.startswith("/transactions/"):
+            # Real endpoint: GET /transactions/{id} — the service uses it
+            # to reuse a still-payable transaction on checkout refresh.
+            txn_id = self.path[len("/transactions/"):]
+            t = TXNS.get(txn_id)
+            if t is None:
+                self._json(404, {"error": {"code": "not_found"}})
+                return
+            self._json(200, {"data": {
+                "id": txn_id,
+                "status": "ready",
+                "customer_id": t["customer_id"],
+                "custom_data": t["custom_data"],
+                "checkout": {"url": "http://127.0.0.1:%s/pay/%s" % (
+                    os.environ.get("KEEL_FAKE_PADDLE_PORT", "8798"), txn_id)},
+            }})
+            return
         if self.path.startswith("/pay/"):
             txn_id = self.path[len("/pay/"):]
             if txn_id not in TXNS:
