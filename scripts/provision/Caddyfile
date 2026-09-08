@@ -9,12 +9,32 @@
 {$KEEL_HOSTNAME} {
 	encode zstd gzip
 
+	handle /webhook/paddle* {
+		reverse_proxy 127.0.0.1:8791
+	}
+
 	handle /webhook/stripe* {
 		# Stripe signs the raw body; Caddy passes it through untouched.
 		reverse_proxy 127.0.0.1:8791
 	}
 
-	handle /enroll/* {
+	handle /auth/* {
+		reverse_proxy 127.0.0.1:8791
+	}
+
+	handle /checkout/* {
+		reverse_proxy 127.0.0.1:8791
+	}
+
+	handle /subscription/* {
+		reverse_proxy 127.0.0.1:8791
+	}
+
+	handle /students/* {
+		reverse_proxy 127.0.0.1:8791
+	}
+
+	handle /enroll* {
 		reverse_proxy 127.0.0.1:8791
 	}
 
