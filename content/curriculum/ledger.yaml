@@ -69,3 +69,33 @@ units:
       - "State the problem in plain words before you name any fix."
     narrative_anchor: "7:00 AM on the OmniCart receiving dock. ORD-8821, a blender with a cracked lid, becomes claim CLM-20841 and sits on a shelf for 2 to 3 days. Parallel entity Apex Freight Logistics (Marcus Bell, Priya Nair, Dana Okafor) carries the worked example."
 
+  - unit: "0.2"
+    title: "How the curriculum and grading loop work"
+    concepts_unlocked:
+      - "Keel Academy has 13 phases (0 to 12) and 56 modules in total"
+      - "Phase 0 is the only phase with no code; it has three modules: 0.1, 0.2, 0.3"
+      - "Phase 11 is the business track and runs from day one alongside every technical phase"
+      - "The grading loop has three steps: deterministic checks, rubric review, defend-your-work questions"
+      - "Every module ends with something you turn in; the tracker links to each deliverable"
+      - "Module 3.2.1 is a sub-module inside Phase 3 (prompt design)"
+      - "Time-boxing: submit when the estimate is up; an early unit does not need to be perfect"
+    anti_prerequisites:
+      - "No code, no Python, no Docker, no terminal, no editor beyond plain text"
+      - "No technology vocabulary: AI, agent, LLM, model, prompt, automation, API, schema, JSON"
+      - "No knowledge of any specific library or tool introduced in later phases"
+    project_working_tree:
+      added_files:
+        - "omnicart-system/docs/progress-tracker.md"
+      contracts_established:
+        - "progress-tracker.md is a living file; students update it as they complete each module"
+        - "The tracker has four required columns: Module, Status, Hours spent, Deliverable"
+        - "Status values: not started, in progress, done"
+        - "Deliverable column uses (not yet) for future modules; never left blank"
+    retrieval_seeds:
+      - "Keel Academy has 13 phases, numbered 0 to 12, and 56 modules inside them."
+      - "Your tracker is a list of every module with a status and hours column."
+      - "Phase 0 is the only phase with no code."
+      - "The Phase 11 business track runs from day one alongside every technical phase."
+      - "Each module ends with something you turn in, and your tracker links to it."
+    narrative_anchor: "A blank tracking file with 56 rows to fill. Marcus Bell at Apex Freight Logistics has the same file filled in for his audit program. The student reads Marcus's version and builds their own. The parallel entity (Apex Freight, Marcus Bell, Priya Nair, Dana Okafor) carries the worked example."
+
