@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
-import { startCheckoutAction } from "@/app/auth/actions";
 import {
   ensureStudent,
   fetchProfile,
   fetchOwnSubmissions,
-  fetchPrice,
   formatPrice,
-  type EnrollResult,
   type OwnSubmission,
 } from "@/lib/enroll";
 import { fetchStudentGates } from "@/lib/gates";
@@ -75,17 +72,6 @@ export default async function MapPage({ searchParams }: Props) {
   const gates = gatesLookup.state === "ok" ? gatesLookup.data : null;
 
   const mapState = buildProgressMap(profile, submissions, gates);
-
-  // Prices are fetched only for authored units this student has not bought yet.
-  const enrolledSet = new Set(profile?.enrollments.map((e) => e.unit_id) ?? []);
-  const prices = new Map<string, EnrollResult<{ amount_cents: number; currency: string }>>();
-  await Promise.all(
-    mapState.phases.flatMap((p) =>
-      p.modules
-        .filter((m) => m.isAuthored && !enrolledSet.has(m.module.id))
-        .map(async (m) => prices.set(m.module.id, await fetchPrice(m.module.id))),
-    ),
-  );
 
   return (
     <div>
@@ -222,7 +208,7 @@ export default async function MapPage({ searchParams }: Props) {
 
         <div className="space-y-10 pb-4">
           {mapState.phases.map((phase) => (
-            <PhaseSection key={phase.phase.id} phase={phase} prices={prices} />
+            <PhaseSection key={phase.phase.id} phase={phase} />
           ))}
         </div>
 
@@ -329,10 +315,8 @@ function PipelineTrack({
 
 function PhaseSection({
   phase,
-  prices,
 }: {
   phase: ResolvedPhase;
-  prices: Map<string, EnrollResult<{ amount_cents: number; currency: string }>>;
 }) {
   const p = phase.phase;
   const isLocked = !phase.isTrackUnlocked;
@@ -411,7 +395,6 @@ function PhaseSection({
           <ModuleCard
             key={card.module.id}
             card={card}
-            price={prices.get(card.module.id)}
           />
         ))}
       </div>
@@ -427,10 +410,8 @@ function verdictLabel(sub: OwnSubmission): string {
 
 function ModuleCard({
   card,
-  price,
 }: {
   card: ResolvedModuleCard;
-  price: EnrollResult<{ amount_cents: number; currency: string }> | undefined;
 }) {
   const m = card.module;
   const sub = card.latestSubmission;
@@ -480,14 +461,9 @@ function ModuleCard({
               Open unit
             </Link>
           ) : (
-            <form action={startCheckoutAction}>
-              <input type="hidden" name="unit_id" value={m.id} />
-              <button type="submit" className="btn btn-accent btn-sm">
-                {price?.state === "ok"
-                  ? `Enroll (${formatPrice(price.data.amount_cents, price.data.currency)})`
-                  : `Enroll in unit ${m.id}`}
-              </button>
-            </form>
+            <Link href="/checkout" className="btn btn-accent btn-sm">
+              Get all access
+            </Link>
           )
         ) : (
           <p className="text-[13px] text-[color:var(--text-faint-on-dark)]">

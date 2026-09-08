@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
-import { fetchPrice, formatPrice } from "@/lib/enroll";
-import { isUnitAuthored } from "@/lib/content";
+import { fetchSubscriptionPrice, formatPrice } from "@/lib/enroll";
 import { CommitmentForm } from "@/components/commitment-form";
 
 export const dynamic = "force-dynamic";
@@ -12,31 +11,12 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-type Props = { searchParams: Promise<{ unit?: string }> };
-
-export default async function CheckoutPage({ searchParams }: Props) {
+export default async function CheckoutPage() {
   const user = await requireSession("/checkout");
-  const { unit } = await searchParams;
-  const unitId = unit || "0.1";
 
-  if (!isUnitAuthored(unitId)) {
-    return (
-      <div className="shell section">
-        <div className="card-dark max-w-[62ch]">
-          <p className="eyebrow">Nothing to buy here</p>
-          <h1 className="heading-lg mt-3">Unit {unitId} does not exist yet</h1>
-          <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-            You can only enroll in a unit that exists. Nothing was charged.
-          </p>
-          <Link href="/curriculum" className="btn btn-ghost btn-sm mt-7">
-            See what is written
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const priceRes = await fetchPrice(unitId);
+  // The same price endpoint the real charge uses, so this page cannot quote
+  // a number Paddle would not bill.
+  const priceRes = await fetchSubscriptionPrice();
 
   if (priceRes.state !== "ok") {
     return (
@@ -49,7 +29,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
             was charged. Refresh and try again.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href={`/checkout?unit=${unitId}`} className="btn btn-primary btn-sm">
+            <Link href="/checkout" className="btn btn-primary btn-sm">
               Try again
             </Link>
             <Link href="/pricing" className="btn btn-ghost btn-sm">
@@ -61,18 +41,17 @@ export default async function CheckoutPage({ searchParams }: Props) {
     );
   }
 
-  const amountCents = priceRes.data.amount_cents;
-  const currency = priceRes.data.currency;
-  const priceLabel = formatPrice(amountCents, currency);
+  const priceLabel = formatPrice(priceRes.data.amount_cents, priceRes.data.currency);
 
   return (
     <div className="shell section">
       <header className="max-w-[62ch]">
         <p className="eyebrow">Checkout</p>
-        <h1 className="heading-xl mt-4">Enroll in unit {unitId}</h1>
+        <h1 className="heading-xl mt-4">The whole program, one subscription</h1>
         <p className="mt-4 text-[15.5px] leading-relaxed text-[color:var(--text-muted-on-dark)]">
-          One unit, paid once. You keep access. Clearing a milestone gate sends
-          15% back to the card you used.
+          Every unit — the ones written today and the ones published while you
+          study — stays open while your subscription is active. Clearing a
+          milestone gate sends 15% back to the card you used.
         </p>
       </header>
 
@@ -87,20 +66,19 @@ export default async function CheckoutPage({ searchParams }: Props) {
               <dd className="text-[15px] text-phosphor-white">{user.email}</dd>
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[color:var(--line-on-dark)] pb-4">
-              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Unit</dt>
-              <dd className="font-code-mono text-[15px] text-phosphor-white">{unitId}</dd>
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Plan</dt>
+              <dd className="font-code-mono text-[15px] text-phosphor-white">All access</dd>
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[color:var(--line-on-dark)] pb-4">
               <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Price</dt>
-              <dd className="stat-number">{priceLabel}</dd>
+              <dd className="stat-number">
+                {priceLabel}
+                <span className="text-[15px] text-[color:var(--text-muted-on-dark)]"> / month</span>
+              </dd>
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">
-                Back at each gate
-              </dt>
-              <dd className="text-[15px] text-phosphor-white">
-                {formatPrice(Math.round(amountCents * 0.15), currency)}
-              </dd>
+              <dt className="text-[14px] text-[color:var(--text-muted-on-dark)]">Cancel</dt>
+              <dd className="text-[15px] text-phosphor-white">Any time, self-serve</dd>
             </div>
           </dl>
         </section>
@@ -109,7 +87,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
           <h2 id="commit-title" className="heading-md">
             Three things to agree to
           </h2>
-          <CommitmentForm unitId={unitId} priceLabel={priceLabel} />
+          <CommitmentForm priceLabel={priceLabel} />
         </section>
       </div>
 

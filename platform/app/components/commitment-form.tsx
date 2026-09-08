@@ -1,15 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { startCheckoutAction } from "@/app/auth/actions";
+import { startSubscriptionAction } from "@/app/auth/actions";
 
-export function CommitmentForm({
-  unitId,
-  priceLabel,
-}: {
-  unitId: string;
-  priceLabel: string;
-}) {
+export function CommitmentForm({ priceLabel }: { priceLabel: string }) {
   const [ack1, setAck1] = useState(false);
   const [ack2, setAck2] = useState(false);
   const [ack3, setAck3] = useState(false);
@@ -21,9 +15,7 @@ export function CommitmentForm({
   const box = "mt-0.5 size-4 shrink-0 accent-lime-pulse";
 
   return (
-    <form action={startCheckoutAction} className="mt-6">
-      <input type="hidden" name="unit_id" value={unitId} />
-
+    <form action={startSubscriptionAction} className="mt-6">
       <fieldset className="space-y-3">
         <legend className="field-label">Before you pay</legend>
         <label className={row}>
@@ -34,8 +26,8 @@ export function CommitmentForm({
             className={box}
           />
           <span>
-            Later units open as you clear earlier units. Buying this one opens only this
-            one, not the whole program.
+            All access is a monthly subscription. It renews every month until
+            you cancel, and every unit stays open while it is active.
           </span>
         </label>
         <label className={row}>
@@ -65,10 +57,10 @@ export function CommitmentForm({
       </fieldset>
 
       <button type="submit" disabled={!canSubmit} className="btn btn-accent mt-7 w-full">
-        Pay {priceLabel}
+        Subscribe — {priceLabel} / month
       </button>
       <p className="mt-3 text-[13px] text-[color:var(--text-faint-on-dark)]">
-        Stripe handles payment. We never see your card number, and we never want to.
+        Paddle handles payment. We never see your card number, and we never want to.
       </p>
     </form>
   );

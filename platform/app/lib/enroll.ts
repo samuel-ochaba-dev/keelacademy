@@ -50,6 +50,24 @@ export type OwnSubmission = {
 
 export type UnitPrice = { unit_id: string; amount_cents: number; currency: string };
 
+export type SubscriptionPrice = {
+  price_id: string;
+  amount_cents: number;
+  currency: string;
+  interval: string;
+};
+
+export type SubscriptionCheckout = {
+  transaction_id: string;
+  url: string;
+  price_id: string;
+};
+
+export type SubscriptionStatus = {
+  transaction_id: string;
+  status: "pending" | "active" | "trialing" | "past_due" | "paused" | "canceled";
+};
+
 export type CheckoutSession = {
   stripe_session_id: string;
   url: string;
@@ -167,6 +185,31 @@ export function createCheckoutSession(input: {
       cancel_url: input.cancelUrl,
     }),
   });
+}
+
+export function fetchSubscriptionPrice(): Promise<EnrollResult<SubscriptionPrice>> {
+  return enrollFetch<SubscriptionPrice>("/subscription/price");
+}
+
+export function createSubscriptionCheckout(input: {
+  studentId: number;
+  successUrl: string;
+}): Promise<EnrollResult<SubscriptionCheckout>> {
+  return enrollFetch<SubscriptionCheckout>("/checkout/subscription", {
+    method: "POST",
+    body: JSON.stringify({
+      student_id: input.studentId,
+      success_url: input.successUrl,
+    }),
+  });
+}
+
+export function fetchSubscriptionStatus(
+  transactionId: string,
+): Promise<EnrollResult<SubscriptionStatus>> {
+  return enrollFetch<SubscriptionStatus>(
+    `/subscription/status?transaction_id=${encodeURIComponent(transactionId)}`,
+  );
 }
 
 export function formatPrice(amountCents: number, currency: string): string {

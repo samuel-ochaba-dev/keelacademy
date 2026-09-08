@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
-import { startCheckoutAction } from "@/app/auth/actions";
 import {
   ensureStudent,
   fetchOwnSubmissions,
-  fetchPrice,
   fetchProfile,
   formatPrice,
   type EnrollResult,
@@ -117,12 +115,6 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
   const enrolledUnits = new Set(
     profileResult.state === "ok" ? profileResult.data.enrollments.map((e) => e.unit_id) : [],
   );
-  const prices = new Map<string, EnrollResult<{ amount_cents: number; currency: string }>>();
-  await Promise.all(
-    units
-      .filter((u) => !enrolledUnits.has(u.id))
-      .map(async (u) => prices.set(u.id, await fetchPrice(u.id))),
-  );
   const budget = profileResult.state === "ok" ? profileResult.data.budget : null;
   const rebates = profileResult.state === "ok" ? profileResult.data.rebates : [];
 
@@ -203,7 +195,6 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
                         <UnitRowAction
                           unitId={unit.id}
                           enrolled={isEnrolled}
-                          price={prices.get(unit.id)}
                         />
                       </td>
                     </tr>
@@ -240,11 +231,9 @@ async function EnrolledSections({ studentId }: { studentId: number }) {
 function UnitRowAction({
   unitId,
   enrolled,
-  price,
 }: {
   unitId: string;
   enrolled: boolean;
-  price: EnrollResult<{ amount_cents: number; currency: string }> | undefined;
 }) {
   if (enrolled) {
     return (
@@ -254,16 +243,10 @@ function UnitRowAction({
     );
   }
 
-  const priceLabel =
-    price?.state === "ok" ? formatPrice(price.data.amount_cents, price.data.currency) : null;
-
   return (
-    <form action={startCheckoutAction}>
-      <input type="hidden" name="unit_id" value={unitId} />
-      <button type="submit" className="btn btn-accent btn-sm">
-        {priceLabel ? `Enroll for ${priceLabel}` : `Enroll in unit ${unitId}`}
-      </button>
-    </form>
+    <Link href="/checkout" className="btn btn-accent btn-sm">
+      Get all access
+    </Link>
   );
 }
 

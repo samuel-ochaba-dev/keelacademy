@@ -398,30 +398,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/subscription/status":
-            # GET: the app's checkout-success page polls this with the
-            # transaction id Paddle appended to the success url, and shows
-            # the subscription state without guessing.
-            tid = (query.get("transaction_id") or [""])[0]
-            if not re.match(r"^[A-Za-z0-9_\-]{1,128}$", tid):
-                self._respond(400, {"error": "bad transaction id"})
-                return
-            rows = db_sql(
-                "BEGIN;\n"
-                "SELECT ss.transaction_id, COALESCE(\n"
-                "  (SELECT status FROM subscriptions sub\n"
-                "   WHERE sub.customer_id = ss.customer_id\n"
-                "   ORDER BY sub.id DESC LIMIT 1), 'pending')\n"
-                "FROM subscription_signups ss\n"
-                "WHERE ss.transaction_id = %s;\n"
-                "ROLLBACK;\n" % sql_str(tid)
-            )
-            if not rows:
-                self._respond(404, {"error": "not_found"})
-                return
-            self._respond(200, {
-                "transaction_id": rows[0][0],
-                "status": rows[0][1],
-            })
+            self._handle_subscription_status()
             return
 
         if parsed.path == "/checkout/status":
@@ -1082,6 +1059,68 @@ COMMIT;
         # Paddle sends many event types to the same destination; ack the
         # ones we do not act on so they are not redelivered.
         self._respond(200, {"ok": True, "handled": False})
+
+    def _handle_subscription_status(self):
+        """GET /subscription/status?transaction_id=... — what the app's
+        checkout success page polls (lib/enroll.ts fetchSubscriptionStatus).
+        Resolution order for the status of ONE checkout transaction:
+        1. A subscription row linked to this transaction through the
+           payments ledger (transaction.completed carries
+           subscription_id) — authoritative, including canceled later.
+        2. A payments row for this transaction without a linked
+           subscription yet — money landed, subscription event still in
+           flight: "pending".
+        3. The student's most recent subscription row (repeat customer
+           with an older canceled plan and a fresh unpaid checkout).
+        4. Otherwise "pending" (checkout created, nothing confirmed yet).
+        Unknown transaction: 404."""
+        parsed = urllib.parse.urlsplit(self.path)
+        query = urllib.parse.parse_qs(parsed.query)
+        txn_id = (query.get("transaction_id") or [""])[0]
+        if not re.match(r"^[A-Za-z0-9_\-]{1,128}$", txn_id):
+            self._respond(400, {"error": "bad transaction id"})
+            return
+        rows = db_sql(
+            "BEGIN;\n"
+            "SELECT student_id FROM subscription_signups\n"
+            "WHERE transaction_id = %s;\n"
+            "ROLLBACK;\n" % sql_str(txn_id)
+        )
+        if not rows:
+            self._respond(404, {"error": "not_found"})
+            return
+        student_id = int(rows[0][0])
+        status = None
+        linked = db_sql(
+            "BEGIN;\n"
+            "SELECT s.status FROM payments p\n"
+            "JOIN subscriptions s\n"
+            "  ON s.paddle_subscription_id = p.paddle_subscription_id\n"
+            "WHERE p.paddle_transaction_id = %s\n"
+            "ORDER BY s.id DESC LIMIT 1;\n"
+            "ROLLBACK;\n" % sql_str(txn_id)
+        )
+        if linked:
+            status = str(linked[0][0])
+        else:
+            paid = db_sql(
+                "BEGIN;\n"
+                "SELECT EXISTS (SELECT 1 FROM payments\n"
+                "WHERE paddle_transaction_id = %s);\n"
+                "ROLLBACK;\n" % sql_str(txn_id)
+            )
+            if paid and paid[0][0] == "t":
+                status = "pending"
+            else:
+                latest = db_sql(
+                    "BEGIN;\n"
+                    "SELECT status FROM subscriptions\n"
+                    "WHERE student_id = %d\n"
+                    "ORDER BY created_at DESC, id DESC LIMIT 1;\n"
+                    "ROLLBACK;\n" % student_id
+                )
+                status = str(latest[0][0]) if latest else "pending"
+        self._respond(200, {"transaction_id": txn_id, "status": status})
 
     def _handle_webhook(self):
         ok, raw = self._read_body()

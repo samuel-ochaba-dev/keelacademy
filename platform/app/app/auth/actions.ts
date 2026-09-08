@@ -25,7 +25,10 @@ import {
   setKeelSessionCookie,
   setOfflineSessionCookie,
 } from "@/lib/auth";
-import { createCheckoutSession, ensureStudent } from "@/lib/enroll";
+import {
+  createSubscriptionCheckout,
+  ensureStudent,
+} from "@/lib/enroll";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -176,16 +179,22 @@ export async function resetConfirmAction(formData: FormData): Promise<void> {
  * credential-free environments). The {CHECKOUT_SESSION_ID} placeholder in
  * success_url is substituted by Stripe itself at redirect time.
  */
-export async function startCheckoutAction(formData: FormData): Promise<void> {
-  const unitId = String(formData.get("unit_id") ?? "");
+/**
+ * Start a Paddle subscription checkout for the all-access plan (owner
+ * decision 2026-09-07: a monthly all-access subscription replaces per-unit
+ * pricing; enrollment follows the subscription). The {TRANSACTION_ID}
+ * placeholder in success_url is substituted by Paddle itself at redirect
+ * time, the same pattern Stripe uses with {CHECKOUT_SESSION_ID}.
+ */
+export async function startSubscriptionAction(): Promise<void> {
   const user = await getSessionUser();
   if (!user) {
-    redirect(`/sign-in?next=${encodeURIComponent(`/me`)}`);
+    redirect(`/sign-in?next=${encodeURIComponent(`/checkout`)}`);
   }
   const bridged = await ensureStudent(user);
   if (bridged.state !== "ok") {
     redirect(
-      `/me?checkout=${bridged.state === "rejected" ? bridged.code : "unreachable"}`,
+      `/checkout?error=${bridged.state === "rejected" ? bridged.code : "unreachable"}`,
     );
   }
   const headerList = await headers();
@@ -193,16 +202,14 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
   const proto = headerList.get("x-forwarded-proto") ?? "http";
   const origin = `${proto}://${host}`;
 
-  const session = await createCheckoutSession({
+  const checkout = await createSubscriptionCheckout({
     studentId: bridged.data,
-    unitId,
-    successUrl: `${origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}&unit=${encodeURIComponent(unitId)}`,
-    cancelUrl: `${origin}/checkout/cancel`,
+    successUrl: `${origin}/checkout/success?transaction_id={TRANSACTION_ID}`,
   });
-  if (session.state !== "ok") {
+  if (checkout.state !== "ok") {
     redirect(
-      `/me?checkout=${session.state === "rejected" ? session.code : "unreachable"}`,
+      `/checkout?error=${checkout.state === "rejected" ? checkout.code : "unreachable"}`,
     );
   }
-  redirect(session.data.url);
+  redirect(checkout.data.url);
 }
