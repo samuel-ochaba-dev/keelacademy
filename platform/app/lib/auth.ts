@@ -334,9 +334,9 @@ export function offlineExternalId(email: string): string {
 }
 
 function loadStore(): { users: StoredUser[] } {
-  if (!existsSync(storePath())) return { users: [] };
+  if (!existsSync(/*turbopackIgnore: true*/ storePath())) return { users: [] };
   try {
-    const parsed = JSON.parse(readFileSync(storePath(), "utf8"));
+    const parsed = JSON.parse(readFileSync(/*turbopackIgnore: true*/ storePath(), "utf8"));
     if (Array.isArray(parsed?.users)) return parsed;
   } catch {
     // unreadable store: treat as empty rather than crash the page
