@@ -26,6 +26,7 @@ READER_PORT="8790"
 ENROLL_PORT="8791"
 PRACTICE_PORT="8792"
 FAKE_STRIPE_PORT="8793"
+FAKE_PADDLE_PORT="8798"
 PROXY_PORT="8794"
 FAKE_JUDGE_PORT="8795"
 APP_PORT="3000"
@@ -59,7 +60,7 @@ wait_port() {
 if [ -f "$STATE_FILE" ]; then
     # shellcheck disable=SC1090
     . "$STATE_FILE"
-    for pid in "${FAKE_STRIPE_PID:-}" "${FAKE_JUDGE_PID:-}" "${PROXY_PID:-}" "${ENROLL_PID:-}" "${READER_PID:-}" "${PRACTICE_PID:-}"; do
+    for pid in "${FAKE_STRIPE_PID:-}" "${FAKE_PADDLE_PID:-}" "${FAKE_JUDGE_PID:-}" "${PROXY_PID:-}" "${ENROLL_PID:-}" "${READER_PID:-}" "${PRACTICE_PID:-}"; do
         if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
             kill "$pid" 2>/dev/null || true
         fi
@@ -67,7 +68,7 @@ if [ -f "$STATE_FILE" ]; then
 fi
 
 # Also kill any stale python servers on these ports
-for p in $READER_PORT $ENROLL_PORT $PRACTICE_PORT $FAKE_STRIPE_PORT $PROXY_PORT $FAKE_JUDGE_PORT; do
+for p in $READER_PORT $ENROLL_PORT $PRACTICE_PORT $FAKE_STRIPE_PORT $PROXY_PORT $FAKE_JUDGE_PORT 8798; do
     fuser -k -n tcp "$p" 2>/dev/null || true
 done
 
@@ -88,9 +89,9 @@ for i in $(seq 1 30); do
     sleep 0.5
 done
 
-# 3. Apply migrations 0001..0014
-echo "== [2/6] Applying Postgres migrations 0001..0014 =="
-for mig in 0001_init 0002_intake 0003_budgets 0004_enrollments 0005_rebates 0006_gates 0007_practice 0008_retrieval 0009_concierge 0010_diagnostic 0011_pods 0012_digests 0013_gallery 0014_simulations; do
+# 3. Apply migrations 0001..0016
+echo "== [2/6] Applying Postgres migrations 0001..0016 =="
+for mig in 0001_init 0002_intake 0003_budgets 0004_enrollments 0005_rebates 0006_gates 0007_practice 0008_retrieval 0009_concierge 0010_diagnostic 0011_pods 0012_digests 0013_gallery 0014_simulations 0015_auth 0016_subscriptions; do
     "$DOCKER" exec -i "$CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 < "$SCHEMA_DIR/$mig.sql" >/dev/null
 done
 
@@ -203,12 +204,55 @@ EOF
 # 6. Start Backend Python Microservices
 echo "== [4/6] Starting background Python microservices =="
 
-# Fake Stripe
-( exec env KEEL_FAKE_STRIPE_PORT="$FAKE_STRIPE_PORT" \
-    KEEL_FAKE_STRIPE_WEBHOOK_URL="http://127.0.0.1:$ENROLL_PORT/webhook/stripe" \
-    KEEL_FAKE_STRIPE_WEBHOOK_SECRET="$WHSEC" \
-    setsid python3 "$REPO_ROOT/platform/grading/enroll/fake_stripe.py" ) >> "$LOG_DIR/fake-stripe.log" 2>&1 < /dev/null &
-FAKE_STRIPE_PID=$!
+# Load local secrets from ~/.keelacademy/app.env if present
+if [ -f "$HOME/.keelacademy/app.env" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    . "$HOME/.keelacademy/app.env"
+    set +a
+fi
+
+BILLING_PROVIDER="${KEEL_BILLING_PROVIDER:-fake}"
+FAKE_PADDLE_PID=""
+
+if [ "$BILLING_PROVIDER" = "paddle" ]; then
+    echo "Using real Paddle billing (provider: paddle)"
+    ( exec env KEEL_ENROLL_PORT="$ENROLL_PORT" \
+        KEEL_DB_CMD="$DB_CMD_PLAIN" \
+        KEEL_ENROLL_SECRET="$APP_TOKEN" \
+        KEEL_BILLING_PROVIDER="paddle" \
+        PADDLE_API_KEY="${PADDLE_API_KEY:-}" \
+        PADDLE_PRICE_ID="${PADDLE_PRICE_ID:-}" \
+        KEEL_PADDLE_API_URL="${KEEL_PADDLE_API_URL:-https://sandbox-api.paddle.com}" \
+        KEEL_PADDLE_WEBHOOK_SECRET="${KEEL_PADDLE_WEBHOOK_SECRET:-}" \
+        KEEL_PRICE_CENTS_DEFAULT="$PRICE_CENTS" \
+        KEEL_DEFAULT_BUDGET_TOKENS="100000" \
+        RESEND_API_KEY="${RESEND_API_KEY:-}" \
+        setsid python3 "$REPO_ROOT/platform/grading/enroll/server.py" ) >> "$LOG_DIR/enroll.log" 2>&1 < /dev/null &
+    ENROLL_PID=$!
+else
+    echo "Using offline fake Paddle billing (port $FAKE_PADDLE_PORT)"
+    ( exec env KEEL_FAKE_PADDLE_PORT="$FAKE_PADDLE_PORT" \
+        KEEL_FAKE_PADDLE_PRICE_ID="pri_fake_allaccess" \
+        KEEL_FAKE_PADDLE_AMOUNT_CENTS="4900" \
+        KEEL_FAKE_PADDLE_WEBHOOK_URL="http://127.0.0.1:$ENROLL_PORT/webhook/paddle" \
+        KEEL_FAKE_PADDLE_WEBHOOK_SECRET="whsec_fake_paddle" \
+        setsid python3 "$REPO_ROOT/platform/grading/enroll/fake_paddle.py" ) >> "$LOG_DIR/fake-paddle.log" 2>&1 < /dev/null &
+    FAKE_PADDLE_PID=$!
+
+    ( exec env KEEL_ENROLL_PORT="$ENROLL_PORT" \
+        KEEL_DB_CMD="$DB_CMD_PLAIN" \
+        KEEL_ENROLL_SECRET="$APP_TOKEN" \
+        KEEL_BILLING_PROVIDER="fake" \
+        KEEL_FAKE_PADDLE_URL="http://127.0.0.1:$FAKE_PADDLE_PORT" \
+        KEEL_PADDLE_WEBHOOK_SECRET="whsec_fake_paddle" \
+        PADDLE_PRICE_ID="pri_fake_allaccess" \
+        KEEL_PRICE_CENTS_DEFAULT="$PRICE_CENTS" \
+        KEEL_DEFAULT_BUDGET_TOKENS="100000" \
+        RESEND_API_KEY="${RESEND_API_KEY:-}" \
+        setsid python3 "$REPO_ROOT/platform/grading/enroll/server.py" ) >> "$LOG_DIR/enroll.log" 2>&1 < /dev/null &
+    ENROLL_PID=$!
+fi
 
 # Fake Judge Upstream
 ( exec env KEEL_FAKE_PORT="$FAKE_JUDGE_PORT" \
@@ -221,19 +265,6 @@ FAKE_JUDGE_PID=$!
     KEEL_DB_CMD="$DB_CMD_PLAIN" \
     setsid python3 "$REPO_ROOT/platform/grading/proxy/server.py" ) >> "$LOG_DIR/proxy.log" 2>&1 < /dev/null &
 PROXY_PID=$!
-
-# Enroll Service
-( exec env KEEL_ENROLL_PORT="$ENROLL_PORT" \
-    KEEL_DB_CMD="$DB_CMD_PLAIN" \
-    KEEL_ENROLL_SECRET="$APP_TOKEN" \
-    KEEL_STRIPE_API_URL="http://127.0.0.1:$FAKE_STRIPE_PORT/v1" \
-    STRIPE_SECRET_KEY="$STRIPE_KEY" \
-    KEEL_STRIPE_WEBHOOK_SECRET="$WHSEC" \
-    KEEL_PRICE_CENTS_3_2_1="$PRICE_CENTS" \
-    KEEL_PRICE_CENTS_DEFAULT="$PRICE_CENTS" \
-    KEEL_DEFAULT_BUDGET_TOKENS="100000" \
-    setsid python3 "$REPO_ROOT/platform/grading/enroll/server.py" ) >> "$LOG_DIR/enroll.log" 2>&1 < /dev/null &
-ENROLL_PID=$!
 
 # Reader Service
 ( exec env KEEL_READER_PORT="$READER_PORT" \
@@ -251,7 +282,9 @@ READER_PID=$!
     setsid python3 "$REPO_ROOT/platform/grading/practice/server.py" ) >> "$LOG_DIR/practice.log" 2>&1 < /dev/null &
 PRACTICE_PID=$!
 
-wait_port "$FAKE_STRIPE_PORT" "Fake Stripe"
+if [ "$BILLING_PROVIDER" = "fake" ]; then
+    wait_port "$FAKE_PADDLE_PORT" "Fake Paddle"
+fi
 wait_port "$FAKE_JUDGE_PORT" "Fake Judge"
 wait_port "$PROXY_PORT" "LLM Proxy"
 wait_port "$ENROLL_PORT" "Enroll Service"
@@ -260,7 +293,7 @@ wait_port "$PRACTICE_PORT" "Practice Service"
 
 # Save state
 cat > "$STATE_FILE" << STATE
-FAKE_STRIPE_PID=$FAKE_STRIPE_PID
+FAKE_PADDLE_PID=$FAKE_PADDLE_PID
 FAKE_JUDGE_PID=$FAKE_JUDGE_PID
 PROXY_PID=$PROXY_PID
 ENROLL_PID=$ENROLL_PID
@@ -274,10 +307,16 @@ cat > "$APP_DIR/.env.local" << EOF
 KEEL_READER_URL=http://127.0.0.1:$READER_PORT
 KEEL_ENROLL_URL=http://127.0.0.1:$ENROLL_PORT
 KEEL_PRACTICE_URL=http://127.0.0.1:$PRACTICE_PORT
+KEEL_AUTH_URL=http://127.0.0.1:$ENROLL_PORT
 KEEL_ENROLL_SECRET=$APP_TOKEN
 KEEL_OFFLINE_AUTH_SECRET=$AUTH_SECRET
 KEEL_OFFLINE_AUTH_STORE=/tmp/keel-offline-auth.json
 KEEL_ADMIN_EMAILS=alice@keel.test,admin@keelacademy.com
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+RESEND_API_KEY=${RESEND_API_KEY:-}
 EOF
 
 # 8. Start / Restart Next.js dev server
@@ -306,6 +345,6 @@ echo "  Build Gallery    : http://localhost:3000/gallery"
 echo "  Staff Telemetry  : http://localhost:3000/admin/analytics"
 echo "-----------------------------------------------------------------"
 echo "  Reader Svc (:8790) | Enroll Svc (:8791) | Practice Svc (:8792)"
-echo "  Fake Stripe (:8793)| LLM Proxy (:8794)  | Postgres (:5432)"
+echo "  Billing: $BILLING_PROVIDER     | LLM Proxy (:8794)  | Postgres (:5432)"
 echo "  Logs located in: $LOG_DIR"
 echo "================================================================="

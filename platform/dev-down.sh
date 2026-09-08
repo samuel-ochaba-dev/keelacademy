@@ -10,7 +10,7 @@ echo "== Stopping background microservices =="
 if [ -f "$STATE_FILE" ]; then
     # shellcheck disable=SC1090
     . "$STATE_FILE"
-    for pid in "${APP_PID:-}" "${FAKE_STRIPE_PID:-}" "${FAKE_JUDGE_PID:-}" "${PROXY_PID:-}" "${ENROLL_PID:-}" "${READER_PID:-}" "${PRACTICE_PID:-}"; do
+    for pid in "${APP_PID:-}" "${FAKE_STRIPE_PID:-}" "${FAKE_PADDLE_PID:-}" "${FAKE_JUDGE_PID:-}" "${PROXY_PID:-}" "${ENROLL_PID:-}" "${READER_PID:-}" "${PRACTICE_PID:-}"; do
         if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
             kill "$pid" 2>/dev/null || true
         fi
@@ -18,7 +18,7 @@ if [ -f "$STATE_FILE" ]; then
     rm -f "$STATE_FILE"
 fi
 
-for p in 8790 8791 8792 8793 8794 8795; do
+for p in 8790 8791 8792 8793 8794 8795 8798; do
     fuser -k -n tcp "$p" 2>/dev/null || true
 done
 
